@@ -1,0 +1,550 @@
+[
+    {
+        "id": "88192d3c90a4ccf6",
+        "type": "tab",
+        "label": "台北市Youbike資訊",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "1ab2ecdcb462d093",
+        "type": "http request",
+        "z": "88192d3c90a4ccf6",
+        "name": "",
+        "method": "GET",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "https://tcgbusfs.blob.core.windows.net/dotapp/youbike/v2/youbike_immediate.json",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 140,
+        "y": 160,
+        "wires": [
+            [
+                "b6dbfdb99ae00a39"
+            ]
+        ]
+    },
+    {
+        "id": "2fd48e6bc5902bc2",
+        "type": "inject",
+        "z": "88192d3c90a4ccf6",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 100,
+        "y": 60,
+        "wires": [
+            [
+                "1ab2ecdcb462d093"
+            ]
+        ]
+    },
+    {
+        "id": "b6dbfdb99ae00a39",
+        "type": "json",
+        "z": "88192d3c90a4ccf6",
+        "name": "",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 330,
+        "y": 160,
+        "wires": [
+            [
+                "35cd7e7ded7cbcf5"
+            ]
+        ]
+    },
+    {
+        "id": "35cd7e7ded7cbcf5",
+        "type": "function",
+        "z": "88192d3c90a4ccf6",
+        "name": "準備下拉選單選項",
+        "func": "const stationData = msg.payload; // 獲取返回的數據\n\n// 將數據存儲到全局變數中，方便後續查詢\nglobal.set('stations', stationData);\n\n// 準備下拉選單選項\nconst options = stationData.map(station => {\n    return {\n        [station.sna]: [station.sno]   // 實際值\n    };\n});\n\n// 將選項發送到下一個節點\nmsg.payload = options;\nmsg.options = options; // 將選項放入 msg.payload\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 530,
+        "y": 160,
+        "wires": [
+            [
+                "35a818538536d205"
+            ]
+        ]
+    },
+    {
+        "id": "35a818538536d205",
+        "type": "ui_dropdown",
+        "z": "88192d3c90a4ccf6",
+        "name": "",
+        "label": "請點選或搜尋欲查找之站點",
+        "tooltip": "",
+        "place": "請點選或搜尋欲查找之站點",
+        "group": "f354d122a2955788",
+        "order": 2,
+        "width": 14,
+        "height": 1,
+        "passthru": true,
+        "multiple": false,
+        "options": [],
+        "payload": "",
+        "topic": "payload",
+        "topicType": "msg",
+        "className": "",
+        "x": 220,
+        "y": 420,
+        "wires": [
+            [
+                "c4c7a9ec5fc6b266",
+                "abcf9cac9e42510a",
+                "221727aa63e28888"
+            ]
+        ]
+    },
+    {
+        "id": "c4c7a9ec5fc6b266",
+        "type": "function",
+        "z": "88192d3c90a4ccf6",
+        "name": "可還數量",
+        "func": "// 獲取下拉選單選擇的站點 ID（從陣列中取出第一個元素）\nconst selectedStationId = msg.payload[0];\nconst stations = global.get('stations'); // 獲取之前存儲的站點數據\n\n// 確認 stations 是否存在且是數組類型\nif (!stations || !Array.isArray(stations)) {\n    node.warn(\"全局變數 'stations' 未定義或不是數組\");\n    msg.payload = \"<div style='color: red;'>數據不可用，請檢查全局變數設定。</div>\";\n    return msg;\n}\n\n// 根據選擇的站點 ID 查找對應的站點數據\nconst station = stations.find(s => s.sno === selectedStationId);\nif (station) {\n    const availableReturnBikes = station.available_return_bikes;\n    const availableRentBikes = station.available_rent_bikes;\n\n    // 可選：根據某些條件決定是否顯示詳細信息\n    // 比如：如果可租車輛數量大於 0，顯示詳細資訊\n    if (availableRentBikes > 0) {\n        // 使用HTML標籤進行格式化，並且加上樣式\n        msg.payload = `\n            <div style=\"text-align: left; white-space: pre-wrap;\">\n                站點代號      : ${station.sno} <br>\n                場站名稱      : ${station.sna} <br>\n                場站區域      : ${station.sarea} <br>\n                場站區域英文  : ${station.sareaen} <br>\n                場站名稱英文  : ${station.snaen} <br>\n                地址          : ${station.ar} <br>\n                地址英文      : ${station.aren} <br>\n                總停車格      : ${station.total} <br>\n                可租車輛數量  : ${availableRentBikes} <br>\n                可還車位數量  : ${availableReturnBikes} <br>\n                緯度          : ${station.latitude} <br>\n                經度          : ${station.longitude} <br>\n                資料更新時間  : ${station.mday} <br>\n                系統資料更新時間: ${station.srcUpdateTime} <br>\n                全站禁用狀態  : ${station.act} <br>\n            </div>\n        `;\n    } else {\n        msg.payload = \"<div style='color: red;'>選擇的站點無可租車輛</div>\";\n    }\n\n    // 根據可還車位數量設定圖示顏色\n    if (availableReturnBikes >= 10) {\n        msg.iconColor = \"green\"; // 綠燈\n    } else if (availableReturnBikes >= 5) {\n        msg.iconColor = \"yellow\"; // 黃燈\n    } else if (availableReturnBikes >= 1) {\n        msg.iconColor = \"orange\"; // 橘燈\n    } else {\n        msg.iconColor = \"red\"; // 紅燈\n    }\n\n    // 使用Font Awesome燈泡圖標並根據顏色顯示\n    msg.payload += `\n        <div style=\"font-size: 50px; font-family: 'Arial Black'; font-weight: bold; text-align: center;\">\n            目前站點可還車數量狀態: \n            <i class=\"fas fa-lightbulb\" style=\"color: ${msg.iconColor};\"></i> <!-- Font Awesome 燈泡圖標 -->\n        </div>\n    `;\n} else {\n    msg.payload = \"<div style='color: red;'>未找到站點</div>\"; // 處理未找到的情況\n}\n\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 560,
+        "y": 340,
+        "wires": [
+            [
+                "0a468be1b17521bf"
+            ]
+        ]
+    },
+    {
+        "id": "0a468be1b17521bf",
+        "type": "ui_template",
+        "z": "88192d3c90a4ccf6",
+        "group": "f354d122a2955788",
+        "name": "燈號狀態顯示",
+        "order": 10,
+        "width": 7,
+        "height": 1,
+        "format": "<head>\n    <link href=\"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css\" rel=\"stylesheet\">\n</head>\n\n<div style=\"font-size: 24px; font-family: 'Palatino Linotype'; font-weight: bold; text-align: left;\">\n    <!-- 設置文字顏色 -->\n    <span style=\"color: #A0153E;\">目前站點可還車數量狀態：</span>\n    <!-- Font Awesome 燈泡圖標，燈泡顏色根據 msg.iconColor 來設定 -->\n    <i class=\"fas fa-lightbulb\" style=\"color: {{msg.iconColor}};\"></i>\n</div>",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 740,
+        "y": 340,
+        "wires": [
+            [
+                "586e88043b63acb3"
+            ]
+        ]
+    },
+    {
+        "id": "abcf9cac9e42510a",
+        "type": "function",
+        "z": "88192d3c90a4ccf6",
+        "name": "地圖設定",
+        "func": "// 獲取下拉選單選擇的站點 ID（從陣列中取出第一個元素）\nconst selectedStationId = msg.payload[0];\nconst stations = global.get('stations'); // 獲取之前存儲的站點數據\n\n// 確認 stations 是否存在且是數組類型\nif (!stations || !Array.isArray(stations)) {\n    node.warn(\"全局變數 'stations' 未定義或不是數組\");\n    msg.payload = \"<div style='color: red;'>數據不可用，請檢查全局變數設定。</div>\";\n    return msg;\n}\n\n// 根據選擇的站點 ID 查找對應的站點數據\nconst station = stations.find(s => s.sno === selectedStationId);\nif (station) {\n    const availableReturnBikes = station.available_return_bikes;\n    const availableRentBikes = station.available_rent_bikes;\n\n    // 構建返回給 ui_worldmap 的標註點資料\n    msg.payload = [{\n        name: station.sna,  // 場站名稱\n        lat: station.latitude,  // 緯度\n        lon: station.longitude,  // 經度\n        info: `站點代號: ${station.sno}<br>場站名稱: ${station.sna}<br>可租車輛數量: ${availableRentBikes}<br>可還車位數量: ${availableReturnBikes}`, // 顯示的信息\n        icon: \"fa-map-marker\",  // 設定地圖標誌圖示\n        iconColor: \"blue\" // 設定圖標顏色\n    }];\n\n    // 設定地圖中心與縮放級別，並將地圖縮放至選定地點\n    msg.topic = {\n        lat: station.latitude,  // 緯度\n        lon: station.longitude, // 經度\n        zoom: 20  // 設定縮放級別，這裡設為 20 可以清晰顯示選定的地點\n    };\n\n} else {\n    msg.payload = \"<div style='color: red;'>未找到站點</div>\"; // 處理未找到的情況\n}\n\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 560,
+        "y": 560,
+        "wires": [
+            [
+                "61b16edd81eb9c92",
+                "e1ce25eacbc35350"
+            ]
+        ]
+    },
+    {
+        "id": "61b16edd81eb9c92",
+        "type": "ui_worldmap",
+        "z": "88192d3c90a4ccf6",
+        "group": "f354d122a2955788",
+        "order": 11,
+        "width": 8,
+        "height": 6,
+        "name": "Youbike地標",
+        "lat": "",
+        "lon": "",
+        "zoom": "18",
+        "layer": "OSMC",
+        "cluster": "19",
+        "maxage": "",
+        "usermenu": "show",
+        "layers": "show",
+        "panit": "true",
+        "panlock": "false",
+        "zoomlock": "false",
+        "hiderightclick": "false",
+        "coords": "none",
+        "showgrid": "false",
+        "showruler": "false",
+        "allowFileDrop": "false",
+        "path": "/worldmap",
+        "overlist": "DR,CO,RA,DN,HM",
+        "maplist": "OSMG,OSMC,EsriC,EsriS,EsriT,EsriDG,UKOS",
+        "mapname": "",
+        "mapurl": "",
+        "mapopt": "",
+        "mapwms": false,
+        "x": 770,
+        "y": 600,
+        "wires": []
+    },
+    {
+        "id": "e1ce25eacbc35350",
+        "type": "ui_text",
+        "z": "88192d3c90a4ccf6",
+        "group": "f354d122a2955788",
+        "order": 7,
+        "width": 8,
+        "height": 1,
+        "name": "",
+        "label": "Youbike站點位置",
+        "format": "",
+        "layout": "row-center",
+        "className": "",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#000000",
+        "x": 790,
+        "y": 520,
+        "wires": []
+    },
+    {
+        "id": "fec7b7e885fe3bb8",
+        "type": "ui_text",
+        "z": "88192d3c90a4ccf6",
+        "group": "f354d122a2955788",
+        "order": 5,
+        "width": 9,
+        "height": 8,
+        "name": "",
+        "label": "",
+        "format": "{{msg.payload}}",
+        "layout": "col-center",
+        "className": "",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#000000",
+        "x": 710,
+        "y": 440,
+        "wires": []
+    },
+    {
+        "id": "221727aa63e28888",
+        "type": "function",
+        "z": "88192d3c90a4ccf6",
+        "name": "站點資訊",
+        "func": "// 獲取下拉選單選擇的站點 ID（從陣列中取出第一個元素）\nconst selectedStationId = msg.payload[0];\nconst stations = global.get('stations'); // 獲取之前存儲的站點數據\n\n// 確認 stations 是否存在且是數組類型\nif (!stations || !Array.isArray(stations)) {\n    node.warn(\"全局變數 'stations' 未定義或不是數組\");\n    msg.payload = \"<div style='color: red;'>數據不可用，請檢查全局變數設定。</div>\";\n    return msg;\n}\n\n// 根據選擇的站點 ID 查找對應的站點數據\nconst station = stations.find(s => s.sno === selectedStationId);\nif (station) {\n    const availableReturnBikes = station.available_return_bikes;\n    const availableRentBikes = station.available_rent_bikes;\n\n    // 使用HTML表格格式化數據\n    msg.payload = `\n        <table style=\"width: 100%; border: 1px solid black; border-collapse: collapse; text-align: left;\">\n            <tr style=\"background-color: #f2f2f2;\">\n                <th style=\"padding: 10px; border: 1px solid black; text-align: left;\">項目</th>\n                <th style=\"padding: 10px; border: 1px solid black; text-align: left;\">資料</th>\n            </tr>\n            <tr style=\"background-color: #e6f7ff;\">\n                <td style=\"padding: 10px; border: 1px solid black; text-align: left;\">站點代號</td>\n                <td style=\"padding: 10px; border: 1px solid black;\">${station.sno}</td>\n            </tr>\n            <tr style=\"background-color: #e6f7ff;\">\n                <td style=\"padding: 10px; border: 1px solid black; text-align: left;\">場站名稱</td>\n                <td style=\"padding: 10px; border: 1px solid black;\">${station.sna}</td>\n            </tr>\n            <tr style=\"background-color: #e6f7ff;\">\n                <td style=\"padding: 10px; border: 1px solid black; text-align: left;\">場站區域</td>\n                <td style=\"padding: 10px; border: 1px solid black;\">${station.sarea}</td>\n            </tr>\n            <tr style=\"background-color: #e6f7ff;\">\n                <td style=\"padding: 10px; border: 1px solid black; text-align: left;\">總停車格</td>\n                <td style=\"padding: 10px; border: 1px solid black;\">${station.total}</td>\n            </tr>\n            <tr style=\"background-color: #e6f7ff;\">\n                <td style=\"padding: 10px; border: 1px solid black; text-align: left;\">可租車輛數量</td>\n                <td style=\"padding: 10px; border: 1px solid black;\">${availableRentBikes}</td>\n            </tr>\n            <tr style=\"background-color: #e6f7ff;\">\n                <td style=\"padding: 10px; border: 1px solid black; text-align: left;\">可還車位數量</td>\n                <td style=\"padding: 10px; border: 1px solid black;\">${availableReturnBikes}</td>\n            </tr>\n            <tr style=\"background-color: #e6f7ff;\">\n                <td style=\"padding: 10px; border: 1px solid black; text-align: left;\">資料更新時間</td>\n                <td style=\"padding: 10px; border: 1px solid black;\">${station.mday}</td>\n            </tr>\n        </table>\n    `;\n} else {\n    msg.payload = \"<div style='color: red;'>未找到站點</div>\"; // 處理未找到的情況\n}\n\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 560,
+        "y": 440,
+        "wires": [
+            [
+                "fec7b7e885fe3bb8"
+            ]
+        ]
+    },
+    {
+        "id": "586e88043b63acb3",
+        "type": "ui_template",
+        "z": "88192d3c90a4ccf6",
+        "group": "f354d122a2955788",
+        "name": "說明",
+        "order": 14,
+        "width": 7,
+        "height": 2,
+        "format": "<head>\n    <!-- Font Awesome icon link -->\n    <link href=\"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css\" rel=\"stylesheet\">\n    <style>\n        /* 全局樣式設置 */\n        table {\n            width: 450px; /* 設置表格寬度為 400px */\n            border: 1px solid #EADBC8; /* 設置表格邊框顏色為 #9AC8CD */\n            border-collapse: collapse; /* 合併表格邊框 */\n            text-align: left; /* 設置表格內文字對齊方式為左對齊 */\n        }\n\n        table th,\n        table td {\n            padding: 10px;\n            border: 1.5px solid #EADBC8;\n            background-color: #FEFAF6;\n        }\n        table tr:first-child th {\n        background-color: #EADBC8; /* 藍色背景 */\n        color: #102C57; \n        }\n\n        \n\n        /* 字體樣式 */\n        .header-text {\n            font-size: 24px;\n            font-family: 'Arial Black';\n            font-weight: bold;\n            color: #B5C18E;\n            margin-bottom: 20px;\n        }\n    </style>\n</head>\n\n<div style=\"font-family:Arial Black; font-size:12px;\">\n    <p>說明：</p>\n    <p>可還數量為10台以上：綠燈</p>\n    <p>可還數量為9-5台：黃燈</p>\n    <p>可還數量為4-1台：橘燈</p>\n    <p>可還數量為0台：紅燈</p>\n</div>\n\n\n<!-- 渲染傳遞過來的 HTML 表格 -->\n<div ng-bind-html=\"msg.payload\"></div>",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 850,
+        "y": 240,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "0b539e51642095e7",
+        "type": "ui_spacer",
+        "z": "88192d3c90a4ccf6",
+        "name": "spacer",
+        "group": "f354d122a2955788",
+        "order": 1,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "67591e80c046a4f4",
+        "type": "ui_spacer",
+        "z": "88192d3c90a4ccf6",
+        "name": "spacer",
+        "group": "f354d122a2955788",
+        "order": 3,
+        "width": 11,
+        "height": 1
+    },
+    {
+        "id": "0d5a1e635d232c33",
+        "type": "ui_spacer",
+        "z": "88192d3c90a4ccf6",
+        "name": "spacer",
+        "group": "f354d122a2955788",
+        "order": 4,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "49fb22c3b0e00a23",
+        "type": "ui_spacer",
+        "z": "88192d3c90a4ccf6",
+        "name": "spacer",
+        "group": "f354d122a2955788",
+        "order": 6,
+        "width": 7,
+        "height": 1
+    },
+    {
+        "id": "458a0744b9da0333",
+        "type": "ui_spacer",
+        "z": "88192d3c90a4ccf6",
+        "name": "spacer",
+        "group": "f354d122a2955788",
+        "order": 8,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "ec135df35a9f490b",
+        "type": "ui_spacer",
+        "z": "88192d3c90a4ccf6",
+        "name": "spacer",
+        "group": "f354d122a2955788",
+        "order": 9,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "469e1ca303e1b5eb",
+        "type": "ui_spacer",
+        "z": "88192d3c90a4ccf6",
+        "name": "spacer",
+        "group": "f354d122a2955788",
+        "order": 12,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "26b81964dfe4a00e",
+        "type": "ui_spacer",
+        "z": "88192d3c90a4ccf6",
+        "name": "spacer",
+        "group": "f354d122a2955788",
+        "order": 13,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "1119d71f2ce2d7a0",
+        "type": "ui_spacer",
+        "z": "88192d3c90a4ccf6",
+        "name": "spacer",
+        "group": "f354d122a2955788",
+        "order": 15,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "0d39ae34e93fc3c5",
+        "type": "ui_spacer",
+        "z": "88192d3c90a4ccf6",
+        "name": "spacer",
+        "group": "f354d122a2955788",
+        "order": 16,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "6287af754effcaf8",
+        "type": "ui_spacer",
+        "z": "88192d3c90a4ccf6",
+        "name": "spacer",
+        "group": "f354d122a2955788",
+        "order": 17,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "5d93f1ea1a8773e8",
+        "type": "ui_spacer",
+        "z": "88192d3c90a4ccf6",
+        "name": "spacer",
+        "group": "f354d122a2955788",
+        "order": 18,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "7751b352fe0b29ae",
+        "type": "ui_spacer",
+        "z": "88192d3c90a4ccf6",
+        "name": "spacer",
+        "group": "f354d122a2955788",
+        "order": 19,
+        "width": 7,
+        "height": 1
+    },
+    {
+        "id": "e8b8c42e1af0551a",
+        "type": "ui_spacer",
+        "z": "88192d3c90a4ccf6",
+        "name": "spacer",
+        "group": "f354d122a2955788",
+        "order": 20,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "dbedfce5b63949da",
+        "type": "ui_spacer",
+        "z": "88192d3c90a4ccf6",
+        "name": "spacer",
+        "group": "f354d122a2955788",
+        "order": 21,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "dbc628831e504206",
+        "type": "ui_spacer",
+        "z": "88192d3c90a4ccf6",
+        "name": "spacer",
+        "group": "f354d122a2955788",
+        "order": 22,
+        "width": 7,
+        "height": 1
+    },
+    {
+        "id": "264935611e8da438",
+        "type": "ui_spacer",
+        "z": "88192d3c90a4ccf6",
+        "name": "spacer",
+        "group": "f354d122a2955788",
+        "order": 23,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "6c4fd771024c77e4",
+        "type": "ui_spacer",
+        "z": "88192d3c90a4ccf6",
+        "name": "spacer",
+        "group": "f354d122a2955788",
+        "order": 24,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "88aa50ba74f8e5c9",
+        "type": "ui_spacer",
+        "z": "88192d3c90a4ccf6",
+        "name": "spacer",
+        "group": "f354d122a2955788",
+        "order": 25,
+        "width": 7,
+        "height": 1
+    },
+    {
+        "id": "ad25218129ae6251",
+        "type": "ui_spacer",
+        "z": "88192d3c90a4ccf6",
+        "name": "spacer",
+        "group": "f354d122a2955788",
+        "order": 26,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "be53c0e53f795248",
+        "type": "ui_spacer",
+        "z": "88192d3c90a4ccf6",
+        "name": "spacer",
+        "group": "f354d122a2955788",
+        "order": 27,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "85fa43cb12d4433a",
+        "type": "ui_spacer",
+        "z": "88192d3c90a4ccf6",
+        "name": "spacer",
+        "group": "f354d122a2955788",
+        "order": 28,
+        "width": 16,
+        "height": 1
+    },
+    {
+        "id": "f354d122a2955788",
+        "type": "ui_group",
+        "name": "        各站點資訊",
+        "tab": "93f5ad3a077bfe93",
+        "order": 1,
+        "disp": true,
+        "width": 26,
+        "collapse": true,
+        "className": ""
+    },
+    {
+        "id": "93f5ad3a077bfe93",
+        "type": "ui_tab",
+        "name": "台北市Youbike資訊",
+        "icon": "dashboard",
+        "disabled": false,
+        "hidden": false
+    }
+]
