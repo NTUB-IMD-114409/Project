@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>會議寶・會員資訊</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      lucide.createIcons();
+    });
+  </script>
+  <style>
+    :root {
+      --color-nav: #e4e5e5;
+      --color-bg: #F5F8FA;
+      --color-title: #205f72;
+      --color-box: #cedfe4;
+      --color-button: #205f72;
+      --color-button-hover: #175c71;
+      --color-button-text: #FFFFFF;
+      --color-text: #000000;
+      --color-dashed: #cedfe4;
+    }
+  </style>
+</head>
+<body class="bg-[var(--color-bg)] min-h-screen font-sans text-[var(--color-text)]">
+
+  <!-- 導覽列 -->
+  <nav class="bg-[var(--color-nav)] px-6 py-4 flex justify-between items-center shadow-md">
+    <img src="icon/logo.png" alt="Logo 左側" class="w-14 h-auto">
+    <ul class="flex space-x-6 text-lg font-semibold">
+      <li><a href="#">文件上傳</a></li>
+      <li><a href="#">語音轉文字</a></li>
+      <li><a href="#">智能問答</a></li>
+      <li><a href="#">議題回顧</a></li>
+      <li><a href="#">成員介紹</a></li>
+    </ul>
+    <img src="icon/圖.jpeg" alt="Logo 右側" class="w-14 h-auto rounded-full">
+  </nav>
+
+  <!-- 會員資訊卡片 -->
+  <div class="flex justify-center items-center py-10">
+    <div class="bg-[var(--color-box)] w-full max-w-md p-6 rounded-2xl shadow-xl border border-dashed border-[var(--color-dashed)]">
+
+      <!-- 標題 -->
+      <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-[var(--color-title)]">會員資訊</h1>
+      </div>
+
+      <!-- 表單 -->
+      <form class="space-y-4">
+        <!-- 姓名 -->
+        <div>
+          <label class="block font-semibold text-[var(--color-title)]">姓名</label>
+          <div class="flex justify-between items-center gap-2">
+            <input type="text" placeholder="輸入姓名"
+                   class="flex-1 px-3 py-2 rounded-md border border-[var(--color-button)] focus:outline-none focus:ring-2 focus:ring-[var(--color-button)]">
+            <button title="編輯" class="p-2 rounded-full hover:bg-gray-100 transition">
+              <i data-lucide="pencil-line" class="w-5 h-5 text-gray-700 rotate-[-40deg]"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- 帳號（唯讀，不顯示筆） -->
+        <div>
+          <label class="block font-semibold text-[var(--color-title)]">帳號</label>
+          <input type="text" value="user@example.com" disabled
+                 class="w-[89%] px-3 py-2 rounded-md bg-[var(--color-bg)] text-gray-500 border border-[var(--color-button)]">
+        </div>
+
+        <!-- 密碼 -->
+        <div>
+          <label class="block font-semibold text-[var(--color-title)]">密碼</label>
+          <div class="flex justify-between items-center gap-2">
+            <input type="password" placeholder="輸入新密碼"
+                   class="flex-1 px-3 py-2 rounded-md border border-[var(--color-button)] focus:outline-none focus:ring-2 focus:ring-[var(--color-button)]">
+            <button title="編輯" class="p-2 rounded-full hover:bg-gray-100 transition">
+              <i data-lucide="pencil-line" class="w-5 h-5 text-gray-700 rotate-[-40deg]"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- 送出 -->
+        <div class="text-center pt-4">
+          <button type="submit"
+                  class="bg-[var(--color-button)] text-[var(--color-button-text)] font-semibold px-6 py-2 rounded-full hover:bg-[var(--color-button-hover)]">
+            送出
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</body>
+</html>
