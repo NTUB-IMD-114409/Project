@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>語音轉文字介面</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <style>
+        body { position: relative; min-height: 100vh; margin: 0; background-color: #f7f9fb; font-family: Arial, sans-serif; }
+        .title { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); font-size: 32px; color: #205f72; font-weight: bold; margin: 0; }
+        .generate-container { position: absolute; top: 80px; bottom: 120px; left: 50%; transform: translateX(-50%); width: 80%; max-width: 800px; background-color: #ffffff; border-radius: 8px; padding: 20px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); overflow-y: auto; }
+        .generate-container p { margin: 0 0 10px; line-height: 1.5; color: #333; }
+        /* 狀態訊息置中 */
+        .status-start { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 30px; color: #205f72; font-weight: bold; }
+        /* 停止訊息置底 */
+        .status-stop { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); font-size: 20px; color: #d8392b; font-weight: bold; }
+        .input-container { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; background-color: #d6e2e9; border-radius: 25px; padding: 10px; width: 80%; max-width: 800px; }
+        .input-container button { background: none; border: none; outline: none; cursor: pointer; font-size: 18px; padding: 10px; margin: 0 4px; }
+        .mic-btn { background-color: #205f72; color: #ffffff; border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; transition: background-color 0.2s, transform 0.1s; }
+        .mic-btn:hover { background-color: #205f72; }
+        .mic-btn.recording { background-color: #d8392b; }
+        .input-container input[type="text"] { flex-grow: 1; border: none; padding: 10px; border-radius: 20px; outline: none; text-align: center; background: none; }
+    </style>
+</head>
+<body>
+    <div class="title">語音轉文字</div>
+    <div class="generate-container" id="generateContainer"></div>
+    <div class="input-container">
+        <input type="file" id="fileInput" accept="audio/*,video/*" style="display:none;" />
+        <button id="fileBtn" title="上傳音檔或影片"><i class="fas fa-plus"></i></button>
+        <input type="text" id="textInput" placeholder="請選擇上傳檔案或開始錄音" />
+        <button id="micBtn" class="mic-btn" title="錄音/停止"><i class="fas fa-microphone"></i></button>
+    </div>
+    <script>
+        const input = document.getElementById('textInput');
+        const generateContainer = document.getElementById('generateContainer');
+        const fileBtn = document.getElementById('fileBtn');
+        const fileInput = document.getElementById('fileInput');
+        const micBtn = document.getElementById('micBtn');
+
+        function clearStatus() {
+            document.querySelectorAll('.status-start, .status-stop').forEach(el => el.remove());
+        }
+        function clearGenerated() {
+            generateContainer.querySelectorAll('p').forEach(p => p.remove());
+        }
+        function appendText(text) {
+            const p = document.createElement('p');
+            p.textContent = text;
+            generateContainer.appendChild(p);
+            generateContainer.scrollTop = generateContainer.scrollHeight;
+        }
+        function showStatus(msg, type) {
+            clearStatus();
+            const span = document.createElement('span');
+            span.textContent = msg;
+            span.classList.add(type === 'start' ? 'status-start' : 'status-stop');
+            generateContainer.appendChild(span);
+        }
+        async function callApi(endpoint, file) {
+            const form = new FormData(); form.append('file', file);
+            const res = await fetch(endpoint, { method: 'POST', body: form });
+            if (!res.ok) throw new Error(`${endpoint} 回傳錯誤`);
+            return res.json();
+        }
+
+        fileBtn.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', async e => {
+            const file = e.target.files[0]; if (!file) return;
+            clearStatus(); clearGenerated();
+            try {
+                showStatus('處理中...', 'start');
+                const key = file.type.startsWith('audio/') ? 'transcribe-audio' : 'transcribe-video';
+                const { transcript } = await callApi(`/api/${key}`, file);
+                clearStatus(); transcript.split('\n').forEach(line => appendText(line));
+            } catch (err) {
+                clearStatus(); appendText(`錯誤：${err.message}`);
+            } finally { fileInput.value = ''; }
+        });
+
+        input.addEventListener('keydown', e => { if (e.key === 'Enter') { clearStatus(); clearGenerated(); appendText(input.value.trim()); input.value = ''; }});
+
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        let recognition, finalTranscript = '';
+        let isRecording = false;
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = 'zh-TW';
+            recognition.maxAlternatives = 1;
+            recognition.onstart = () => {
+                isRecording = true; finalTranscript = '';
+                micBtn.classList.add('recording'); clearStatus(); clearGenerated();
+                showStatus('請開始說話...', 'start');
+            };
+            recognition.onresult = e => {
+                clearStatus();
+                const interim = Array.from(e.results)
+                    .map(r => r[0].transcript)
+                    .join('');
+                finalTranscript = interim;
+                // 顯示即時結果
+                clearGenerated(); appendText(interim);
+            };
+            recognition.onerror = e => { clearStatus(); appendText(`辨識失敗：${e.error}`); };
+            recognition.onend = () => {
+                if (isRecording) return; // 忽略非手動停止
+                micBtn.classList.remove('recording');
+                clearStatus(); showStatus('停止辨識', 'stop');
+            };
+            micBtn.addEventListener('click', () => {
+                if (!isRecording) {
+                    recognition.start();
+                } else {
+                    isRecording = false;
+                    recognition.stop();
+                }
+            });
+        } else {
+            micBtn.disabled = true; appendText('此瀏覽器不支援語音辨識');
+        }
+    </script>
+</body>
+</html>
