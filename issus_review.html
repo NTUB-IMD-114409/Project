@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>議題回顧頁面</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    /* ===============================
+       # 顏色設定區（專題風格）
+       =============================== */
+    :root {
+      --color-navbar: #e4e5e5;       /* 導覽列底色 */
+      --color-page-bg: #F5F8FA;     /* 頁面背景色 */
+      --color-title: #205f72;       /* 標題文字色 */
+      --color-box-bg: #cedfe4;      /* 框框背景色 */
+      --color-button: #175c71;      /* 按鈕主色 */
+      --color-button-bg: #205f72;   /* 按鈕背景色 */
+      --color-button-text: #FFFFFF; /* 按鈕文字色 */
+      --color-text: #000000;        /* 內文文字色 */
+      --color-dashed: #cedfe4;      /* 虛線邊框色 */
+    }
+  </style>
+</head>
+<body class="bg-[var(--color-page-bg)] min-h-screen font-sans text-[var(--color-text)]">
+
+  <!-- # 導覽列 -->
+  <nav class="bg-[var(--color-navbar)] px-6 py-4 shadow-md">
+    <div class="flex justify-between items-center">
+      <button id="menu-btn" class="text-2xl">&#9776;</button>
+      <ul class="hidden md:flex space-x-6 text-lg font-semibold justify-center w-full" id="nav-links">
+        <li><a href="#" class="hover:text-[var(--color-button)]">文件上傳</a></li>
+        <li><a href="#" class="hover:text-[var(--color-button)]">語音轉文字</a></li>
+        <li><a href="#" class="hover:text-[var(--color-button)]">智能問答</a></li>
+        <li><a href="#" class="hover:text-[var(--color-button)]">議題回顧</a></li>
+        <li><a href="#" class="hover:text-[var(--color-button)]">成員介紹</a></li>
+      </ul>
+      <div class="w-8 h-8"></div>
+    </div>
+    <ul class="mt-4 space-y-2 text-lg font-semibold hidden" id="mobile-menu">
+      <li><a href="#" class="block hover:text-[var(--color-button)]">文件上傳</a></li>
+      <li><a href="#" class="block hover:text-[var(--color-button)]">語音轉文字</a></li>
+      <li><a href="#" class="block hover:text-[var(--color-button)]">智能問答</a></li>
+      <li><a href="#" class="block hover:text-[var(--color-button)]">議題回顧</a></li>
+      <li><a href="#" class="block hover:text-[var(--color-button)]">成員介紹</a></li>
+    </ul>
+  </nav>
+
+  <!-- # 內容區塊：議題與摘要 -->
+  <section class="flex justify-center px-4 pt-20">
+    <div class="bg-[var(--color-box-bg)] w-full max-w-4xl p-8 rounded-2xl shadow-md">
+      <div class="bg-[var(--color-button-text)] p-8 rounded-xl">
+        <h2 class="text-2xl font-bold mb-6 text-[var(--color-title)]">議題摘要</h2>
+
+        <!-- 下拉選單 -->
+        <select class="w-full mb-6 px-6 py-5 text-xl bg-[#e4e5e5] text-black rounded-lg focus:outline-none">
+          <option>請選擇議題</option>
+          <option>議題 A</option>
+          <option>議題 B</option>
+          <option>議題 C</option>
+        </select>
+
+        <!-- 可編輯文字區 -->
+        <textarea class="w-full h-40 bg-white border-2 border-dashed border-[var(--color-dashed)] rounded-xl p-4 text-gray-700 text-base resize-none focus:outline-none focus:ring-2 focus:ring-[var(--color-button)]" placeholder="請輸入摘要內容..."></textarea>
+
+        <!-- 功能圖示區（複製 + 編輯） -->
+        <div class="flex justify-end gap-4 mt-3">
+          <button title="複製" class="p-2 rounded-full hover:bg-gray-100 transition">
+            <i data-lucide="copy" class="w-5 h-5 text-gray-700"></i>
+          </button>
+          <button title="編輯" class="p-2 rounded-full hover:bg-gray-100 transition">
+            <i data-lucide="pencil-line" class="w-5 h-5 text-gray-700 rotate-[-40deg]"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- # 修改紀錄（獨立區塊） -->
+  <section class="flex justify-center px-4 pt-6 pb-20">
+    <div class="bg-[var(--color-box-bg)] w-full max-w-4xl p-6 rounded-2xl shadow-md text-center">
+      <h2 class="text-2xl font-bold text-[var(--color-title)]">修改紀錄</h2>
+    </div>
+  </section>
+
+  <!-- JS：手機選單展開功能 + Lucide icons -->
+  <script>
+    const menuBtn = document.getElementById('menu-btn');
+    const mobileMenu = document.getElementById('mobile-menu');
+    menuBtn.addEventListener('click', () => {
+      mobileMenu.classList.toggle('hidden');
+    });
+
+    lucide.createIcons();
+  </script>
+
+</body>
+</html>
