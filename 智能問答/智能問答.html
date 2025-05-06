@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>智能問答介面</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      margin: 0;
+      background-color: #f7f9fb;
+      font-family: Arial, sans-serif;
+    }
+    .header {
+      padding: 20px;
+      text-align: center;
+      font-size: 24px;
+      font-weight: bold;
+      color: #205f72;
+      background-color: #ffffff;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    }
+    .chat-container {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .message {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      position: relative;
+    }
+    .message.bot {
+      justify-content: flex-start;
+    }
+    .message.user {
+      justify-content: flex-end;
+    }
+    .avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    .bubble {
+      position: relative;
+      max-width: 70%;
+      padding: 12px 16px;
+      line-height: 1.5;
+      border-radius: 16px;
+    }
+    /* 機器人泡泡 (白底) */
+    .message.bot .bubble {
+      background-color: #ffffff;
+      color: #333333;
+    }
+    /* 使用者泡泡 (藍灰漸層) */
+    .message.user .bubble {
+      background: linear-gradient(135deg, #175c71 0%, #2d697c 100%);
+      color: #ffffff;
+    }
+
+    .input-area {
+      display: flex;
+      padding: 12px;
+      background-color: #ffffff;
+      box-shadow: 0 -1px 4px rgba(0,0,0,0.1);
+      border: 1px solid #cbd5e0;
+      border-radius: 12px;
+      margin: 8px auto;
+      max-width: 600px;
+      width: calc(100% - 32px);
+      align-items: center;
+    }
+    .input-area input {
+      flex: 1;
+      border: none;
+      border-radius: 20px;
+      padding: 10px 16px;
+      font-size: 16px;
+      outline: none;
+      background-color: #f1f5f9;
+    }
+    .input-area button {
+      background-color: #175c71;
+      border: none;
+      color: #fff;
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      margin-left: 8px;
+    }
+    .input-area button:hover {
+      background-color: #cedfe4;
+    }
+    .input-area button i { font-size: 24px; }
+  </style>
+</head>
+<body>
+  <div class="header">智能問答</div>
+  <div class="chat-container" id="chatContainer"></div>
+  <div class="input-area">
+    <input type="text" id="chatInput" placeholder="請輸入問題，按 Enter 或點擊送出" />
+    <button id="sendBtn" title="送出"><i class="fas fa-paper-plane"></i></button>
+  </div>
+  <script>
+    const chatContainer = document.getElementById('chatContainer');
+    const chatInput = document.getElementById('chatInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const userAvatar = 'path/to/user-avatar.png';
+    const botAvatar = 'path/to/bot-avatar.png';
+    function appendMessage(text, role) {
+      const row = document.createElement('div');
+      row.className = `message ${role}`;
+      const avatar = document.createElement('img');
+      avatar.src = role === 'user' ? userAvatar : botAvatar;
+      avatar.className = 'avatar';
+      const bubble = document.createElement('div');
+      bubble.className = 'bubble';
+      bubble.textContent = text;
+      if (role === 'bot') row.append(avatar, bubble);
+      else row.append(bubble, avatar);
+      chatContainer.appendChild(row);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+    async function sendMessage() {
+      const text = chatInput.value.trim(); if (!text) return;
+      appendMessage(text, 'user'); chatInput.value = '';
+      appendMessage('思考中...', 'bot');
+      try {
+        const res = await fetch('/api/chat', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({question:text}) });
+        const { answer } = await res.json();
+        const lastBubble = chatContainer.querySelector('.message.bot:last-child .bubble');
+        if (lastBubble && lastBubble.textContent === '思考中...') lastBubble.textContent = answer;
+        else appendMessage(answer, 'bot');
+      } catch { appendMessage('發生錯誤，請稍後再試。', 'bot'); }
+    }
+    sendBtn.addEventListener('click', sendMessage);
+    chatInput.addEventListener('keydown', e => e.key === 'Enter' && sendMessage());
+  </script>
+</body>
+</html>
