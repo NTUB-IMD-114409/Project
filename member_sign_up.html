@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>會議寶 - 會員註冊</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background-color: #F5F8FA;
+      color: #000000;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center">
+  <!-- 註冊框 -->
+  <div class="bg-[#cedfe4] px-12 py-12 rounded-3xl shadow-md w-full max-w-xl">
+    <h2 class="text-4xl font-bold mb-8 text-center text-[#205f72]">會員註冊</h2>
+    <form>
+      <div class="mb-6">
+        <label class="block mb-2 text-base font-medium">姓名</label>
+        <input type="text" class="w-full border rounded-lg p-4 focus:outline-none focus:ring focus:border-blue-300" required>
+      </div>
+      <div class="mb-6">
+        <label class="block mb-2 text-base font-medium">Email</label>
+        <input type="email" class="w-full border rounded-lg p-4 focus:outline-none focus:ring focus:border-blue-300" required>
+      </div>
+      <div class="mb-6">
+        <label class="block mb-2 text-base font-medium">密碼</label>
+        <input type="password" class="w-full border rounded-lg p-4 focus:outline-none focus:ring focus:border-blue-300" required>
+      </div>
+      <div class="mb-6">
+        <label class="block mb-2 text-base font-medium">確認密碼</label>
+        <input type="password" class="w-full border rounded-lg p-4 focus:outline-none focus:ring focus:border-blue-300" required>
+      </div>
+      <button type="submit" class="w-full text-[#FFFFFF] bg-[#205f72] hover:bg-[#175c71] py-3 text-lg rounded-lg transition">註冊</button>
+    </form>
+    <p class="text-sm text-center mt-4">已有帳號？<a href="member_sign_in.html" class="text-[#205f72] hover:underline">立即登入</a></p>
+  </div>
+</body>
+</html>
