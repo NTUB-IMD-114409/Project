@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>會議寶 - 首頁</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background-color: #F5F8FA;
+      color: #000000;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+  <!-- 導覽列 -->
+  <nav class="bg-[#e4e5e5] p-4 shadow">
+    <div class="text-xl font-bold text-[#205f72]">會議寶</div>
+  </nav>
+
+  <div class="flex flex-1">
+    
+    <!-- 右側登入框 -->
+    <div class="w-1/2 flex items-center justify-center">
+      <div class="bg-[#cedfe4] p-8 rounded-2xl shadow-md w-full max-w-md">
+        <h2 class="text-2xl font-bold text-center mb-6 text-[#205f72]">會員登入</h2>
+        <form id="loginForm">
+          <div class="mb-4">
+            <label class="block mb-1 text-sm font-medium">Email</label>
+            <input type="email" id="email" class="w-full border rounded-lg p-2 focus:outline-none focus:ring focus:border-blue-300" required>
+          </div>
+          <div class="mb-4">
+            <label class="block mb-1 text-sm font-medium">密碼</label>
+            <input type="password" id="password" class="w-full border rounded-lg p-2 focus:outline-none focus:ring focus:border-blue-300" required>
+          </div>
+          <button type="submit" class="w-full text-[#FFFFFF] bg-[#205f72] hover:bg-[#175c71] py-2 rounded-lg transition">登入</button>
+        </form>
+        <p class="text-sm text-center mt-4">還未註冊？<a href="#" class="text-[#205f72] hover:underline">立即註冊</a></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 使用說明區塊 -->
+  <footer class="mt-8 py-6">
+    <div class="max-w-4xl mx-auto px-4 text-[#000000]">
+      <h3 class="text-lg font-semibold mb-4 text-[#205f72]">會議寶使用說明</h3>
+      <div class="border border-dashed border-[#cedfe4] p-4 rounded-lg bg-white">
+        <ol class="list-decimal list-inside space-y-3 text-sm">
+          <li>
+            <strong>文件上傳</strong><br>
+            會議寶允許您輕鬆上傳會議相關文件。只需點擊新增按鈕，選取所需文件，上傳至檔案區中，就可以查看這些文件，便於會議資料儲存與整理。
+          </li>
+          <li>
+            <strong>語音轉文字</strong><br>
+            在會議中，您可以啟動語音轉文字功能，系統會自動將會議錄音轉換為文字記錄。節省手動紀錄時間，並確保所有討論要點得到保存。
+          </li>
+          <li>
+            <strong>智能問答</strong><br>
+            會議寶的智能問答功能讓您能夠隨時查詢會議記錄中的重點內容。只需輸入關鍵詞或問題，系統會迅速提供相關的回答，幫助您快速搜尋與回顧訊息。
+          </li>
+          <li>
+            <strong>議題回顧</strong><br>
+            在會議結束後，您可以使用議題回顧功能，系統會根據會議內容生成清晰的議題摘要。
+          </li>
+        </ol>
+
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      try {
+        const res = await fetch('/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+
+        const result = await res.json();
+        if (res.ok) {
+          alert("✅ 登入成功，歡迎 " + result.user.name + "！");
+        } else {
+          alert("❌ " + result.message);
+        }
+      } catch (err) {
+        alert("❌ 無法連接伺服器，請稍後再試");
+        console.error(err);
+      }
+    });
+  </script>
+</body>
+</html>
