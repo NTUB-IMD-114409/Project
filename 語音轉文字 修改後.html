@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>語音轉文字｜會議寶</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <style>
+    body {
+      position: relative;
+      min-height: 100vh;
+      margin: 0;
+      background-color: #f7f9fb;
+      font-family: Arial, sans-serif;
+    }
+    .title {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 32px;
+      color: #205f72;
+      font-weight: bold;
+    }
+    .generate-container {
+      position: absolute;
+      top: 80px;
+      bottom: 160px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80%;
+      max-width: 800px;
+      background-color: #ffffff;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      overflow-y: auto;
+    }
+    .generate-container p {
+      margin: 0 0 10px;
+      line-height: 1.5;
+      color: #333;
+    }
+    .mic-container {
+      position: absolute;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+    .button-row {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      align-items: center;
+    }
+    .mic-btn, .gen-btn {
+      background-color: #205f72;
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 20px;
+      font-size: 18px;
+      cursor: pointer;
+    }
+    .mic-btn.recording {
+      background-color: #d8392b;
+    }
+    .progress-bar {
+      width: 300px;
+      height: 10px;
+      background-color: #eee;
+      border-radius: 5px;
+      overflow: hidden;
+      display: none;
+    }
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background-color: #205f72;
+      transition: width 0.3s;
+    }
+    .loading-text, .success-text, .generate-text {
+      font-size: 14px;
+      color: #205f72;
+      display: none;
+    }
+    .success-text {
+      color: #28a745;
+    }
+  </style>
+</head>
+<body>
+  <div class="title">語音轉文字</div>
+  <div class="generate-container" id="generateContainer"></div>
+  <div class="mic-container">
+    <div class="button-row">
+      <input type="file" id="fileInput" accept="audio/*,video/*" style="display:none;" />
+      <button id="fileBtn" class="mic-btn" title="上傳音檔或影片"><i class="fas fa-upload"></i> 上傳檔案</button>
+      <button id="generateBtn" class="gen-btn" title="生成會議記錄"><i class="fas fa-file-word"></i> 生成會議記錄</button>
+    </div>
+    <div class="progress-bar" id="progressBar"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="loading-text" id="loadingText">上傳中，請稍候...</div>
+    <div class="success-text" id="successText">✅ 檔案上傳成功！</div>
+    <div class="generate-text" id="generateText">📄 已成功下載會議記錄</div>
+  </div>
+
+  <script>
+    const generateContainer = document.getElementById('generateContainer');
+    const fileBtn = document.getElementById('fileBtn');
+    const fileInput = document.getElementById('fileInput');
+    const generateBtn = document.getElementById('generateBtn');
+    const progressBar = document.getElementById('progressBar');
+    const progressFill = document.getElementById('progressFill');
+    const loadingText = document.getElementById('loadingText');
+    const successText = document.getElementById('successText');
+    const generateText = document.getElementById('generateText');
+    let finalTranscript = '';
+
+    function clearGenerated() {
+      generateContainer.querySelectorAll('p').forEach(p => p.remove());
+    }
+
+    function appendText(text) {
+      const p = document.createElement('p');
+      p.textContent = text;
+      generateContainer.appendChild(p);
+      generateContainer.scrollTop = generateContainer.scrollHeight;
+    }
+
+    fileBtn.addEventListener('click', () => fileInput.click());
+
+    fileInput.addEventListener('change', async e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      clearGenerated();
+      appendText('處理中...');
+      try {
+        progressBar.style.display = 'block';
+        loadingText.style.display = 'block';
+        successText.style.display = 'none';
+        progressFill.style.width = '100%';
+
+        setTimeout(() => {
+          finalTranscript = '這是一段模擬的逐字稿內容，用於測試下載功能';
+          clearGenerated();
+          appendText(finalTranscript);
+          loadingText.style.display = 'none';
+          successText.style.display = 'block';
+          setTimeout(() => {
+            progressBar.style.display = 'none';
+            successText.style.display = 'none';
+          }, 1500);
+        }, 1000);
+      } finally {
+        fileInput.value = '';
+      }
+    });
+
+    generateBtn.addEventListener('click', () => {
+      if (!finalTranscript.trim()) return alert("尚無逐字稿可生成會議記錄");
+
+      generateText.style.display = 'none';
+      generateBtn.disabled = true;
+      generateBtn.textContent = '生成中...';
+
+      setTimeout(() => {
+        const fakeMeetingNote = `會議記錄\n\n會議主題：即時語音轉錄系統\n\n與會人員：開發者、設計師、PM\n\n逐字稿摘要：${finalTranscript}\n\n決策事項：\n- 逐字稿每次按下儲存可生成 .docx 供下載`;
+        const blob = new Blob([fakeMeetingNote], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = '會議記錄.docx';
+        a.click();
+        window.URL.revokeObjectURL(url);
+
+        generateBtn.disabled = false;
+        generateBtn.innerHTML = '<i class="fas fa-file-word"></i> 生成會議記錄';
+        generateText.style.display = 'block';
+        setTimeout(() => {
+          generateText.style.display = 'none';
+        }, 1500);
+      }, 1000);
+    });
+  </script>
+</body>
+</html>
