@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>會議寶｜即時轉錄</title>
+  <link rel="stylesheet" href="../../css/navbar.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background-color: #f5f8fa;
+      font-family: 'Arial', sans-serif;
+      margin: 0;
+    }
+
+    .btn-primary {
+      background-color: #205f72;
+    }
+
+    .btn-primary:hover {
+      background-color: #175c71;
+    }
+
+    .dashed-box {
+      border: 2px dashed #cedfe4;
+      border-radius: 20px;
+      background-color: #ffffff;
+      padding: 24px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+      min-height: 420px;
+    }
+
+    .mic-btn {
+      background-color: #205f72;
+      color: #ffffff;
+      border: none;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      font-size: 24px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.2s;
+    }
+
+    .mic-btn.recording {
+      background-color: #d8392b;
+    }
+
+    .status-start {
+      font-size: 20px;
+      color: #205f72;
+      font-weight: bold;
+      margin-top: 12px;
+      text-align: center;
+    }
+
+    .status-stop {
+      font-size: 20px;
+      color: #d8392b;
+      font-weight: bold;
+      margin-top: 12px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <!-- ✅ 導覽列 -->
+<nav class="navbar">
+  <div class="navbar-left">
+    <a href="../meeting.html">
+      <img src="../../image/logo.png" alt="Logo" class="logo-left" />
+    </a>
+  </div>
+  <div class="navbar-right">
+    <a href="../member_profile.html">
+      <img src="../../image/head.png" alt="會員頭像" class="logo-right" />
+    </a>
+  </div>
+</nav>
+
+  <!-- ✅ 即時轉錄主框 -->
+  <section class="flex justify-center px-4 pt-20">
+    <div class="w-full max-w-4xl dashed-box">
+      <h2 class="text-2xl font-bold text-[#205f72] mb-6 text-center">即時轉錄</h2>
+      <div id="generateContainer" class="min-h-[200px] text-base text-gray-800 space-y-2"></div>
+      <div id="statusContainer" class="text-center mt-4"></div>
+    </div>
+  </section>
+
+  <!-- ✅ 麥克風按鈕 -->
+  <div class="flex justify-center mt-6 pb-20">
+    <button id="micBtn" class="mic-btn" title="錄音/停止">
+      <i class="fas fa-microphone"></i>
+    </button>
+  </div>
+
+  <!-- ✅ JS -->
+  <script>
+    const generateContainer = document.getElementById('generateContainer');
+    const micBtn = document.getElementById('micBtn');
+    const statusContainer = document.getElementById('statusContainer');
+
+    function clearStatus() {
+      statusContainer.innerHTML = '';
+    }
+
+    function clearGenerated() {
+      generateContainer.innerHTML = '';
+    }
+
+    function appendText(text) {
+      const p = document.createElement('p');
+      p.textContent = text;
+      generateContainer.appendChild(p);
+      generateContainer.scrollTop = generateContainer.scrollHeight;
+    }
+
+    function showStatus(msg, type) {
+      clearStatus();
+      const span = document.createElement('div');
+      span.textContent = msg;
+      span.className = type === 'start' ? 'status-start' : 'status-stop';
+      statusContainer.appendChild(span);
+    }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let recognition, finalTranscript = '';
+    let isRecording = false;
+    let manuallyStopped = false;
+
+    if (SpeechRecognition) {
+      recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'zh-TW';
+
+      recognition.onstart = () => {
+        isRecording = true;
+        manuallyStopped = false;
+        finalTranscript = '';
+        micBtn.classList.add('recording');
+        clearStatus();
+        clearGenerated();
+        showStatus('請開始說話...', 'start');
+      };
+
+      recognition.onresult = e => {
+        clearStatus();
+        const interim = Array.from(e.results).map(r => r[0].transcript).join('');
+        finalTranscript = interim;
+        clearGenerated();
+        appendText(interim);
+      };
+
+      recognition.onerror = e => {
+        clearStatus();
+        appendText(`辨識失敗：${e.error}`);
+      };
+
+      recognition.onend = () => {
+        micBtn.classList.remove('recording');
+        isRecording = false;
+        if (manuallyStopped) {
+          clearStatus();
+          showStatus('停止辨識', 'stop');
+        }
+      };
+
+      micBtn.addEventListener('click', () => {
+        if (!isRecording) {
+          recognition.start();
+        } else {
+          manuallyStopped = true;
+          recognition.stop();
+        }
+      });
+    } else {
+      micBtn.disabled = true;
+      appendText('此瀏覽器不支援語音辨識');
+    }
+  </script>
+</body>
+</html>

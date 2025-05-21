@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>會議寶｜使用說明</title>
+  <link rel="stylesheet" href="../../css/navbar.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background-color: #f5f8fa;
+      font-family: 'Arial', sans-serif;
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+  <!-- ✅ 導覽列 -->
+<nav class="navbar">
+  <div class="navbar-left">
+    <a href="../page/meeting.html">
+      <img src="../../image/logo.png" alt="Logo" class="logo-left" />
+    </a>
+  </div>
+    <ul class="navbar-menu">
+      <li><a href="file_upload.html">檔案上傳</a></li>
+      <li><a href="now_transcription.html">語音轉文字</a></li> <!-- 此功能灰掉 -->
+      <li><a href="Q&A.html">智能問答</a></li>
+      <li><a href="meeting_review.html">會議回顧</a></li>
+      <li><a href="instruction.html">使用說明</a></li>
+    </ul>
+  <div class="navbar-right">
+    <a href="../page/meeting_participant.html">
+    <img src="../../image/head.png" alt="會員頭像" class="logo-right" />
+    </a>
+  </div>
+</nav>
+
+  <div style="position: fixed; top: 140px; left: 32px; z-index: 99999; padding: 6px 12px;">
+  <div class="flex items-center gap-2 text-[#205f72] text-sm font-semibold">
+    <span class="w-3 h-3 rounded-full bg-yellow-400 inline-block"></span>
+    <span id="meetingInfoDisplay">載入中...</span>
+  </div>
+</div>
+
+
+  <!-- ✅ 頁面內容（暫時空白） -->
+  <main class="w-full max-w-4xl mx-auto p-6 text-center">
+    <!-- 你可以在這裡加入使用說明內容 -->
+  </main>
+<script>
+      document.addEventListener("DOMContentLoaded", () => {
+  const title = localStorage.getItem("meetingTitle");
+  const date = localStorage.getItem("meetingDate");
+  const stage = localStorage.getItem("meetingStage");
+  if (title && date && stage) {
+    document.getElementById("meetingInfoDisplay").textContent = `${stage} ${date} ${title}`;
+  }
+});
+</script>
+</body>
+</html>

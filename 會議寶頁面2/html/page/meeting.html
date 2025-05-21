@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>會議寶｜發起會議</title>
+  <link rel="stylesheet" href="../../css/navbar.css"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      padding-top: 120px;
+      background-color: #f5f8fa;
+    }
+    .btn-primary {
+      background-color: #205f72;
+    }
+    .btn-primary:hover {
+      background-color: #175c71;
+    }
+    .meeting-card {
+      background-color: #cedfe4;
+      border-radius: 16px;
+      padding: 12px 20px;
+      width: calc(25% - 12px);
+      height: 160px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      box-sizing: border-box;
+      position: relative;
+      text-align: center;
+      gap: 6px;
+    }
+    .menu-button {
+      position: absolute;
+      top: 8px;
+      right: 12px;
+      background: none;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+    }
+    .dashed-box {
+      border: 2px dashed #cedfe4;
+      border-radius: 20px;
+      background-color: #ffffff;
+      padding: 24px;
+      min-height: 150px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="navbar-left">
+    <a href="../../html/page/organization.html">
+      <img src="../../image/logo.png" alt="Logo" class="logo-left" />
+    </a>
+    <span id="orgNameDisplay" class="ml-4 text-[#205f72] font-bold text-lg"></span>
+  </div>
+
+  <div class="navbar-right">
+    <a href="../../html/page/organization_participant.html">
+      <img src="../../image/head.png" alt="會員頭像" class="logo-right" />
+    </a>
+  </div>
+</nav>
+
+  <div style="position: fixed; top: 140px; left: 32px; z-index: 99999; padding: 6px 12px; border-radius: 6px;">
+    <a href="../../html/page/organization.html" style="color:#205f72; text-decoration: underline; font-weight: bold; font-size: 16px; position: relative;">
+      ← 回到「我的組織」
+    </a>
+  </div>
+
+  <div class="w-full max-w-4xl mb-4 flex justify-start mx-auto px-4">
+    <button onclick="openMeetingModal()" class="btn-primary text-white px-4 py-2 rounded-lg font-bold">＋ 發起會議</button>
+  </div>
+
+  <div class="w-full max-w-4xl dashed-box mx-auto px-4">
+    <h2 class="text-center text-[#205f72] text-2xl font-bold">我的會議</h2>
+    <p id="meetingHint" class="text-center text-gray-600 text-sm mb-4">在此顯示你所建立的會議</p>
+    <div id="meetingList" class="flex flex-wrap gap-4"></div>
+  </div>
+
+  <div id="meetingModal" class="fixed inset-0 hidden items-center justify-center bg-black bg-opacity-50 z-50">
+    <div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+      <h3 class="text-xl font-bold text-[#205f72] mb-4 text-center">發起新會議</h3>
+      <div class="mb-4">
+        <label class="block font-bold mb-1">會議發起人</label>
+        <input id="creatorInput" type="text" placeholder="請輸入您的姓名" class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none" />
+      </div>
+      <div class="mb-4">
+        <label class="block font-bold mb-1">會議日期</label>
+        <input id="dateInput" type="date" class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none" />
+      </div>
+      <div class="mb-4">
+        <label class="block font-bold mb-1">會議名稱</label>
+        <input id="titleInput" type="text" placeholder="請輸入會議名稱" class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none" />
+      </div>
+      <div class="mb-4">
+        <label class="block font-bold mb-1">會議參與者</label>
+        <div id="participantList" class="flex flex-col gap-2 max-h-32 overflow-y-auto border border-gray-300 rounded-lg p-3 bg-gray-50"></div>
+      </div>
+      <div class="flex justify-end gap-2">
+        <button onclick="closeMeetingModal()" class="bg-gray-300 text-black px-4 py-2 rounded-lg">取消</button>
+        <button onclick="createMeeting()" class="btn-primary text-white px-4 py-2 rounded-lg">建立</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="notifyModal" class="fixed inset-0 hidden items-center justify-center bg-black bg-opacity-50 z-50">
+    <div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-md">
+      <h3 class="text-xl font-bold text-[#205f72] mb-4 text-center">發送會議通知</h3>
+      <div class="mb-4">
+        <label class="block font-bold mb-1">會議名稱</label>
+        <input id="notifyTitle" type="text" disabled class="w-full p-3 rounded-lg border border-gray-300 bg-gray-100" />
+      </div>
+      <div class="mb-4">
+        <label class="block font-bold mb-1">會議時間</label>
+        <input id="notifyDate" type="time" class="w-full p-3 rounded-lg border border-gray-300" />
+      </div>
+      <div class="mb-4">
+        <label class="block font-bold mb-1">議程</label>
+        <textarea id="agendaText" rows="4" placeholder="請輸入議程內容或上傳檔案" class="w-full p-3 rounded-lg border border-gray-300 mb-2"></textarea>
+        <input type="file" id="agendaFile" class="block w-full" />
+      </div>
+      <div class="flex justify-end gap-2">
+        <button onclick="closeNotifyModal()" class="bg-gray-300 text-black px-4 py-2 rounded-lg">取消</button>
+        <button onclick="sendNotification()" class="btn-primary text-white px-4 py-2 rounded-lg">發送</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function openMeetingModal() {
+      document.getElementById("meetingModal").classList.remove("hidden");
+      document.getElementById("meetingModal").classList.add("flex");
+      loadParticipants();
+    }
+
+    function closeMeetingModal() {
+      document.getElementById("meetingModal").classList.add("hidden");
+      document.getElementById("meetingModal").classList.remove("flex");
+    }
+
+function loadParticipants() {
+  const container = document.getElementById("participantList");
+  container.innerHTML = "";
+  const members = JSON.parse(localStorage.getItem("organizationMembers")) || [];
+
+  members.forEach((email, index) => {
+    const id = `participant-${index}`;
+    const div = document.createElement("div");
+    div.className = "flex items-center justify-between gap-2";
+    div.innerHTML = `
+      <div class="flex items-center gap-2">
+        <input type="checkbox" id="${id}" value="${email}" class="accent-[#205f72]" onchange="toggleRoleSelect('${id}')" />
+        <label for="${id}" class="text-sm text-gray-700">${email}</label>
+      </div>
+      <select id="role-${id}" style="display: none;" class="text-sm border border-gray-300 rounded px-2 py-1 bg-white">
+        <option value="edit">可供編輯</option>
+        <option value="view">僅可查看</option>
+      </select>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function toggleRoleSelect(id) {
+  const checkbox = document.getElementById(id);
+  const select = document.getElementById(`role-${id}`);
+  select.style.display = checkbox.checked ? "block" : "none";
+}
+
+function createMeeting() {
+  const creator = document.getElementById("creatorInput").value.trim();
+  const date = document.getElementById("dateInput").value;
+  const title = document.getElementById("titleInput").value.trim();
+
+  const selected = Array.from(document.querySelectorAll('#participantList input:checked')).map(input => {
+    const role = document.getElementById(`role-${input.id}`).value;
+    return { email: input.value, role }; // 👈 用物件儲存
+  });
+
+  if (!creator || !date || !title) {
+    alert("請完整填寫所有欄位！");
+    return;
+  }
+
+  const displayDate = date.split('T')[0];
+
+  // ✅ 儲存會議名稱、日期、參與者
+  localStorage.setItem("meetingTitle", title);
+  localStorage.setItem("meetingDate", displayDate);
+  localStorage.setItem("meetingParticipants", JSON.stringify(selected)); // ← 加這行
+
+  // 以下是建立卡片 UI 和清空表單的原本內容...
+  const id = Date.now();
+  const card = document.createElement("div");
+  card.className = "meeting-card";
+  card.innerHTML = `
+    <button class="menu-button" onclick="toggleMenu(${id})">⋮</button>
+    <div id="menu-${id}" class="menu-list absolute right-0 top-6 bg-white shadow rounded z-10 hidden">
+      <button onclick="confirmNotify('${title}', '${date}')" class="text-left w-full px-4 py-2 hover:bg-gray-100">發送會議通知</button>
+    </div>
+    <div class="text-sm text-[#205f72] font-bold">${title}</div>
+    <div class="text-xs">發起人：${creator}</div>
+    <div class="text-xs">日期：${displayDate}</div>
+  `;
+  document.getElementById("meetingList").appendChild(card);
+
+  document.getElementById("meetingHint").style.display = "none";
+  document.getElementById("creatorInput").value = "";
+  document.getElementById("dateInput").value = "";
+  document.getElementById("titleInput").value = "";
+  closeMeetingModal();
+}
+
+    function openNotifyModal(title, date) {
+      let formattedDate = date.includes('T') ? date.split('T')[0] : date;
+      document.getElementById("notifyTitle").value = `${formattedDate} ${title}`;
+      document.getElementById("notifyDate").value = "";
+      document.getElementById("notifyModal").classList.remove("hidden");
+      document.getElementById("notifyModal").classList.add("flex");
+    }
+
+    function closeNotifyModal() {
+      document.getElementById("notifyModal").classList.add("hidden");
+      document.getElementById("notifyModal").classList.remove("flex");
+    }
+
+    function sendNotification() {
+      const title = document.getElementById("notifyTitle").value;
+      alert("會議通知已發送！\n\n會議名稱：" + title);
+      closeNotifyModal();
+    }
+
+    function toggleMenu(id) {
+      document.querySelectorAll('.menu-list').forEach(m => m.classList.add('hidden'));
+      document.getElementById(`menu-${id}`).classList.toggle('hidden');
+    }
+
+    function confirmNotify(title, date) {
+      document.querySelectorAll('.menu-list').forEach(m => m.classList.add('hidden'));
+      let formattedDate = date.includes('T') ? date.split('T')[0] : date;
+      document.getElementById("notifyTitle").value = `${formattedDate} ${title}`;
+      document.getElementById("notifyModal").classList.remove("hidden");
+      document.getElementById("notifyModal").classList.add("flex");
+    }
+    // 顯示流程彈窗
+function openFlowModal() {
+  document.getElementById("flowModal").classList.remove("hidden");
+  document.getElementById("flowModal").classList.add("flex");
+}
+
+// 關閉流程彈窗
+function closeFlowModal() {
+  document.getElementById("flowModal").classList.add("hidden");
+  document.getElementById("flowModal").classList.remove("flex");
+}
+
+// 為每張會議卡片綁定點擊事件顯示流程視窗
+document.addEventListener("click", function(e) {
+  if (e.target.closest(".meeting-card") && !e.target.closest(".menu-button")) {
+    openFlowModal();
+  }
+});
+
+// 顯示組織名稱在導覽列
+document.addEventListener("DOMContentLoaded", () => {
+  const orgName = localStorage.getItem("organizationName");
+  if (orgName) {
+    document.getElementById("orgNameDisplay").textContent = orgName;
+  }
+});
+
+// 使用者點選會議階段時，儲存階段名稱並導頁
+function goToStage(page, stage) {
+  localStorage.setItem("meetingStage", stage);
+  location.href = page;
+}
+
+  </script>
+<!-- 📌 會議流程彈跳視窗 -->
+<div id="flowModal" class="fixed inset-0 hidden items-center justify-center bg-black bg-opacity-50 z-50">
+  <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-2xl">
+    <h3 class="text-xl font-bold text-[#205f72] mb-6 text-center">請選擇會議階段</h3>
+    <div class="flex justify-around items-start gap-4 mb-6">
+
+      <!-- 會議前準備 -->
+      <div class="flex flex-col items-center text-center">
+        <div onclick="goToStage('../meeting_prepare/meeting_prepare.html', '會議前準備')"
+             class="w-48 h-48 bg-[#cedfe4] rounded-full flex items-center justify-center text-[#205f72] font-bold text-lg cursor-pointer hover:shadow-lg transition">
+          會議前準備
+        </div>
+      </div>
+
+      <!-- 會議進行中 -->
+      <div class="flex flex-col items-center text-center">
+        <div onclick="goToStage('../meeting_ing/meeting_ing.html', '會議進行中')"
+             class="w-48 h-48 bg-[#cedfe4] rounded-full flex items-center justify-center text-[#205f72] font-bold text-lg cursor-pointer hover:shadow-lg transition">
+          會議進行中
+        </div>
+      </div>
+
+      <!-- 會議後管理 -->
+      <div class="flex flex-col items-center text-center">
+        <div onclick="goToStage('../meeting_manage/meeting_manage.html', '會議後管理')"
+             class="w-48 h-48 bg-[#cedfe4] rounded-full flex items-center justify-center text-[#205f72] font-bold text-lg cursor-pointer hover:shadow-lg transition">
+          會議後管理
+        </div>
+      </div>
+
+    </div>
+    <div class="text-center">
+      <button onclick="closeFlowModal()" class="bg-gray-300 text-black px-4 py-2 rounded-lg">關閉</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

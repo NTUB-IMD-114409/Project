@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>會議寶｜會議成員</title> 
+  <link rel="stylesheet" href="../../css/navbar.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background-color: #f5f8fa;
+      font-family: 'Arial', sans-serif;
+    }
+    .btn-primary {
+      background-color: #205f72;
+    }
+    .btn-primary:hover {
+      background-color: #175c71;
+    }
+    .card {
+      background-color: #cedfe4;
+      border-radius: 16px;
+      padding: 16px 20px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+  </style>
+</head>
+<body>
+<nav class="navbar">
+  <div class="navbar-left">
+    <a href="../../html/page/meeting.html">
+      <img src="../../image/logo.png" alt="Logo" class="logo-left" />
+    </a>
+  </div>
+
+  <div class="navbar-right">
+    <a href="../page/organization_participant.html">
+      <img src="../../image/head.png" alt="會員頭像" class="logo-right" />
+    </a>
+  </div>
+</nav>
+
+<div style="position: fixed; top: 140px; left: 32px; z-index: 99999; padding: 6px 12px; border-radius: 6px;">
+  <a href="meeting.html" style="color:#205f72; text-decoration: underline; font-weight: bold; font-size: 16px; position: relative;">
+    ← 回到「我的會議」
+  </a>
+</div>
+
+<div class="w-full max-w-4xl mx-auto px-4 mt-6">
+  <h2 class="text-center text-[#205f72] text-2xl font-bold mb-4">會議參與者列表</h2>
+  <div id="memberList" class="flex flex-col gap-3 mb-8"></div>
+
+  <div class="card">
+    <h3 class="text-lg font-bold text-[#205f72] mb-3">新增會議參與者</h3>
+    <div class="flex flex-col md:flex-row md:items-center gap-2">
+      <input id="newMemberEmail" type="email" placeholder="example@gmail.com" class="flex-1 p-3 rounded-lg border border-gray-300 focus:outline-none" />
+      <select id="newMemberRole" class="p-3 rounded-lg border border-gray-300 focus:outline-none">
+        <option value="edit">可供編輯</option>
+        <option value="view">僅可查看</option>
+      </select>
+      <button onclick="addNewMember()" class="btn-primary text-white px-4 py-2 rounded-lg">新增</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  function renderMembers() {
+    const container = document.getElementById("memberList");
+    container.innerHTML = "";
+    const members = JSON.parse(localStorage.getItem("meetingParticipants")) || [];
+
+    if (members.length === 0) {
+      container.innerHTML = '<p class="text-center text-gray-600">尚無會議參與者</p>';
+      return;
+    }
+
+    members.forEach(entry => {
+      const div = document.createElement("div");
+      div.className = "bg-white border border-gray-300 rounded px-4 py-3 flex justify-between items-center";
+      div.innerHTML = `
+        <span class="text-sm text-gray-800">${entry.email}</span>
+        <span class="text-xs text-gray-600">${entry.role === 'edit' ? '可編輯' : '僅可查看'}</span>
+      `;
+      container.appendChild(div);
+    });
+  }
+
+  function addNewMember() {
+    const input = document.getElementById("newMemberEmail");
+    const roleSelect = document.getElementById("newMemberRole");
+    const email = input.value.trim();
+    const role = roleSelect.value;
+
+    if (!email.endsWith("@gmail.com")) {
+      alert("請輸入有效的 Gmail 地址");
+      return;
+    }
+
+    let members = JSON.parse(localStorage.getItem("meetingParticipants")) || [];
+    if (members.some(m => m.email === email)) {
+      alert("此成員已存在於名單中");
+      return;
+    }
+
+    members.push({ email, role });
+    localStorage.setItem("meetingParticipants", JSON.stringify(members));
+    input.value = "";
+    renderMembers();
+  }
+
+  document.addEventListener("DOMContentLoaded", renderMembers);
+</script>
+</body>
+</html>

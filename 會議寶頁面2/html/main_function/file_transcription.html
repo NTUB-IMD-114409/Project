@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>會議寶｜檔案轉錄</title>
+  <link rel="stylesheet" href="../../css/navbar.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background-color: #f5f8fa;
+      font-family: 'Arial', sans-serif;
+      margin: 0;
+    }
+
+    .btn-primary {
+      background-color: #205f72;
+    }
+
+    .btn-primary:hover {
+      background-color: #175c71;
+    }
+
+    .dashed-box {
+      border: 2px dashed #cedfe4;
+      border-radius: 20px;
+      background-color: #ffffff;
+      padding: 24px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+      min-height: 420px; /* ✅ 根據你圖片的高度調整 */
+    }
+  </style>
+</head>
+<body>
+  <!-- ✅ 導覽列 -->
+<nav class="navbar">
+  <div class="navbar-left">
+    <a href="../meeting.html">
+      <img src="../../image/logo.png" alt="Logo" class="logo-left" />
+    </a>
+  </div>
+
+  <div class="navbar-right">
+      <img src="../../image/head.png" alt="會員頭像" class="logo-right" />
+    </a>
+  </div>
+</nav>
+
+  <!-- ✅ 檔案轉錄主區塊 -->
+  <section class="flex justify-center px-4 pt-20">
+    <div class="w-full max-w-4xl dashed-box">
+      <h2 class="text-2xl font-bold text-[#205f72] mb-6 text-center">檔案轉錄</h2>
+      <div id="generateContainer" class="min-h-[200px] text-base text-gray-800 space-y-2"></div>
+    </div>
+  </section>
+
+  <!-- ✅ 上傳按鈕 -->
+  <div class="flex justify-center mt-6 pb-20">
+    <input type="file" id="fileInput" accept="audio/*,video/*" style="display:none;" />
+    <button id="fileBtn" class="btn-primary text-white px-5 py-3 rounded-xl text-base font-semibold flex items-center gap-2">
+      <i class="fas fa-upload"></i> 上傳音檔或影片
+    </button>
+  </div>
+
+  <!-- ✅ JS -->
+  <script>
+    const fileBtn = document.getElementById('fileBtn');
+    const fileInput = document.getElementById('fileInput');
+    const generateContainer = document.getElementById('generateContainer');
+
+    function appendText(text) {
+      const p = document.createElement('p');
+      p.textContent = text;
+      generateContainer.appendChild(p);
+      generateContainer.scrollTop = generateContainer.scrollHeight;
+    }
+
+    async function callApi(endpoint, file) {
+      const form = new FormData();
+      form.append('file', file);
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        body: form
+      });
+      if (!res.ok) throw new Error(`${endpoint} 回傳錯誤`);
+      return res.json();
+    }
+
+    fileBtn.addEventListener('click', () => fileInput.click());
+
+    fileInput.addEventListener('change', async e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      generateContainer.innerHTML = '';
+      try {
+        appendText('處理中...');
+        const key = file.type.startsWith('audio/') ? 'transcribe-audio' : 'transcribe-video';
+        const { transcript } = await callApi(`/api/${key}`, file);
+        generateContainer.innerHTML = '';
+        transcript.split('\n').forEach(line => appendText(line));
+      } catch (err) {
+        appendText(`錯誤：${err.message}`);
+      } finally {
+        fileInput.value = '';
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>會議寶｜智能問答</title>
+  <link rel="stylesheet" href="../../css/navbar.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background-color: #f5f8fa;
+      font-family: 'Arial', sans-serif;
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chat-wrapper {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      max-width: 1024px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    .chat-container {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding-bottom: 16px;
+    }
+
+    .message {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+    }
+
+    .message.bot {
+      justify-content: flex-start;
+    }
+
+    .message.user {
+      justify-content: flex-end;
+    }
+
+    .avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .bubble {
+      max-width: 70%;
+      padding: 12px 16px;
+      border-radius: 16px;
+      line-height: 1.6;
+    }
+
+    .message.bot .bubble {
+      background-color: #ffffff;
+      color: #333333;
+    }
+
+    .message.user .bubble {
+      background: linear-gradient(135deg, #175c71 0%, #2d697c 100%);
+      color: #ffffff;
+    }
+
+    .input-area {
+      display: flex;
+      padding: 12px;
+      background-color: #ffffff;
+      border: 2px solid #cedfe4;
+      border-radius: 9999px;
+      align-items: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+
+    .input-area input {
+      flex: 1;
+      border: none;
+      background-color: #f5f8fa;
+      padding: 12px 20px;
+      font-size: 16px;
+      border-radius: 9999px;
+      outline: none;
+    }
+
+    .input-area button {
+      background-color: #205f72;
+      color: #fff;
+      border: none;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-left: 8px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .input-area button:hover {
+      background-color: #175c71;
+    }
+
+    .input-area button i {
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+<!-- ✅ 導覽列（含 logo 與回到我的會議） -->
+<nav class="navbar">
+  <div class="navbar-left">
+    <a href="../meeting.html">
+      <img src="../../image/logo.png" alt="Logo" class="logo-left" />
+    </a>
+  </div>
+
+  <ul class="navbar-menu">
+    <li><a href="file_upload.html">檔案上傳</a></li>
+    <li><a class="disabled">語音轉文字</a></li>
+    <li><a href="Q&A.html">智能問答</a></li>
+    <li><a href="meeting_review.html">會議回顧</a></li>
+    <li><a href="instruction.html">使用說明</a></li>
+  </ul>
+
+  <div class="navbar-right">
+    <a href="../page/meeting_participant.html">
+    <img src="../../image/head.png" alt="會員頭像" class="logo-right" />
+    </a>
+  </div>
+</nav>
+
+<div style="position: fixed; top: 140px; left: 32px; z-index: 99999; padding: 6px 12px;">
+  <div class="flex items-center gap-2 text-[#205f72] text-sm font-semibold">
+    <span class="w-3 h-3 rounded-full bg-red-500 inline-block"></span>
+    <span id="meetingInfoDisplay">載入中...</span>
+  </div>
+</div>
+
+  <!-- ✅ 聊天區域 -->
+  <div class="chat-wrapper">
+    <div class="chat-container" id="chatContainer"></div>
+    <div class="input-area">
+      <input type="text" id="chatInput" placeholder="請輸入問題，按 Enter 或點擊送出" />
+      <button id="sendBtn" title="送出"><i class="fas fa-paper-plane"></i></button>
+    </div>
+  </div>
+
+  <!-- ✅ JS -->
+  <script>
+    const chatContainer = document.getElementById('chatContainer');
+    const chatInput = document.getElementById('chatInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const userAvatar = "../../image/head.png";
+    const botAvatar = "../../image/logo.png";
+
+    function appendMessage(text, role) {
+      const row = document.createElement('div');
+      row.className = `message ${role}`;
+      const avatar = document.createElement('img');
+      avatar.src = role === 'user' ? userAvatar : botAvatar;
+      avatar.className = 'avatar';
+      const bubble = document.createElement('div');
+      bubble.className = 'bubble';
+      bubble.textContent = text;
+      if (role === 'bot') row.append(avatar, bubble);
+      else row.append(bubble, avatar);
+      chatContainer.appendChild(row);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    async function sendMessage() {
+      const text = chatInput.value.trim();
+      if (!text) return;
+      appendMessage(text, 'user');
+      chatInput.value = '';
+      appendMessage('思考中...', 'bot');
+      try {
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ question: text })
+        });
+        const { answer } = await res.json();
+        const lastBubble = chatContainer.querySelector('.message.bot:last-child .bubble');
+        if (lastBubble && lastBubble.textContent === '思考中...') {
+          lastBubble.textContent = answer;
+        } else {
+          appendMessage(answer, 'bot');
+        }
+      } catch {
+        appendMessage('發生錯誤，請稍後再試。', 'bot');
+      }
+    }
+
+    sendBtn.addEventListener('click', sendMessage);
+    chatInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') sendMessage();
+    });
+ 
+document.addEventListener("DOMContentLoaded", () => {
+  const title = localStorage.getItem("meetingTitle");
+  const date = localStorage.getItem("meetingDate");
+  const stage = localStorage.getItem("meetingStage");
+  if (title && date && stage) {
+    document.getElementById("meetingInfoDisplay").textContent = `${stage} ${date} ${title}`;
+  }
+});
+  
+  </script>
+</body>
+</html>

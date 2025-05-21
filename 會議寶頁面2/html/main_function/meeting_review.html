@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>會議寶｜會議回顧</title>
+  <link rel="stylesheet" href="../../css/navbar.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    body {
+      background-color: #f5f8fa;
+      font-family: 'Arial', sans-serif;
+    }
+    .btn-primary {
+      background-color: #205f72;
+    }
+    .btn-primary:hover {
+      background-color: #175c71;
+    }
+    .dashed-box {
+      border: 2px dashed #cedfe4;
+      border-radius: 20px;
+      background-color: #ffffff;
+      padding: 24px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+    }
+  </style>
+</head>
+<body>
+  <!-- ✅ 導覽列 -->
+<nav class="navbar">
+  <div class="navbar-left">
+    <a href="../meeting.html">
+      <img src="../../image/logo.png" alt="Logo" class="logo-left" />
+    </a>
+  </div>
+  <div class="navbar-right">
+      <img src="../../image/head.png" alt="會員頭像" class="logo-right" />
+    </a>
+  </div>
+</nav>
+
+  <!-- ✅ 議題摘要區塊 -->
+  <section class="flex justify-center px-4 pt-20">
+    <div class="dashed-box w-full max-w-4xl">
+      <h2 class="text-2xl font-bold text-[#205f72] mb-6">會議摘要</h2>
+
+      <!-- 下拉選單 -->
+      <select class="w-full mb-6 px-5 py-4 text-base bg-[#e4e5e5] text-black rounded-lg focus:outline-none">
+        <option>請選擇會議</option>
+        <option>會議 A</option>
+        <option>會議 B</option>
+        <option>會議 C</option>
+      </select>
+
+      <!-- 可編輯文字區 -->
+      <textarea class="w-full h-40 bg-white border-2 border-dashed border-[#cedfe4] rounded-xl p-4 text-gray-700 text-base resize-none focus:outline-none focus:ring-2 focus:ring-[#205f72]" placeholder="請輸入摘要內容..."></textarea>
+
+      <!-- 功能圖示 -->
+      <div class="flex justify-end gap-4 mt-4">
+        <button title="複製" class="p-2 rounded-full hover:bg-gray-100 transition">
+          <i data-lucide="copy" class="w-5 h-5 text-gray-700"></i>
+        </button>
+        <button title="編輯" class="p-2 rounded-full hover:bg-gray-100 transition">
+          <i data-lucide="pencil-line" class="w-5 h-5 text-gray-700 rotate-[-40deg]"></i>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ✅ 修改紀錄 -->
+  <section class="flex justify-center px-4 pt-6 pb-20">
+    <div class="dashed-box w-full max-w-4xl text-center">
+      <h2 class="text-2xl font-bold text-[#205f72]">修改紀錄</h2>
+    </div>
+  </section>
+
+  <script>
+    const lucideIcons = () => lucide.createIcons();
+    window.onload = lucideIcons;
+  </script>
+</body>
+</html>

@@ -1,0 +1,113 @@
+body {
+  margin: 0;
+  padding: 180px 0 0 0 !important;
+  background-color: #f7f9fb;
+  font-family: 'Arial', sans-serif;
+  box-sizing: border-box;
+
+  /* ✅ 隱藏垂直捲軸但保留滑動功能 */
+  overflow-y: scroll;
+  scrollbar-width: none;              /* Firefox */
+}
+
+body::-webkit-scrollbar {
+  display: none;                      /* Chrome / Safari */
+}
+
+/* 導覽列容器 */
+.navbar {
+  background-color: #e4e5e5;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 24px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 50;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* 左右不被壓縮並保留最小寬度 */
+.navbar-left,
+.navbar-right {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.navbar-left {
+  min-width: 100px;
+}
+
+.navbar-right {
+  min-width: 80px;
+}
+
+/* 左 LOGO */
+.logo-left {
+  width: 70px;
+  height: auto;
+  display: block;
+}
+
+/* 導覽列中間選單 */
+.navbar-menu {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  justify-content: center;
+  flex-shrink: 1;
+
+  max-width: 60%;         /* ✅ 限制最大寬度，防止擠爆左右 */
+  overflow: hidden;       /* ✅ 防止內容撐爆 */
+}
+
+/* 功能連結樣式 */
+.navbar-menu a {
+  text-decoration: none;
+  color: #000000;
+  font-size: 20px;
+  font-weight: 500;
+  transition: color 0.2s, font-weight 0.2s;
+}
+
+.navbar-menu a:hover {
+  color: #000000;
+  font-weight: bold;
+}
+
+/* 禁用連結樣式 */
+.navbar-menu a.disabled {
+  color: #9ca3af;
+  pointer-events: none;
+  cursor: not-allowed;
+  font-weight: normal;
+}
+
+/* 右側頭像 */
+.logo-right {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.logo-right:hover {
+  transform: scale(1.05);
+}
+
+/* 可選補強：小螢幕換行（RWD） */
+@media (max-width: 768px) {
+  .navbar-menu {
+    flex-wrap: wrap;
+    gap: 24px;
+    max-width: 100%;
+  }
+}

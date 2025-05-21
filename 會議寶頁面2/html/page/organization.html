@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>會議寶｜建立組織</title>
+  <link rel="stylesheet" href="../../css/navbar.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+  body {
+    background-color: #f5f8fa;
+    font-family: 'Arial', sans-serif;
+  }
+    .btn-primary {
+      background-color: #205f72;
+    }
+    .btn-primary:hover {
+      background-color: #175c71;
+    }
+    .org-card {
+      background-color: #cedfe4;
+      border-radius: 16px;
+      padding: 12px 20px;
+      width: calc(25% - 12px);
+      height: 160px;
+      position: relative;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-sizing: border-box;
+    }
+    .menu-button {
+      position: absolute;
+      top: 8px;
+      right: 12px;
+      background: none;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+    }
+    .menu-list {
+      position: absolute;
+      top: 30px;
+      right: 10px;
+      background-color: #ffffff;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      display: none;
+      flex-direction: column;
+      z-index: 10;
+    }
+    .menu-list button {
+      padding: 8px 12px;
+      text-align: left;
+      background: none;
+      border: none;
+      cursor: pointer;
+    }
+    .menu-list button:hover {
+      background-color: #f0f0f0;
+    }
+    #orgList {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-start;
+      gap: 16px;
+    }
+    .dashed-box {
+      border: 2px dashed #cedfe4;
+      border-radius: 20px;
+      background-color: #ffffff;
+      padding: 24px;
+      min-height: 150px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+  </style>
+</head>
+<body>
+  <!-- ✅ 正確導覽列結構 -->
+<nav class="navbar">
+  <div class="navbar-left">
+    <a href="organization.html">
+      <img src="../../image/logo.png" alt="Logo" class="logo-left" />
+    </a>
+  </div>
+
+  <div class="navbar-right">
+    <a href="member_profile.html">
+      <img src="../../image/head.png" alt="會員頭像" class="logo-right" />
+    </a>
+  </div>
+</nav>
+
+
+  <div class="w-full max-w-4xl mb-4 flex justify-start px-4 mx-auto">
+    <button onclick="openModal()" class="btn-primary text-white px-4 py-2 rounded-lg font-bold">＋ 建立組織</button>
+  </div>
+
+  <div class="w-full max-w-4xl dashed-box mx-auto px-4">
+    <h2 class="text-center text-[#205f72] text-2xl font-bold">我的組織</h2>
+    <p id="orgHint" class="text-center text-gray-600 text-sm mb-4">在此顯示已建立過的組織</p>
+    <div id="orgList"></div>
+  </div>
+
+  <!-- Modal -->
+  <div id="modal" class="fixed inset-0 hidden items-center justify-center bg-black bg-opacity-50 z-50">
+    <div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-md">
+      <h3 class="text-xl font-bold text-[#205f72] mb-4 text-center">建立新組織</h3>
+      <div class="mb-4">
+        <label class="block font-bold mb-1">組織名稱</label>
+        <input id="orgName" type="text" placeholder="請輸入組織名稱" class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none" />
+      </div>
+      <div class="mb-4">
+        <label class="block font-bold mb-1">邀請組織成員</label>
+        <div class="relative w-full">
+          <input id="orgMemberInput" type="email" placeholder="example@gmail.com"
+            class="w-full p-3 pr-8 rounded-lg border border-gray-300 focus:outline-none" />
+          <button onclick="addMember()" class="absolute top-1/2 right-3 -translate-y-1/2 text-[#205f72] text-xl font-bold leading-none hover:text-[#175c71]">＋</button>
+        </div>
+        <ul id="memberList" class="mt-2 space-y-2"></ul>
+        <div id="inviteArea" class="mt-4 hidden text-right">
+          <button onclick="sendInvites()" class="btn-primary text-white px-4 py-2 rounded-lg">發送邀請</button>
+        </div>
+      </div>
+      <div class="flex justify-end gap-2 mt-2">
+        <button onclick="closeModal()" class="bg-gray-300 text-black px-4 py-2 rounded-lg">取消</button>
+        <button onclick="createOrganization()" class="btn-primary text-white px-4 py-2 rounded-lg">建立</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const members = [];
+
+    function openModal() {
+      document.getElementById("modal").classList.remove("hidden");
+      document.getElementById("modal").classList.add("flex");
+    }
+
+    function closeModal() {
+      document.getElementById("modal").classList.add("hidden");
+      document.getElementById("modal").classList.remove("flex");
+    }
+
+    function addMember() {
+      const input = document.getElementById("orgMemberInput");
+      const email = input.value.trim();
+      if (!email.endsWith("@gmail.com")) {
+        alert("請輸入正確的 Gmail 地址");
+        return;
+      }
+      members.push(email);
+      input.value = "";
+      renderMembers();
+    }
+
+    function renderMembers() {
+      const list = document.getElementById("memberList");
+      list.innerHTML = "";
+      members.forEach((email, index) => {
+        const item = document.createElement("li");
+        item.className = "flex justify-between items-center bg-[#f5f8fa] px-3 py-2 rounded";
+        item.innerHTML = `<span>${email}</span><button onclick="removeMember(${index})" class="text-red-600 font-bold">✕</button>`;
+        list.appendChild(item);
+      });
+      document.getElementById("inviteArea").style.display = members.length > 0 ? "block" : "none";
+    }
+
+    function removeMember(index) {
+      members.splice(index, 1);
+      renderMembers();
+    }
+
+    function sendInvites() {
+      alert("邀請已發送給：" + members.join(", "));
+    }
+
+ function createOrganization() {
+  const name = document.getElementById("orgName").value.trim();
+  if (!name) {
+    alert("請輸入組織名稱！");
+    return;
+  }
+  if (members.length === 0) {
+    alert("尚未邀請成員！");
+    return;
+  }
+
+  // 🔸 將邀請成員儲存到 localStorage
+  localStorage.setItem('organizationMembers', JSON.stringify(members));
+  localStorage.setItem('organizationName', name);
+  const id = Date.now();
+  const card = document.createElement("div");
+  card.className = "org-card";
+  card.id = "org-" + id;
+  card.innerHTML = `
+    <a href="meeting.html" style="position: absolute; inset: 0; display: flex; justify-content: center; align-items: center; text-decoration: none;">
+      <h3 id="title-${id}" class="font-bold text-base text-[#205f72]">${name}</h3>
+    </a>
+    <button class="menu-button" onclick="toggleMenu(${id})">⋮</button>
+    <div id="menu-${id}" class="menu-list">
+      <button onclick="renameOrg(${id})">重新命名組織</button>
+      <button onclick="deleteOrg(${id})">刪除組織</button>
+    </div>
+  `;
+  document.getElementById("orgList").appendChild(card);
+  document.getElementById("orgHint").style.display = "none";
+
+  // 清空欄位
+  document.getElementById("orgName").value = "";
+  document.getElementById("orgMemberInput").value = "";
+  members.length = 0;
+  renderMembers();
+  closeModal();
+}
+
+    function toggleMenu(id) {
+      const menu = document.getElementById("menu-" + id);
+      const allMenus = document.querySelectorAll(".menu-list");
+      allMenus.forEach(m => { if (m !== menu) m.style.display = "none"; });
+      menu.style.display = (menu.style.display === "flex") ? "none" : "flex";
+    }
+
+    function deleteOrg(id) {
+      if (confirm("確定要刪除這個組織嗎？此操作無法復原。")) {
+        document.getElementById("org-" + id).remove();
+      }
+    }
+
+    function renameOrg(id) {
+      const title = document.getElementById("title-" + id);
+      const newName = prompt("輸入新的組織名稱：", title.textContent);
+      if (newName) title.textContent = newName;
+    }
+
+    document.addEventListener("click", function(e) {
+      if (!e.target.closest(".org-card")) {
+        document.querySelectorAll(".menu-list").forEach(m => m.style.display = "none");
+      }
+    });
+  </script>
+</body>
+</html>

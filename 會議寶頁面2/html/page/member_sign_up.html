@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>會議寶｜會員註冊</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background-color: #f5f8fa;
+      font-family: 'Arial', sans-serif;
+    }
+  </style>
+</head>
+<body class="flex items-center justify-center min-h-screen">
+  <div class="bg-[#cedfe4] px-10 py-10 rounded-3xl shadow-md w-full max-w-md">
+    <h2 class="text-3xl font-bold mb-8 text-center text-[#205f72]">會員註冊</h2>
+    <form onsubmit="handleSignUp(event)">
+      <!-- 姓名欄位 -->
+      <div class="mb-4">
+        <label class="block font-bold mb-1">姓名</label>
+        <input id="signupName" type="text" placeholder="請輸入姓名"
+               class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none" />
+        <p id="nameError" class="text-sm text-red-600 mt-1"></p>
+      </div>
+
+      <!-- Email -->
+      <div class="mb-4">
+        <label class="block font-bold mb-1">Email</label>
+        <input id="signUpEmail" type="email" placeholder="請輸入 Gmail（ example@gmail.com ）"
+               class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none"/>
+        <p id="signUpEmailError" class="text-sm text-red-600 mt-1"></p>
+      </div>
+
+      <!-- 密碼 -->
+      <div class="mb-4">
+        <label class="block font-bold mb-1">密碼</label>
+        <input id="signUpPassword" type="password" placeholder="需包含英文大小寫與數字，至少8碼"
+               class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none"/>
+        <p id="signUpPasswordError" class="text-sm text-red-600 mt-1"></p>
+      </div>
+
+      <!-- 確認密碼 -->
+      <div class="mb-6">
+        <label class="block font-bold mb-1">確認密碼</label>
+        <input id="signUpConfirmPassword" type="password" placeholder="請再次輸入密碼"
+               class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none"/>
+        <p id="signUpConfirmPasswordError" class="text-sm text-red-600 mt-1"></p>
+      </div>
+
+      <!-- 註冊按鈕 -->
+      <button type="submit" class="w-full bg-[#205f72] hover:bg-[#175c71] text-white py-3 text-lg rounded-lg">註冊</button>
+    </form>
+  </div>
+
+  <!-- 驗證邏輯 -->
+  <script>
+    function handleSignUp(event) {
+      event.preventDefault();
+
+      const name = document.getElementById("signupName");
+      const email = document.getElementById("signUpEmail");
+      const password = document.getElementById("signUpPassword");
+      const confirmPassword = document.getElementById("signUpConfirmPassword");
+
+      const nameError = document.getElementById("nameError");
+      const emailError = document.getElementById("signUpEmailError");
+      const passwordError = document.getElementById("signUpPasswordError");
+      const confirmError = document.getElementById("signUpConfirmPasswordError");
+
+      nameError.textContent = "";
+      emailError.textContent = "";
+      passwordError.textContent = "";
+      confirmError.textContent = "";
+
+      const gmailPattern = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
+      const pwPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+      let valid = true;
+
+      if (!name.value.trim()) {
+        nameError.textContent = "請輸入姓名";
+        valid = false;
+      }
+
+      if (!email.value.trim()) {
+        emailError.textContent = "請輸入 Email";
+        valid = false;
+      } else if (!gmailPattern.test(email.value.trim())) {
+        emailError.textContent = "Email 格式錯誤，僅限 Gmail（ example@gmail.com ）";
+        valid = false;
+      }
+
+      if (!password.value) {
+        passwordError.textContent = "請輸入密碼";
+        valid = false;
+      } else if (!pwPattern.test(password.value)) {
+        passwordError.textContent = "密碼格式錯誤，請確認是否符合條件";
+        valid = false;
+      }
+
+      if (!confirmPassword.value) {
+        confirmError.textContent = "請再次輸入密碼";
+        valid = false;
+      } else if (password.value !== confirmPassword.value) {
+        confirmError.textContent = "兩次輸入的密碼不一致";
+        valid = false;
+      }
+
+      if (valid) {
+        alert("註冊成功！");
+        window.location.href = "member_sign_in.html";
+      }
+    }
+  </script>
+</body>
+</html>

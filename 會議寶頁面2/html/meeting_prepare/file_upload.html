@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>會議寶｜檔案上傳</title>
+  <link rel="stylesheet" href="../../css/navbar.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background-color: #f5f8fa;
+      font-family: 'Arial', sans-serif;
+    }
+    .btn-primary {
+      background-color: #205f72;
+    }
+    .btn-primary:hover {
+      background-color: #175c71;
+    }
+.dashed-box {
+  border: 2px dashed #cedfe4;
+  border-radius: 20px;
+  background-color: #ffffff;
+  padding: 24px;
+  min-height: 150px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+  text-align: center;
+  line-height: 1.8;
+  font-size: 18px;
+  color: #205f72;
+
+  /* ✅ 加上這兩行以統一間距邏輯 */
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 999;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.4);
+    }
+    .modal-content {
+      background-color: #ffffff;
+      margin: 10% auto;
+      padding: 30px;
+      border-radius: 16px;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+    .modal-content input[type="file"],
+    .modal-content input[type="submit"] {
+      width: 100%;
+      padding: 12px;
+      margin-top: 12px;
+      border: 2px solid #cedfe4;
+      border-radius: 12px;
+      background-color: #f5f8fa;
+      font-size: 16px;
+    }
+    .modal-content input[type="submit"] {
+      background-color: #205f72;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .modal-content input[type="submit"]:hover {
+      background-color: #175c71;
+    }
+    .close {
+      float: right;
+      font-size: 24px;
+      font-weight: bold;
+      color: #aaa;
+      cursor: pointer;
+    }
+    .close:hover {
+      color: #000;
+    }
+  </style>
+</head>
+<body>
+<nav class="navbar">
+  <div class="navbar-left flex items-center">
+<a href="../page/meeting.html">
+  <img src="../../image/logo.png" alt="Logo" class="logo-left" />
+</a>
+  </div>
+
+  <ul class="navbar-menu">
+    <li><a href="file_upload.html">檔案上傳</a></li>
+    <li><a class="disabled">語音轉文字</a></li>
+    <li><a href="Q&A.html">智能問答</a></li>
+    <li><a href="meeting_review.html">會議回顧</a></li>
+    <li><a href="instruction.html">使用說明</a></li>
+  </ul>
+
+  <div class="navbar-right">
+    <a href="../page/meeting_participant.html">
+    <img src="../../image/head.png" alt="會員頭像" class="logo-right" />
+    </a>
+  </div>
+</nav>
+
+<div style="position: fixed; top: 140px; left: 32px; z-index: 99999; padding: 6px 12px;">
+  <div class="flex items-center gap-2 text-[#205f72] text-sm font-semibold">
+    <span class="w-3 h-3 rounded-full bg-red-500 inline-block"></span>
+    <span id="meetingInfoDisplay">載入中...</span>
+  </div>
+</div>
+
+  <!-- ✅ 主按鈕 -->
+  <div class="w-full max-w-4xl mb-4 flex justify-start px-4 mx-auto">
+    <button onclick="openModal()" class="btn-primary text-white px-4 py-2 rounded-lg font-bold">＋ 上傳檔案</button>
+  </div>
+
+  <!-- ✅ 顯示區塊 -->
+  <div class="w-full max-w-4xl dashed-box mx-auto px-4">
+<h2 class="text-center text-[#205f72] text-2xl font-bold">我的檔案區</h2>
+    <p class="text-center text-gray-600 text-sm mb-4">在此顯示上傳紀錄、預覽等內容</p>
+  </div>
+
+  <!-- ✅ Modal -->
+  <div id="uploadModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal()">&times;</span>
+      <h3 class="text-xl font-bold text-[#205f72] mb-4 text-center">選擇要上傳的檔案</h3>
+      <form action="#" method="post" enctype="multipart/form-data">
+        <input type="file" name="file">
+        <input type="submit" value="上傳">
+      </form>
+    </div>
+  </div>
+
+  <script>
+    function openModal() {
+      document.getElementById('uploadModal').style.display = 'block';
+    }
+    function closeModal() {
+      document.getElementById('uploadModal').style.display = 'none';
+    }
+    window.onclick = function (event) {
+      const modal = document.getElementById('uploadModal');
+      if (event.target === modal) {
+        modal.style.display = 'none';
+      }
+    }
+
+document.addEventListener("DOMContentLoaded", () => {
+  const title = localStorage.getItem("meetingTitle");
+  const date = localStorage.getItem("meetingDate");
+  const stage = localStorage.getItem("meetingStage");
+  if (title && date && stage) {
+    document.getElementById("meetingInfoDisplay").textContent = `${stage} ${date} ${title}`;
+  }
+});
+
+  </script>
+</body>
+</html>
