@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>會議寶｜成員介紹</title>
+  <link rel="stylesheet" href="../CSS/navbar.css" />
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f5f8fa;
+      color: #000000;
+    }
+
+    .content {
+      margin-top: 120px;
+      margin-bottom: 100px;
+      background-color: #FFFFFF;
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+      overflow-y: auto;
+      max-width: 90%;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .team-title {
+      font-size: 32px;
+      font-weight: bold;
+      text-align: center;
+      color: #205f72;
+      margin-bottom: 40px;
+    }
+
+    .members {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 30px;
+      padding: 0 20px;
+    }
+
+    .member {
+      flex: 1 1 calc(20% - 30px);
+      text-align: center;
+      background-color: #cedfe4;
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .member-name {
+      font-weight: bold;
+      font-size: 20px;
+      color: #143139;
+    }
+
+    .member-mail {
+      font-size: 15px;
+      color: #333;
+    }
+
+    .flip-card {
+      background-color: transparent;
+      width: 150px;
+      height: 150px;
+      margin: 0 auto;
+      perspective: 1000px;
+    }
+
+    .flip-card-inner {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      text-align: center;
+      transition: transform 0.8s;
+      transform-style: preserve-3d;
+    }
+
+    .flip-card:hover .flip-card-inner {
+      transform: rotateY(180deg);
+    }
+
+    .flip-card-front,
+    .flip-card-back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      border-radius: 10px;
+    }
+
+    .flip-card-front img,
+    .flip-card-back img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
+    }
+
+    .flip-card-back {
+      transform: rotateY(180deg);
+    }
+
+    .project-name {
+      font-weight: bold;
+      color: #205f72;
+      margin-left: 16px;
+      font-size: 18px;
+    }
+
+    .navbar-left-group {
+      display: flex;
+      align-items: center;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 導覽列 -->
+  <nav class="navbar">
+    <div class="navbar-content">
+      <div class="navbar-left-group">
+        <a href="home_page.html">
+          <img src="../image/Logo.png" alt="Logo" class="logo-left">
+        </a>
+        <span id="projectDisplay" class="project-name"></span>
+      </div>
+      <ul class="navbar-menu">
+        <li><a href="file_upload.html">文件上傳</a></li>
+        <li><a href="speech_to_text.html">語音轉文字</a></li>
+        <li><a href="QA.html">智能問答</a></li>
+        <li><a href="issue_review.html">議題回顧</a></li>
+        <li><a href="group_introduce.html">成員介紹</a></li>
+      </ul>
+      <div class="navbar-right">
+        <a href="project_member_invite.html">
+          <img src="../image/Head.png" alt="會員頭像" class="logo-right">
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- 成員介紹主內容 -->
+  <div class="content">
+    <div class="team-title">成員介紹</div>
+    <div class="members">
+      <div class="member">
+        <div class="flip-card">
+          <div class="flip-card-inner">
+            <div class="flip-card-front"><img src="../image/nobody.png" alt="預設圖"></div>
+            <div class="flip-card-back"><img src="../image/Yun.jpg" alt="成員照片"></div>
+          </div>
+        </div>
+        <div class="member-name">姜筱雲</div>
+        <div class="member-mail">11146065@ntub.edu.tw</div>
+      </div>
+
+      <div class="member">
+        <div class="flip-card">
+          <div class="flip-card-inner">
+            <div class="flip-card-front"><img src="../image/nobody.png" alt="預設圖"></div>
+            <div class="flip-card-back"><img src="../image/Ki.jpg" alt="成員照片"></div>
+          </div>
+        </div>
+        <div class="member-name">連湘琪</div>
+        <div class="member-mail">11146067@ntub.edu.tw</div>
+      </div>
+
+      <div class="member">
+        <div class="flip-card">
+          <div class="flip-card-inner">
+            <div class="flip-card-front"><img src="../image/nobody.png" alt="預設圖"></div>
+            <div class="flip-card-back"><img src="../image/77.JPG" alt="成員照片"></div>
+          </div>
+        </div>
+        <div class="member-name">邵紫綺</div>
+        <div class="member-mail">11146074@ntub.edu.tw</div>
+      </div>
+
+      <div class="member">
+        <div class="flip-card">
+          <div class="flip-card-inner">
+            <div class="flip-card-front"><img src="../image/nobody.png" alt="預設圖"></div>
+            <div class="flip-card-back"><img src="../image/Yu.jpg" alt="成員照片"></div>
+          </div>
+        </div>
+        <div class="member-name">李曼鈺</div>
+        <div class="member-mail">11146079@ntub.edu.tw</div>
+      </div>
+
+      <div class="member">
+        <div class="flip-card">
+          <div class="flip-card-inner">
+            <div class="flip-card-front"><img src="../image/nobody.png" alt="預設圖"></div>
+            <div class="flip-card-back"><img src="../image/Ya.jpg" alt="成員照片"></div>
+          </div>
+        </div>
+        <div class="member-name">范雅淇</div>
+        <div class="member-mail">11146082@ntub.edu.tw</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const name = localStorage.getItem('currentProject');
+      const display = document.getElementById('projectDisplay');
+      if (display && name) {
+        display.textContent = `目前專案：${name}`;
+      }
+    });
+  </script>
+</body>
+</html>

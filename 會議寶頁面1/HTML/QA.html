@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>會議寶｜智能問答</title>
+  <link rel="stylesheet" href="../CSS/navbar.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      margin: 0;
+      background-color: #f7f9fb;
+      font-family: Arial, sans-serif;
+    }
+
+    .chat-container {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .message {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+    }
+
+    .message.bot {
+      justify-content: flex-start;
+    }
+
+    .message.user {
+      justify-content: flex-end;
+    }
+
+    .avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .bubble {
+      max-width: 70%;
+      padding: 12px 16px;
+      line-height: 1.5;
+      border-radius: 16px;
+    }
+
+    .message.bot .bubble {
+      background-color: #ffffff;
+      color: #000000;
+    }
+
+    .message.user .bubble {
+      background: linear-gradient(135deg, #175c71 0%, #205f72 100%);
+      color: #ffffff;
+    }
+
+    .input-area {
+      display: flex;
+      padding: 12px;
+      background-color: #cedfe4;
+      border-radius: 12px;
+      margin: 8px auto;
+      max-width: 600px;
+      width: calc(100% - 32px);
+      align-items: center;
+      border: none;
+      box-shadow: 0 -1px 4px rgba(0,0,0,0.1);
+    }
+
+    .input-area input {
+      flex: 1;
+      border: none;
+      border-radius: 20px;
+      padding: 10px 16px;
+      font-size: 16px;
+      outline: none;
+      background-color: #f1f5f9;
+      color: #000000;
+    }
+
+    .input-area button {
+      background-color: #175c71;
+      color: #ffffff;
+      border: none;
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      margin-left: 8px;
+    }
+
+    .input-area button:hover {
+      background-color: #205f72;
+    }
+
+    .input-area button i {
+      font-size: 24px;
+      color: inherit;
+    }
+
+    .project-name {
+      font-weight: bold;
+      color: #205f72;
+      margin-left: 16px;
+      font-size: 18px;
+    }
+
+    .navbar-left-group {
+      display: flex;
+      align-items: center;
+    }
+  </style>
+</head>
+<body>
+    <!-- 導覽列 -->
+  <nav class="navbar">
+    <div class="navbar-content">
+      <div class="navbar-left-group">
+        <a href="home_page.html">
+          <img src="../image/Logo.png" alt="Logo" class="logo-left">
+        </a>
+        <span id="projectDisplay" class="project-name"></span>
+      </div>
+      <ul class="navbar-menu">
+        <li><a href="file_upload.html">檔案上傳</a></li>
+        <li><a href="speech_to_text.html">語音轉文字</a></li>
+        <li><a href="QA.html">智能問答</a></li>
+        <li><a href="issue_review.html">會議回顧</a></li>
+        <li><a href="use.html">使用說明</a></li>
+      </ul>
+      <div class="navbar-right">
+        <a href="project_member_invite.html">
+          <img src="../image/Head.png" alt="會員頭像" class="logo-right">
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="chat-container" id="chatContainer"></div>
+
+  <div class="input-area">
+    <input type="text" id="chatInput" placeholder="請輸入問題，按 Enter 或點擊送出" />
+    <button id="sendBtn" title="送出"><i class="fas fa-paper-plane"></i></button>
+  </div>
+
+  <script>
+    const chatContainer = document.getElementById('chatContainer');
+    const chatInput = document.getElementById('chatInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const userAvatar = '../image/user.png';
+    const botAvatar = '../image/bot.png';
+
+    function appendMessage(text, role) {
+      const row = document.createElement('div');
+      row.className = `message ${role}`;
+
+      const avatar = document.createElement('img');
+      avatar.src = role === 'user' ? userAvatar : botAvatar;
+      avatar.className = 'avatar';
+
+      const bubble = document.createElement('div');
+      bubble.className = 'bubble';
+      bubble.textContent = text;
+
+      if (role === 'bot') {
+        row.append(avatar, bubble);
+      } else {
+        row.append(bubble, avatar);
+      }
+
+      chatContainer.appendChild(row);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    async function sendMessage() {
+      const text = chatInput.value.trim();
+      if (!text) return;
+
+      appendMessage(text, 'user');
+      chatInput.value = '';
+      appendMessage('思考中...', 'bot');
+
+      try {
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ question: text })
+        });
+
+        const { answer } = await res.json();
+        const lastBubble = chatContainer.querySelector('.message.bot:last-child .bubble');
+
+        if (lastBubble && lastBubble.textContent === '思考中...') {
+          lastBubble.textContent = answer;
+        } else {
+          appendMessage(answer, 'bot');
+        }
+      } catch {
+        appendMessage('發生錯誤，請稍後再試。', 'bot');
+      }
+    }
+
+    sendBtn.addEventListener('click', sendMessage);
+    chatInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') sendMessage();
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const name = localStorage.getItem('currentProject');
+      const display = document.getElementById('projectDisplay');
+      if (display && name) {
+        display.textContent = `目前專案：${name}`;
+      }
+    });
+  </script>
+</body>
+</html>

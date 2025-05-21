@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>會議寶｜會員登入</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background-color: #f5f8fa;
+      font-family: 'Arial', sans-serif;
+    }
+  </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen">
+  <div class="flex flex-row items-center justify-center gap-20">
+    <!-- 左側 LOGO 與說明 -->
+    <div class="flex flex-col items-center justify-center">
+      <img src="../image/Logo.png" alt="會議寶 Logo" class="w-[420px] h-auto mb-8" />
+      <button onclick="document.getElementById('modal').classList.remove('hidden')" class="text-[#205f72] hover:text-[#175c71] text-xl font-semibold underline">
+        使用說明
+      </button>
+    </div>
+
+    <!-- 登入表單 -->
+    <div class="bg-[#cedfe4] px-10 py-10 rounded-3xl shadow-md w-full max-w-md">
+      <h2 class="text-3xl font-bold mb-8 text-center text-[#205f72]">會員登入</h2>
+      <form onsubmit="handleLogin(event)">
+        <div class="mb-4">
+          <label class="block font-bold mb-1">Email</label>
+          <input id="loginEmail" type="email" class="w-full p-3 rounded-lg border focus:outline-none"/>
+          <p id="emailError" class="text-sm text-red-600 mt-1"></p>
+        </div>
+        <div class="mb-6">
+          <label class="block font-bold mb-1">密碼</label>
+          <input id="loginPassword" type="password" class="w-full p-3 rounded-lg border focus:outline-none"/>
+          <p id="passwordError" class="text-sm text-red-600 mt-1"></p>
+        </div>
+        <div class="text-right mb-4">
+          <a href="forgot_password.html" class="text-sm text-[#205f72] hover:underline">忘記密碼？</a>
+        </div>
+        <button type="submit" class="w-full bg-[#205f72] hover:bg-[#175c71] text-white py-3 text-lg rounded-lg">登入</button>
+        <p class="text-sm text-center mt-4">還沒有帳號？<a href="member_sign_up.html" class="text-[#205f72] hover:underline">立即註冊</a></p>
+      </form>
+    </div>
+  </div>
+
+  <!-- 使用說明 Modal -->
+  <div id="modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-xl p-6 max-w-2xl w-full shadow-lg">
+      <h3 class="text-xl font-bold text-[#205f72] mb-4 text-center">會議寶使用說明</h3>
+      <p class="mb-4 text-base text-left">
+        進入會議寶後，首先需要建立一個專案。只要點擊「＋ 建立」按鈕，輸入專案名稱後，即可新增專案。接著，點選專案卡片即可進入專案主頁，開始使用各項功能。
+      </p>
+      <ol class="list-decimal list-inside space-y-4 text-base text-left">
+        <li><strong>文件上傳</strong><br>可以透過點選「＋新增」按鈕開啟上傳視窗，選擇會議紀錄相關檔案並送出，即可將檔案儲存至目前專案中。此功能可集中管理多場會議資料，方便後續查閱。</li>
+        <li><strong>語音轉文字</strong><br>提供兩種操作方式：第一種是上傳錄音檔，系統會自動辨識語音並轉換為文字。第二種則是使用內建語音辨識功能，點擊畫面中的麥克風圖示即可開始錄音。</li>
+        <li><strong>智能問答</strong><br>可以對會議紀錄進行提問，如「會議的結論是什麼？」或「誰負責追蹤某項任務？」系統會根據記錄內容提供回應。</li>
+        <li><strong>議題回顧</strong><br>可從下拉選單選擇會議，系統會顯示自動生成的重點摘要，並支援修訂與複製，修改紀錄會出現在下方以供追蹤。</li>
+      </ol>
+      <div class="text-center mt-6">
+        <button onclick="document.getElementById('modal').classList.add('hidden')" class="bg-[#205f72] text-white px-4 py-2 rounded-lg hover:bg-[#175c71]">關閉</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function handleLogin(event) {
+      event.preventDefault();
+      const email = document.getElementById("loginEmail");
+      const password = document.getElementById("loginPassword");
+      const emailError = document.getElementById("emailError");
+      const passwordError = document.getElementById("passwordError");
+
+      emailError.textContent = "";
+      passwordError.textContent = "";
+
+      const gmailPattern = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
+      const pwPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+      let valid = true;
+
+      if (!email.value.trim()) {
+        emailError.textContent = "請輸入 Email";
+        valid = false;
+      } else if (!gmailPattern.test(email.value.trim())) {
+        emailError.textContent = "Email 格式錯誤，僅限 Gmail（ example@gmail.com ）";
+        valid = false;
+      }
+
+      if (!password.value) {
+        passwordError.textContent = "請輸入密碼";
+        valid = false;
+      } else if (!pwPattern.test(password.value)) {
+        passwordError.textContent = "密碼格式錯誤，請確認是否包含英文大小寫與數字，至少 8 碼";
+        valid = false;
+      }
+
+      if (valid) {
+        alert("登入成功！");
+        window.location.href = "home_page.html";
+      }
+    }
+  </script>
+</body>
+</html>

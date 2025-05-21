@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <title>會議寶</title>
+  <link rel="stylesheet" href="../CSS/navbar.css">
+</head>
+<body>
+  <!-- 導覽列 HTML 結構 -->
+  <nav class="navbar">
+    <!-- 左側 Logo -->
+    <div class="navbar-left">
+      <a href="home_page.html">
+        <img src="../image/Logo.png" alt="Logo" class="logo-left">
+      </a>
+    </div>
+
+    <!-- 中間導覽選單 -->
+    <ul class="navbar-menu">
+      <li><a href="file_upload.html">文件上傳</a></li>
+      <li><a href="speech_to_text.html">語音轉文字</a></li>
+      <li><a href="QA.html">智能問答</a></li>
+      <li><a href="issue_review.html">議題回顧</a></li>
+      <li><a href="group_introduce.html">成員介紹</a></li>
+    </ul>
+
+    <!-- 右側專案名稱與頭像 -->
+    <div class="navbar-right">
+      <span id="projectDisplay" class="project-name"></span>
+      <img src="../image/Head.png" alt="會員頭像" class="logo-right">
+    </div>
+  </nav>
+
+  <!-- JS 顯示專案名稱 -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const name = localStorage.getItem('currentProject');
+      const display = document.getElementById('projectDisplay');
+      if (display) {
+        display.textContent = name ? `目前專案：${name}` : '';
+      }
+    });
+  </script>
+</body>
+</html>

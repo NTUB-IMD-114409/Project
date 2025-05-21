@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>會議寶｜使用說明</title>
+  <link rel="stylesheet" href="../CSS/navbar.css" />
+</head>
+<body>
+  <!-- 導覽列 -->
+  <nav class="navbar">
+    <div class="navbar-content">
+      <div class="navbar-left-group">
+        <a href="home_page.html">
+          <img src="../image/Logo.png" alt="Logo" class="logo-left">
+        </a>
+        <span id="projectDisplay" class="project-name"></span>
+      </div>
+      <ul class="navbar-menu">
+        <li><a href="file_upload.html">檔案上傳</a></li>
+        <li><a href="speech_to_text.html">語音轉文字</a></li>
+        <li><a href="QA.html">智能問答</a></li>
+        <li><a href="issue_review.html">會議回顧</a></li>
+        <li><a href="use.html">使用說明</a></li>
+      </ul>
+      <div class="navbar-right">
+        <a href="project_member_invite.html">
+          <img src="../image/Head.png" alt="會員頭像" class="logo-right">
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const name = localStorage.getItem('currentProject');
+      const display = document.getElementById('projectDisplay');
+      if (display && name) {
+        display.textContent = `目前專案：${name}`;
+      }
+    });
+  </script>
+</body>
+</html>

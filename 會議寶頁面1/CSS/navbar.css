@@ -1,0 +1,79 @@
+/* 全頁設定：消除白邊背景統一 */
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #f7f9fb; /* 可自行調整頁面背景色 */
+}
+
+/* 導覽列本體 */
+.navbar {
+  background-color: #e4e5e5;
+  padding: 10px 32px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* 導覽列內容排版區 */
+.navbar-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+/* 左邊區塊：Logo + 專案名稱 */
+.navbar-left-group {
+  display: flex;
+  align-items: center;
+  gap: 16px; /* Logo 和文字之間距離 */
+}
+
+/* 左邊 LOGO */
+.logo-left {
+  width: 80px;
+  height: auto;
+}
+
+/* 專案名稱 */
+.project-name {
+  font-weight: bold;
+  color: #205f72;
+  font-size: 18px;
+  white-space: nowrap;
+}
+
+/* 中間導覽選單 */
+.navbar-menu {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 80px;
+  padding: 0;
+  margin: 0;
+}
+
+.navbar-menu a {
+  text-decoration: none;
+  color: #000000;
+  font-size: 22px;
+  font-weight: 500;
+  transition: font-weight 0.2s ease;
+}
+
+.navbar-menu a:hover {
+  font-weight: bold;
+}
+
+/* 右側區塊：會員頭像 */
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-right {
+  width: 70px;
+  height: auto;
+  border-radius: 50%;
+}

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>會議寶｜會員資訊</title>
+  <link rel="stylesheet" href="../CSS/navbar.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      lucide.createIcons();
+    });
+  </script>
+  <style>
+    body {
+      background-color: #f5f8fa;
+      font-family: 'Arial', sans-serif;
+      color: #000000;
+    }
+
+    .title {
+      color: #205f72;
+    }
+
+    .section {
+      max-width: 480px;
+      margin: 60px auto;
+      background-color: #cedfe4;
+      border-radius: 20px;
+      padding: 32px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+      border: 2px dashed #cedfe4;
+    }
+
+    .form-input {
+      border: 1px solid #205f72;
+      border-radius: 8px;
+      padding: 10px 12px;
+      width: 89%;
+      outline: none;
+    }
+
+    .form-input:focus {
+      border-color: #205f72;
+      box-shadow: 0 0 0 2px rgba(32, 95, 114, 0.3);
+    }
+
+    .form-label {
+      font-weight: bold;
+      color: #205f72;
+    }
+
+    .submit-btn {
+      background-color: #205f72;
+      color: white;
+      font-weight: 600;
+      padding: 10px 24px;
+      border-radius: 9999px;
+      transition: background-color 0.2s;
+    }
+
+    .submit-btn:hover {
+      background-color: #175c71;
+    }
+
+    .icon-btn {
+      padding: 8px;
+      border-radius: 9999px;
+      transition: background-color 0.2s;
+    }
+
+    .icon-btn:hover {
+      background-color: #f0f0f0;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 導覽列 -->
+  <nav class="navbar">
+    <div class="navbar-content">
+      <a href="home_page.html">
+        <img src="../image/Logo.png" alt="Logo" class="logo-left" />
+      </a>
+      <a href="member_profile.html">
+        <img src="../image/Head.png" alt="會員頭像" class="logo-right" />
+      </a>
+    </div>
+  </nav>
+
+  <!-- 主內容 -->
+  <section class="section">
+    <h2 class="text-2xl font-bold title text-center mb-8">會員資訊</h2>
+    <form class="space-y-4">
+      <!-- 姓名 -->
+      <div class="form-group">
+        <label class="form-label block mb-2">姓名</label>
+        <div class="flex items-center gap-2">
+          <input type="text" class="form-input flex-1" placeholder="輸入姓名" />
+          <button title="編輯" class="icon-btn">
+            <i data-lucide="pencil-line" class="w-5 h-5 text-gray-700 rotate-[-40deg]"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- 帳號 -->
+      <div class="form-group">
+        <label class="form-label block mb-2">帳號</label>
+        <input type="email" class="form-input bg-[#f5f8fa] text-gray-500" value="user@example.com" disabled />
+      </div>
+
+      <!-- 密碼 -->
+      <div class="form-group">
+        <label class="form-label block mb-2">密碼</label>
+        <div class="flex items-center gap-2">
+          <input type="password" class="form-input flex-1" placeholder="輸入新密碼" />
+          <button title="編輯" class="icon-btn">
+            <i data-lucide="pencil-line" class="w-5 h-5 text-gray-700 rotate-[-40deg]"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- 登出 -->
+      <div class="text-center pt-4">
+        <button type="button" class="submit-btn" onclick="handleLogout()">登出</button>
+      </div>
+    </form>
+  </section>
+
+  <script>
+    function handleLogout() {
+      window.location.href = "member_sign_in.html";
+    }
+  </script>
+
+</body>
+</html>

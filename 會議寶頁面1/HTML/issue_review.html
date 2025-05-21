@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>會議寶｜會議回顧</title>
+  <link rel="stylesheet" href="../CSS/navbar.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    :root {
+      --color-navbar: #e4e5e5;
+      --color-page-bg: #F5F8FA;
+      --color-title: #205f72;
+      --color-box-bg: #cedfe4;
+      --color-button: #175c71;
+      --color-button-bg: #205f72;
+      --color-button-text: #FFFFFF;
+      --color-text: #000000;
+      --color-dashed: #cedfe4;
+    }
+
+    body {
+      background-color: var(--color-page-bg);
+      font-family: 'Arial', sans-serif;
+      color: var(--color-text);
+      margin: 0;
+      padding: 0;
+    }
+
+    .project-name {
+      font-weight: bold;
+      color: #205f72;
+      margin-left: 16px;
+      font-size: 18px;
+    }
+
+    .navbar-left-group {
+      display: flex;
+      align-items: center;
+    }
+  </style>
+</head>
+<body>
+
+    <!-- 導覽列 -->
+  <nav class="navbar">
+    <div class="navbar-content">
+      <div class="navbar-left-group">
+        <a href="home_page.html">
+          <img src="../image/Logo.png" alt="Logo" class="logo-left">
+        </a>
+        <span id="projectDisplay" class="project-name"></span>
+      </div>
+      <ul class="navbar-menu">
+        <li><a href="file_upload.html">檔案上傳</a></li>
+        <li><a href="speech_to_text.html">語音轉文字</a></li>
+        <li><a href="QA.html">智能問答</a></li>
+        <li><a href="issue_review.html">會議回顧</a></li>
+        <li><a href="use.html">使用說明</a></li>
+      </ul>
+      <div class="navbar-right">
+        <a href="project_member_invite.html">
+          <img src="../image/Head.png" alt="會員頭像" class="logo-right">
+        </a>
+      </div>
+    </div>
+  </nav>
+  <!-- 內容區塊：議題與摘要 -->
+  <section class="flex justify-center px-4 pt-20">
+    <div class="bg-[var(--color-box-bg)] w-full max-w-4xl p-8 rounded-2xl shadow-md">
+      <div class="bg-[var(--color-button-text)] p-8 rounded-xl">
+        <h2 class="text-2xl font-bold mb-6 text-[var(--color-title)]">會議摘要</h2>
+
+        <select class="w-full mb-6 px-6 py-5 text-xl bg-[#e4e5e5] text-black rounded-lg focus:outline-none">
+          <option>請選擇會議</option>
+          <option>會議A</option>
+          <option>會議 B</option>
+          <option>會議 C</option>
+        </select>
+
+        <textarea class="w-full h-40 bg-white border-2 border-dashed border-[var(--color-dashed)] rounded-xl p-4 text-gray-700 text-base resize-none focus:outline-none focus:ring-2 focus:ring-[var(--color-button)]" placeholder="可修改、複製摘要內容..."></textarea>
+
+        <div class="flex justify-end gap-4 mt-3">
+          <button title="複製" class="p-2 rounded-full hover:bg-gray-100 transition">
+            <i data-lucide="copy" class="w-5 h-5 text-gray-700"></i>
+          </button>
+          <button title="編輯" class="p-2 rounded-full hover:bg-gray-100 transition">
+            <i data-lucide="pencil-line" class="w-5 h-5 text-gray-700 rotate-[-40deg]"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 修改紀錄 -->
+  <section class="flex justify-center px-4 pt-6 pb-20">
+    <div class="bg-[var(--color-box-bg)] w-full max-w-4xl p-6 rounded-2xl shadow-md text-center">
+      <h2 class="text-2xl font-bold text-[var(--color-title)]">修改紀錄</h2>
+    </div>
+  </section>
+
+  <script>
+    lucide.createIcons();
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const name = localStorage.getItem('currentProject');
+      const display = document.getElementById('projectDisplay');
+      if (display && name) {
+        display.textContent = `目前專案：${name}`;
+      }
+    });
+  </script>
+
+</body>
+</html>
