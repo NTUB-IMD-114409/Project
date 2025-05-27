@@ -1,0 +1,182 @@
+-- meeting2.users definition
+
+CREATE TABLE `users` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(100) NOT NULL,
+  `email` varchar(255) NOT NULL,
+  `password_hash` varchar(255) NOT NULL,
+  `created_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `email` (`email`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
+-- meeting2.organizations definition
+
+CREATE TABLE `organizations` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL,
+  `created_by` int NOT NULL,
+  `created_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `created_by` (`created_by`),
+  CONSTRAINT `organizations_ibfk_1` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
+-- meeting2.meetings definition
+
+CREATE TABLE `meetings` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `org_id` int NOT NULL,
+  `title` varchar(255) DEFAULT NULL,
+  `date` date NOT NULL,
+  `created_by` int NOT NULL,
+  `created_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `org_id` (`org_id`),
+  KEY `created_by` (`created_by`),
+  CONSTRAINT `meetings_ibfk_1` FOREIGN KEY (`org_id`) REFERENCES `organizations` (`id`),
+  CONSTRAINT `meetings_ibfk_2` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
+-- meeting2.organization_members definition
+
+CREATE TABLE `organization_members` (
+  `org_id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `role` varchar(20) DEFAULT NULL,
+  PRIMARY KEY (`org_id`,`user_id`),
+  KEY `user_id` (`user_id`),
+  CONSTRAINT `organization_members_ibfk_1` FOREIGN KEY (`org_id`) REFERENCES `organizations` (`id`),
+  CONSTRAINT `organization_members_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
+-- meeting2.qa_logs definition
+
+CREATE TABLE `qa_logs` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `meeting_id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `question` text,
+  `answer` text,
+  `created_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `meeting_id` (`meeting_id`),
+  KEY `user_id` (`user_id`),
+  CONSTRAINT `qa_logs_ibfk_1` FOREIGN KEY (`meeting_id`) REFERENCES `meetings` (`id`),
+  CONSTRAINT `qa_logs_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
+-- meeting2.record_organized definition
+
+CREATE TABLE `record_organized` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `meeting_id` int NOT NULL,
+  `speaker` varchar(50) DEFAULT NULL,
+  `content` longtext,
+  `source_ids` text,
+  `created_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `meeting_id` (`meeting_id`),
+  CONSTRAINT `record_organized_ibfk_1` FOREIGN KEY (`meeting_id`) REFERENCES `meetings` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
+-- meeting2.records definition
+
+CREATE TABLE `records` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `meeting_id` int NOT NULL,
+  `summary` text,
+  `created_by` int NOT NULL,
+  `created_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `meeting_id` (`meeting_id`),
+  KEY `created_by` (`created_by`),
+  CONSTRAINT `records_ibfk_1` FOREIGN KEY (`meeting_id`) REFERENCES `meetings` (`id`),
+  CONSTRAINT `records_ibfk_2` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
+-- meeting2.summaries definition
+
+CREATE TABLE `summaries` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `meeting_id` int NOT NULL,
+  `content` text,
+  `modified_by` int NOT NULL,
+  `modified_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `meeting_id` (`meeting_id`),
+  KEY `modified_by` (`modified_by`),
+  CONSTRAINT `summaries_ibfk_1` FOREIGN KEY (`meeting_id`) REFERENCES `meetings` (`id`),
+  CONSTRAINT `summaries_ibfk_2` FOREIGN KEY (`modified_by`) REFERENCES `users` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
+-- meeting2.voices definition
+
+CREATE TABLE `voices` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `meeting_id` int NOT NULL,
+  `file_path` text,
+  `file_name` varchar(255) DEFAULT NULL,
+  `file_type` varchar(50) DEFAULT NULL,
+  `duration_sec` int DEFAULT NULL,
+  `uploaded_by` int NOT NULL,
+  `uploaded_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `meeting_id` (`meeting_id`),
+  KEY `uploaded_by` (`uploaded_by`),
+  CONSTRAINT `voices_ibfk_1` FOREIGN KEY (`meeting_id`) REFERENCES `meetings` (`id`),
+  CONSTRAINT `voices_ibfk_2` FOREIGN KEY (`uploaded_by`) REFERENCES `users` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
+-- meeting2.files definition
+
+CREATE TABLE `files` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `meeting_id` int NOT NULL,
+  `file_name` varchar(255) DEFAULT NULL,
+  `file_path` text,
+  `uploaded_by` int NOT NULL,
+  `uploaded_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `meeting_id` (`meeting_id`),
+  KEY `uploaded_by` (`uploaded_by`),
+  CONSTRAINT `files_ibfk_1` FOREIGN KEY (`meeting_id`) REFERENCES `meetings` (`id`),
+  CONSTRAINT `files_ibfk_2` FOREIGN KEY (`uploaded_by`) REFERENCES `users` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
+-- meeting2.meeting_participants definition
+
+CREATE TABLE `meeting_participants` (
+  `meeting_id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `permission` varchar(20) DEFAULT NULL,
+  `role` varchar(20) DEFAULT NULL,
+  PRIMARY KEY (`meeting_id`,`user_id`),
+  KEY `user_id` (`user_id`),
+  CONSTRAINT `meeting_participants_ibfk_1` FOREIGN KEY (`meeting_id`) REFERENCES `meetings` (`id`),
+  CONSTRAINT `meeting_participants_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
+-- meeting2.transcripts_detailed definition
+
+CREATE TABLE `transcripts_detailed` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `voice_id` int NOT NULL,
+  `speaker` varchar(50) DEFAULT NULL,
+  `content` longtext,
+  `timestamp` varchar(50) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `voice_id` (`voice_id`),
+  CONSTRAINT `transcripts_detailed_ibfk_1` FOREIGN KEY (`voice_id`) REFERENCES `voices` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
