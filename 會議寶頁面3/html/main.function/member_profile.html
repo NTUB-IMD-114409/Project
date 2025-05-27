@@ -1,0 +1,108 @@
+<!DOCTYPE html> 
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>會議寶｜會員資訊</title>
+  <link rel="stylesheet" href="../../css/navbar_b.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <button class="navbar-toggle" onclick="toggleSidebar()" id="toggleBtn">
+        <img src="../../image/navbar.png" alt="toggle" id="toggleIcon" />
+      </button>
+      <nav class="menu">
+        <a href="build_organization.html" class="sidebar-item">
+          <img src="../../image/home.png" alt="Home" class="sidebar-icon" />
+          <span>首頁</span>
+        </a>
+        <a href="../login.register/member_sign_in.html" class="sidebar-item">
+          <img src="../../image/logout.png" alt="Logout" class="sidebar-icon" />
+          <span>登出</span>
+        </a>
+      </nav>
+    </aside>
+
+    <main class="main-content">
+      <header class="header">
+        <div class="header-left">
+          <a href="build_organization.html">
+            <img src="../../image/logo.png" alt="Logo" class="logo-img" id="logoImg" />
+          </a>
+        </div>
+        <div class="header-right">
+          <a href="member_profile.html">
+            <img src="../../image/head.png" alt="Head" class="avatar-img" />
+          </a>
+        </div>
+      </header>
+
+      <!-- 會員資訊卡片 -->
+      <div class="flex justify-center items-center py-10">
+        <div class="bg-[#cedfe4] w-full max-w-md p-6 rounded-2xl shadow-xl border border-dashed border-[#cedfe4]">
+          <!-- 標題 -->
+          <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-bold text-[#205f72]">會員資訊</h1>
+          </div>
+
+          <!-- 表單 -->
+          <form class="space-y-4">
+            <!-- 姓名 -->
+            <div>
+              <label class="block font-semibold text-[#205f72]">姓名</label>
+              <div class="flex justify-between items-center gap-2">
+                <input type="text" placeholder="輸入新姓名"
+                       class="flex-1 px-3 py-2 rounded-md border border-[#205f72] focus:outline-none focus:ring-2 focus:ring-[#205f72]">
+                <button title="編輯" class="p-2 rounded-full hover:bg-gray-100 transition">
+                  <img src="../../image/pen.png" alt="編輯" class="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            <!-- 帳號 -->
+            <div>
+              <label class="block font-semibold text-[#205f72]">帳號</label>
+              <div class="flex justify-between items-center gap-2">
+                <input type="text" value="example@gmail.com" disabled
+                       class="flex-1 px-3 py-2 rounded-md bg-[#f5f8fa] text-gray-500 border border-[#205f72]">
+                <div class="w-9"></div>
+              </div>
+            </div>
+
+            <!-- 密碼 -->
+            <div>
+              <label class="block font-semibold text-[#205f72]">密碼</label>
+              <div class="flex justify-between items-center gap-2">
+                <input type="password" placeholder="輸入新密碼"
+                       class="flex-1 px-3 py-2 rounded-md border border-[#205f72] focus:outline-none focus:ring-2 focus:ring-[#205f72]">
+                <button title="編輯" class="p-2 rounded-full hover:bg-gray-100 transition">
+                  <img src="../../image/pen.png" alt="編輯" class="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            <!-- 送出 -->
+            <div class="text-center pt-4">
+              <button type="submit"
+                      class="bg-[#205f72] text-white font-semibold px-6 py-2 rounded-full hover:bg-[#175c71]">
+                送出
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      sidebar.classList.toggle('collapsed');
+    }
+  </script>
+
+</body>
+</html>

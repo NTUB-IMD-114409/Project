@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>會議寶｜發起會議</title>
+  <link rel="stylesheet" href="../../css/navbar_b.css"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+  <style>
+    .btn-primary {
+      background-color: #205f72;
+    }
+    .btn-primary:hover {
+      background-color: #175c71;
+    }
+    .dashed-box {
+      border: 2px dashed #cedfe4;
+      border-radius: 20px;
+      background-color: #ffffff;
+      padding: 24px;
+      min-height: 150px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .org-card {
+      background-color: #cedfe4;
+      border-radius: 16px;
+      padding: 12px 20px;
+      width: calc(25% - 12px);
+      height: 160px;
+      position: relative;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-sizing: border-box;
+    }
+    .menu-button {
+      position: absolute;
+      top: 8px;
+      right: 12px;
+      background: none;
+      border: none;
+      font-size: 18px;
+      cursor: pointer;
+      color: #205f72;
+    }
+    .menu-button:hover {
+      color: #175c71;
+    }
+    .menu-list {
+      position: absolute;
+      top: 30px;
+      right: 10px;
+      background-color: #ffffff;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      display: none;
+      flex-direction: column;
+      z-index: 10;
+    }
+    .menu-list button {
+      padding: 8px 12px;
+      text-align: left;
+      background: none;
+      border: none;
+      cursor: pointer;
+    }
+    .menu-list button:hover {
+      background-color: #f0f0f0;
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <button class="navbar-toggle" onclick="toggleSidebar()" id="toggleBtn">
+        <img src="../../image/navbar.png" alt="toggle" id="toggleIcon" />
+      </button>
+      <nav class="menu">
+        <a href="build_organization.html" class="sidebar-item">
+          <img src="../../image/home.png" alt="Home" class="sidebar-icon" />
+          <span>首頁</span>
+        </a>
+        <a href="../login.register/member_sign_in.html" class="sidebar-item">
+          <img src="../../image/logout.png" alt="Logout" class="sidebar-icon" />
+          <span>登出</span>
+        </a>
+      </nav>
+    </aside>
+    <main class="main-content">
+      <header class="header">
+        <div class="header-left">
+          <a href="build_organization.html">
+            <img src="../../image/logo.png" alt="Logo" class="logo-img" id="logoImg" />
+          </a>
+        </div>
+        <div class="header-right">
+          <a href="organization_member.html">
+            <img src="../../image/head.png" alt="Head" class="avatar-img" />
+          </a>
+        </div>
+      </header>
+
+      <section class="workspace px-10 py-8">
+        <button onclick="openMeetingModal()" class="btn-primary text-white px-4 py-2 rounded-lg font-bold">＋ 發起會議</button>
+
+        <div class="mt-8 dashed-box text-center">
+          <h2 class="text-2xl font-bold text-[#205f72] mb-2">我的會議</h2>
+          <p id="meetingHint" class="text-gray-600">在此顯示你發起或參與的會議</p>
+          <div id="meetingList" style="display: flex; flex-wrap: wrap; gap: 16px; justify-content: flex-start;"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- 會議建立視窗 -->
+  <div id="meetingModal" class="fixed inset-0 hidden items-center justify-center bg-black bg-opacity-50 z-50">
+    <div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+      <h3 class="text-xl font-bold text-[#205f72] mb-4 text-center">發起新會議</h3>
+      <div class="mb-4">
+        <label class="block font-bold mb-1">會議發起人</label>
+        <input id="creatorInput" type="text" placeholder="請輸入您的姓名" class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none" />
+      </div>
+      <div class="mb-4">
+        <label class="block font-bold mb-1">會議日期</label>
+        <input id="dateInput" type="date" class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none" />
+      </div>
+      <div class="mb-4">
+        <label class="block font-bold mb-1">會議名稱</label>
+        <input id="titleInput" type="text" placeholder="請輸入會議名稱" class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none" />
+      </div>
+      <div class="mb-4">
+        <label class="block font-bold mb-1">會議參與者</label>
+        <div id="participantList" class="flex flex-col gap-2 max-h-32 overflow-y-auto border border-gray-300 rounded-lg p-3 bg-gray-50"></div>
+      </div>
+      <div class="flex justify-end gap-2">
+        <button onclick="closeMeetingModal()" class="bg-gray-300 text-black px-4 py-2 rounded-lg">取消</button>
+        <button onclick="createMeeting()" class="btn-primary text-white px-4 py-2 rounded-lg">建立</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function openMeetingModal() {
+      document.getElementById("meetingModal").classList.remove("hidden");
+      document.getElementById("meetingModal").classList.add("flex");
+      loadParticipants();
+    }
+
+    function closeMeetingModal() {
+      document.getElementById("meetingModal").classList.add("hidden");
+      document.getElementById("meetingModal").classList.remove("flex");
+    }
+
+    function loadParticipants() {
+      const container = document.getElementById("participantList");
+      container.innerHTML = "";
+      const members = JSON.parse(localStorage.getItem("organizationMembers")) || [];
+      members.forEach((email, index) => {
+        const id = `participant-${index}`;
+        const div = document.createElement("div");
+        div.className = "flex items-center justify-between gap-2";
+        div.innerHTML = `
+          <div class="flex items-center gap-2">
+            <input type="checkbox" id="${id}" value="${email}" class="accent-[#205f72]" onchange="toggleRoleSelect('${id}')" />
+            <label for="${id}" class="text-sm text-gray-700">${email}</label>
+          </div>
+          <select id="role-${id}" style="display: none;" class="text-sm border border-gray-300 rounded px-2 py-1 bg-white">
+            <option value="edit">可供編輯</option>
+            <option value="view">僅可查看</option>
+          </select>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function toggleRoleSelect(id) {
+      const checkbox = document.getElementById(id);
+      const select = document.getElementById(`role-${id}`);
+      select.style.display = checkbox.checked ? "block" : "none";
+    }
+
+    function createMeeting() {
+      const creator = document.getElementById("creatorInput").value.trim();
+      const date = document.getElementById("dateInput").value;
+      const title = document.getElementById("titleInput").value.trim();
+
+      const selected = Array.from(document.querySelectorAll('#participantList input:checked')).map(input => {
+        const role = document.getElementById(`role-${input.id}`).value;
+        return { email: input.value, role };
+      });
+
+      if (!creator || !date || !title) {
+        alert("請完整填寫所有欄位！");
+        return;
+      }
+
+      const displayDate = date.split('T')[0];
+      const id = Date.now();
+
+      const card = document.createElement("div");
+      card.className = "org-card";
+      card.id = "meeting-" + id;
+
+      card.innerHTML = `
+        <div class='text-center w-full cursor-pointer' onclick="enterMeeting('${title}', '${displayDate}')">
+          <h3 id="meeting-title-${id}" class="font-bold text-base text-[#205f72] truncate max-w-full">${title}</h3>
+          <div class='text-sm text-gray-700'>發起人：${creator}</div>
+          <div class='text-sm text-gray-700'>日期：${displayDate}</div>
+        </div>
+        <button class="menu-button" onclick="toggleMenu(${id})" title="更多操作">
+          <i class="fas fa-ellipsis-vertical"></i>
+        </button>
+        <div id="menu-${id}" class="menu-list">
+          <button onclick="renameMeeting(${id})">重新命名會議</button>
+          <button onclick="deleteMeeting(${id})">刪除會議</button>
+        </div>
+      `;
+
+      document.getElementById("meetingList").appendChild(card);
+      document.getElementById("meetingHint").style.display = "none";
+
+      document.getElementById("creatorInput").value = "";
+      document.getElementById("dateInput").value = "";
+      document.getElementById("titleInput").value = "";
+      closeMeetingModal();
+    }
+
+    function enterMeeting(title, date) {
+      localStorage.setItem("currentMeetingName", title);
+      localStorage.setItem("currentMeetingDate", date);
+      window.location.href = "../meeting.before/meeting_before.html";
+    }
+
+    function toggleMenu(id) {
+      const menu = document.getElementById("menu-" + id);
+      document.querySelectorAll(".menu-list").forEach(m => {
+        if (m !== menu) m.style.display = "none";
+      });
+      menu.style.display = (menu.style.display === "flex") ? "none" : "flex";
+    }
+
+    function renameMeeting(id) {
+      const title = document.getElementById("meeting-title-" + id);
+      const newName = prompt("輸入新的會議名稱：", title.textContent);
+      if (newName) title.textContent = newName;
+    }
+
+    function deleteMeeting(id) {
+      if (confirm("確定要刪除這個會議嗎？此操作無法復原。")) {
+        document.getElementById("meeting-" + id).remove();
+      }
+    }
+
+    document.addEventListener("click", function(e) {
+      if (!e.target.closest(".org-card") && !e.target.closest(".menu-button")) {
+        document.querySelectorAll(".menu-list").forEach(m => m.style.display = "none");
+      }
+    });
+
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      sidebar.classList.toggle('collapsed');
+    }
+  </script>
+</body>
+</html>

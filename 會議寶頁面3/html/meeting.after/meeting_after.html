@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>會議寶</title>
+  <link rel="stylesheet" href="../../css/navbar_a.css" />
+</head>
+<body>
+  <div class="layout">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <button class="navbar-toggle" onclick="toggleSidebar()" id="toggleBtn">
+        <img src="../../image/navbar.png" alt="toggle" id="toggleIcon" />
+      </button>
+      <nav class="menu">
+        <a href="../main.function/build_organization.html" class="sidebar-item">
+          <img src="../../image/home.png" alt="Home" class="sidebar-icon" />
+          <span>首頁</span>
+        </a>
+        <a href="../meeting.after/meeting_after_file_upload.html" class="sidebar-item">
+          <img src="../../image/fileupload.png" alt="Upload" class="sidebar-icon" />
+          <span>檔案上傳</span>
+        </a>
+        <a href="../meeting.after/transcript_file.html" class="sidebar-item">
+          <img src="../../image/mic.png" alt="Mic" class="sidebar-icon" />
+          <span>語音轉文字</span>
+        </a>
+        <a href="../meeting.after/meeting_review.html" class="sidebar-item">
+          <img src="../../image/meetingreview.png" alt="Review" class="sidebar-icon" />
+          <span>會議回顧</span>
+        </a>
+        <a href="../login.register/member_sign_in.html" class="sidebar-item">
+          <img src="../../image/logout.png" alt="Logout" class="sidebar-icon" />
+          <span>登出</span>
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Main -->
+    <main class="main-content">
+      <header class="header">
+        <div class="header-left">
+        <a href="../main.function/build_organization.html">
+          <img src="../../image/logo.png" alt="Logo" class="logo-img" id="logoImg" />
+        </a>
+        </div>
+
+<div class="progress-bar">
+  <div class="step-group">
+    <div class="circle gray-completed"></div>
+    <div class="label label-gray">前</div>
+  </div>
+  <div class="line solid-gray"></div>
+  <div class="step-group">
+    <div class="circle gray-completed"></div>
+    <div class="label label-gray">中</div>
+  </div>
+  <div class="line solid-gray"></div>
+  <div class="step-group">
+    <div class="circle green-completed"></div>
+    <div class="label label-green">後</div>
+  </div>
+</div>
+
+        <div class="header-right">
+        <a href="meeting_member.html">
+          <img src="../../image/head.png" alt="Head" class="avatar-img" />
+        </a>
+        </div>
+      </header>
+
+      <section class="workspace">
+        <!-- 主要內容 -->
+      </section>
+    </main>
+  </div>
+
+  <!-- JS：展開／收起邏輯 -->
+   <script>
+      // 一載入立即跳轉
+  window.onload = () => {
+    window.location.href = "../meeting.after/meeting_review.html";
+  };
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      sidebar.classList.toggle('collapsed');
+    }
+  </script>
+</body>
+</html>

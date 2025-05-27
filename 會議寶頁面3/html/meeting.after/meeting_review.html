@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>會議寶｜會議後｜會議回顧</title>
+  <link rel="stylesheet" href="../../css/navbar_a.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    /* ✅ 全頁控制與字型 */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: #f5f8fa;
+      font-family: 'Arial', sans-serif;
+      min-height: 100vh;
+      overflow-y: hidden;
+      scrollbar-width: none;
+    }
+
+    body::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* ✅ 主要可滾動區域 */
+    .main-wrapper {
+      height: calc(100vh - 100px);
+      overflow-y: auto;
+      padding: 20px 16px;
+    }
+
+    /* ✅ 虛線框容器 */
+    .dashed-box {
+      border: 2px dashed #cedfe4;
+      border-radius: 20px;
+      background-color: #ffffff;
+      padding: 24px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+    }
+
+    /* ✅ 主按鈕樣式（如果未使用 Tailwind class） */
+    .btn-primary {
+      background-color: #205f72;
+    }
+
+    .btn-primary:hover {
+      background-color: #175c71;
+    }
+
+    /* ✅ lucide icon 操作按鈕 hover 效果 */
+    button[title] {
+      transition: background-color 0.2s ease;
+    }
+
+    /* ✅ 下拉選單美化 */
+    select {
+      appearance: none;
+      background-repeat: no-repeat;
+      background-position: right 1rem center;
+      background-size: 1.5em;
+    }
+
+    /* ✅ 禁止 textarea 拖曳大小 */
+    textarea {
+      resize: none;
+    }
+
+    /* ✅ 狀態小圓點色塊 */
+    .bg-green-500 {
+      background-color: #48bb78;
+    }
+  </style>
+</head>
+  <div class="layout">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <button class="navbar-toggle" onclick="toggleSidebar()" id="toggleBtn">
+        <img src="../../image/navbar.png" alt="toggle" id="toggleIcon" />
+      </button>
+      <nav class="menu">
+        <a href="../main.function/build_organization.html" class="sidebar-item">
+          <img src="../../image/home.png" alt="Home" class="sidebar-icon" />
+          <span>首頁</span>
+        </a>
+        <a href="../meeting.after/meeting_after_file_upload.html" class="sidebar-item">
+          <img src="../../image/fileupload.png" alt="Upload" class="sidebar-icon" />
+          <span>檔案上傳</span>
+        </a>
+        <a href="../meeting.after/transcript_file.html" class="sidebar-item">
+          <img src="../../image/mic.png" alt="Mic" class="sidebar-icon" />
+          <span>語音轉文字</span>
+        </a>
+        <a href="../meeting.after/meeting_review.html" class="sidebar-item">
+          <img src="../../image/meetingreview.png" alt="Review" class="sidebar-icon" />
+          <span>會議回顧</span>
+        </a>
+        <a href="../login.register/member_sign_in.html" class="sidebar-item">
+          <img src="../../image/logout.png" alt="Logout" class="sidebar-icon" />
+          <span>登出</span>
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Main -->
+    <main class="main-content">
+      <header class="header">
+        <div class="header-left">
+        <a href="../main.function/build_organization.html">
+          <img src="../../image/logo.png" alt="Logo" class="logo-img" id="logoImg" />
+        </a>
+        </div>
+
+<div class="progress-bar">
+  <div class="step-group">
+    <div class="circle gray-completed"></div>
+    <div class="label label-gray">前</div>
+  </div>
+  <div class="line solid-gray"></div>
+  <div class="step-group">
+    <div class="circle gray-completed"></div>
+    <div class="label label-gray">中</div>
+  </div>
+  <div class="line solid-gray"></div>
+  <div class="step-group">
+    <div class="circle green-completed"></div>
+    <div class="label label-green">後</div>
+  </div>
+</div>
+
+        <div class="header-right">
+        <a href="meeting_member.html">
+          <img src="../../image/head.png" alt="Head" class="avatar-img" />
+        </a>
+        </div>
+      </header>
+
+  <!-- ✅ 主內容容器 -->
+  <div class="main-wrapper">
+    <!-- ✅ 議題摘要區塊 -->
+<!-- ✅ 合併會議摘要＋修改紀錄 -->
+<section class="flex justify-center px-4">
+  <div class="w-full max-w-4xl space-y-6">
+    
+    <!-- 📌 會議摘要 -->
+    <div class="dashed-box">
+      <h2 class="text-2xl font-bold text-[#205f72] mb-6">會議摘要</h2>
+      <div class="flex flex-col md:flex-row gap-4 mb-6">
+        <div class="flex-1">
+          <label for="meetingDate" class="block mb-1 text-[#205f72] font-semibold">選擇日期</label>
+          <input type="date" id="meetingDate"
+                 class="w-full px-5 py-3 text-base bg-white border border-[#cedfe4] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#205f72]" />
+        </div>
+        <div class="flex-1">
+          <label for="meetingTitle" class="block mb-1 text-[#205f72] font-semibold">選擇會議</label>
+          <select id="meetingTitle"
+                  class="w-full px-5 py-3 text-base bg-white border border-[#cedfe4] text-black rounded-lg focus:outline-none focus:ring-2 focus:ring-[#205f72]">
+            <option>請選擇會議</option>
+            <option value="會議 A">會議 A</option>
+            <option value="會議 B">會議 B</option>
+            <option value="會議 C">會議 C</option>
+          </select>
+        </div>
+      </div>
+
+<textarea class="w-full h-40 bg-white border-2 border-dashed border-[#cedfe4] rounded-xl p-4 text-gray-700 text-base resize-none focus:outline-none focus:ring-2 focus:ring-[#205f72]" placeholder="請輸入摘要內容..."></textarea>
+
+<div class="flex justify-end gap-4 mt-4">
+  <!-- 複製按鈕 -->
+  <button title="複製" class="p-2 rounded-full hover:bg-gray-100 transition">
+    <img src="../../image/copy.png" alt="複製" class="w-5 h-5 object-contain" />
+  </button>
+
+  <!-- 編輯按鈕 -->
+  <button title="編輯" class="p-2 rounded-full hover:bg-gray-100 transition">
+    <img src="../../image/pen.png" alt="編輯" class="w-5 h-5 object-contain" />
+  </button>
+</div>
+
+
+    <!-- 📌 修改紀錄（等寬、靠近摘要） -->
+    <div class="dashed-box text-center">
+      <h2 class="text-2xl font-bold text-[#205f72]">修改紀錄</h2>
+    </div>
+
+  </div>
+</section>
+
+  <!-- ✅ JS 初始化 -->
+  <script>
+    const lucideIcons = () => lucide.createIcons();
+    window.onload = lucideIcons;
+
+document.addEventListener("DOMContentLoaded", () => {
+  const titleSelect = document.getElementById("meetingTitle");
+  const dateInput = document.getElementById("meetingDate");
+  const display = document.getElementById("meetingInfoDisplay");
+
+  function updateDisplay() {
+    const date = dateInput.value;
+    const title = titleSelect.value;
+    if (date && title && title !== "請選擇會議") {
+      display.textContent = `${date} ${title}`;
+      localStorage.setItem("meetingDate", date);
+      localStorage.setItem("meetingTitle", title);
+      localStorage.setItem("meetingStage", "後");
+    }
+  }
+
+  titleSelect.addEventListener("change", updateDisplay);
+  dateInput.addEventListener("change", updateDisplay);
+
+  // 預設載入已選資料
+  const storedDate = localStorage.getItem("meetingDate");
+  const storedTitle = localStorage.getItem("meetingTitle");
+  if (storedDate) dateInput.value = storedDate;
+  if (storedTitle) titleSelect.value = storedTitle;
+  updateDisplay();
+});
+
+  </script>
+</body>
+</html>

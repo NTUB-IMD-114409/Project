@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>會議寶｜會員登入</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background-color: #f5f8fa;
+      font-family: 'Arial', sans-serif;
+    }
+  </style>
+</head>
+<body class="flex items-center justify-center min-h-screen">
+
+  <!-- 整體排版 -->
+  <div class="flex flex-row items-center justify-center w-full max-w-6xl px-6 gap-20">
+
+    <!-- 左側 Logo 與按鈕 -->
+    <div class="flex flex-col items-center justify-center">
+      <img src="../../image/logo.png" alt="會議寶 Logo" class="w-[260px] h-auto mb-10" />
+      <div class="flex flex-row gap-8 text-[#205f72] text-lg font-semibold underline">
+        <button onclick="openModal('featureModal')" class="hover:text-[#175c71]">功能簡介</button>
+        <button onclick="openModal('aboutModal')" class="hover:text-[#175c71]">關於我們</button>
+      </div>
+    </div>
+
+    <!-- 右側 登入表單 -->
+    <div class="bg-[#cedfe4] px-10 py-10 rounded-3xl shadow-md w-full max-w-md">
+      <h2 class="text-3xl font-bold mb-8 text-center text-[#205f72]">會員登入</h2>
+      <form onsubmit="handleLogin(event)">
+        <div class="mb-4">
+          <label class="block font-bold mb-1">Email</label>
+          <input id="loginEmail" type="email" class="w-full p-3 rounded-lg border focus:outline-none"/>
+          <p id="emailError" class="text-sm text-red-600 mt-1"></p>
+        </div>
+        <div class="mb-6">
+          <label class="block font-bold mb-1">密碼</label>
+          <input id="loginPassword" type="password" class="w-full p-3 rounded-lg border focus:outline-none"/>
+          <p id="passwordError" class="text-sm text-red-600 mt-1"></p>
+        </div>
+        <div class="text-right mb-4">
+          <a href="../login.register/forgot_password.html" class="text-sm text-[#205f72] hover:underline">忘記密碼？</a>
+        </div>
+        <button type="submit" class="w-full bg-[#205f72] hover:bg-[#175c71] text-white py-3 text-lg rounded-lg">登入</button>
+        <p class="text-sm text-center mt-4">還沒有帳號？<a href="../login.register/member_sign_up.html" class="text-[#205f72] hover:underline">立即註冊</a></p>
+      </form>
+    </div>
+  </div>
+
+  <!-- 功能簡介 Modal -->
+  <div id="featureModal" class="fixed inset-0 hidden items-center justify-center bg-black bg-opacity-50 z-50">
+    <div class="bg-white rounded-2xl p-8 max-w-md w-full shadow-xl">
+      <h3 class="text-2xl font-bold text-[#205f72] mb-4 text-center">功能簡介</h3>
+      <ul class="space-y-2 text-base text-gray-700 list-disc list-inside">
+        <li>檔案上傳</li>
+        <li>語音轉文字</li>
+        <li>智能查詢</li>
+        <li>會議回顧</li>
+      </ul>
+      <div class="text-center mt-6">
+        <button onclick="closeModal('featureModal')" class="bg-[#205f72] text-white px-4 py-2 rounded-lg hover:bg-[#175c71]">關閉</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 關於我們 Modal（有白底 + 無白邊框圖片） -->
+  <div id="aboutModal" class="fixed inset-0 hidden items-center justify-center bg-black bg-opacity-50 z-50">
+    <div class="bg-white rounded-2xl p-10 max-w-6xl w-full shadow-xl">
+      <h3 class="text-3xl font-bold text-[#205f72] mb-10 text-center">成員介紹</h3>
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+        <!-- 成員卡片 -->
+        <div class="bg-[#cedfe4] rounded-2xl p-4 text-center shadow-md flex flex-col items-center">
+          <img src="../../image/yun.png" alt="姜筱雲" class="w-24 h-24 rounded-full object-cover mb-3" />
+          <div class="font-bold text-base text-[#143139]">姜筱雲</div>
+          <div class="text-sm text-black">11146065@ntub.edu.tw</div>
+        </div>
+        <div class="bg-[#cedfe4] rounded-2xl p-4 text-center shadow-md flex flex-col items-center">
+          <img src="../../image/kiki.png" alt="連湘琪" class="w-24 h-24 rounded-full object-cover mb-3" />
+          <div class="font-bold text-base text-[#143139]">連湘琪</div>
+          <div class="text-sm text-black">11146067@ntub.edu.tw</div>
+        </div>
+        <div class="bg-[#cedfe4] rounded-2xl p-4 text-center shadow-md flex flex-col items-center">
+          <img src="../../image/chi.png" alt="邵紫綺" class="w-24 h-24 rounded-full object-cover mb-3" />
+          <div class="font-bold text-base text-[#143139]">邵紫綺</div>
+          <div class="text-sm text-black">11146074@ntub.edu.tw</div>
+        </div>
+        <div class="bg-[#cedfe4] rounded-2xl p-4 text-center shadow-md flex flex-col items-center">
+          <img src="../../image/yu.png" alt="李曼鈺" class="w-24 h-24 rounded-full object-cover mb-3" />
+          <div class="font-bold text-base text-[#143139]">李曼鈺</div>
+          <div class="text-sm text-black">11146079@ntub.edu.tw</div>
+        </div>
+        <div class="bg-[#cedfe4] rounded-2xl p-4 text-center shadow-md flex flex-col items-center">
+          <img src="../../image/ya.png" alt="范雅淇" class="w-24 h-24 rounded-full object-cover mb-3" />
+          <div class="font-bold text-base text-[#143139]">范雅淇</div>
+          <div class="text-sm text-black">11146082@ntub.edu.tw</div>
+        </div>
+      </div>
+      <div class="text-center mt-10">
+        <button onclick="closeModal('aboutModal')" class="bg-[#205f72] text-white px-6 py-3 rounded-lg hover:bg-[#175c71]">關閉</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JS 控制區 -->
+  <script>
+    function handleLogin(event) {
+      event.preventDefault();
+      const email = document.getElementById("loginEmail");
+      const password = document.getElementById("loginPassword");
+      const emailError = document.getElementById("emailError");
+      const passwordError = document.getElementById("passwordError");
+
+      emailError.textContent = "";
+      passwordError.textContent = "";
+
+      const gmailPattern = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
+      const pwPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+      let valid = true;
+
+      if (!email.value.trim()) {
+        emailError.textContent = "請輸入 Email";
+        valid = false;
+      } else if (!gmailPattern.test(email.value.trim())) {
+        emailError.textContent = "Email 格式錯誤，僅限 Gmail（ example@gmail.com ）";
+        valid = false;
+      }
+
+      if (!password.value) {
+        passwordError.textContent = "請輸入密碼";
+        valid = false;
+      } else if (!pwPattern.test(password.value)) {
+        passwordError.textContent = "密碼格式錯誤，請確認是否包含英文大小寫與數字，至少 8 碼";
+        valid = false;
+      }
+
+      if (valid) {
+        alert("登入成功！");
+        window.location.href = "organization.html";
+      }
+    }
+
+    function openModal(id) {
+      document.getElementById(id).classList.remove('hidden');
+      document.getElementById(id).classList.add('flex');
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('flex');
+      document.getElementById(id).classList.add('hidden');
+    }
+  </script>
+</body>
+</html>

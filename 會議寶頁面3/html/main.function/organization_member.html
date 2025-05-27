@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>會議寶｜組織成員</title>
+  <link rel="stylesheet" href="../../css/navbar_b.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .btn-primary {
+      background-color: #205f72;
+    }
+    .btn-primary:hover {
+      background-color: #175c71;
+    }
+    .card {
+      background-color: #cedfe4;
+      border-radius: 16px;
+      padding: 16px 20px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <button class="navbar-toggle" onclick="toggleSidebar()" id="toggleBtn">
+        <img src="../../image/navbar.png" alt="toggle" id="toggleIcon" />
+      </button>
+      <nav class="menu">
+        <a href="build_organization.html" class="sidebar-item">
+          <img src="../../image/home.png" alt="Home" class="sidebar-icon" />
+          <span>首頁</span>
+        </a>
+        <a href="../login.register/member_sign_in.html" class="sidebar-item">
+          <img src="../../image/logout.png" alt="Logout" class="sidebar-icon" />
+          <span>登出</span>
+        </a>
+      </nav>
+    </aside>
+
+    <main class="main-content">
+      <header class="header">
+        <div class="header-left">
+          <a href="build_organization.html">
+            <img src="../../image/logo.png" alt="Logo" class="logo-img" />
+          </a>
+        </div>
+        <div class="header-right">
+          <a href="organization_member.html">
+            <img src="../../image/head.png" alt="Head" class="avatar-img" />
+          </a>
+        </div>
+      </header>
+
+      <div class="w-full max-w-4xl mx-auto px-4 mt-6">
+        <h2 class="text-center text-[#205f72] text-2xl font-bold mb-4">組織成員列表</h2>
+        <div id="memberList" class="flex flex-col gap-3 mb-8"></div>
+
+        <div class="card">
+          <h3 class="text-lg font-bold text-[#205f72] mb-3">新增成員</h3>
+          <div class="flex flex-col md:flex-row md:items-center gap-2">
+            <input id="newMemberEmail" type="email" placeholder="example@gmail.com"
+                   class="flex-1 p-3 rounded-lg border border-gray-300 focus:outline-none" />
+            <button onclick="addNewMember()" class="btn-primary text-white px-4 py-2 rounded-lg">發送邀請</button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    function renderMembers() {
+      const container = document.getElementById("memberList");
+      container.innerHTML = "";
+      const members = JSON.parse(localStorage.getItem("organizationMembers")) || [];
+
+      if (members.length === 0) {
+        container.innerHTML = '<p class="text-center text-gray-600">尚無組織成員</p>';
+        return;
+      }
+
+      members.forEach(email => {
+        const div = document.createElement("div");
+        div.className = "bg-white border border-gray-300 rounded px-4 py-3 flex justify-between items-center";
+        div.innerHTML = `<span class="text-sm text-gray-800">${email}</span>`;
+        container.appendChild(div);
+      });
+    }
+
+    function addNewMember() {
+      const input = document.getElementById("newMemberEmail");
+      const email = input.value.trim();
+
+      if (!email.endsWith("@gmail.com")) {
+        alert("請輸入有效的 Gmail 地址");
+        return;
+      }
+
+      let members = JSON.parse(localStorage.getItem("organizationMembers")) || [];
+      if (members.includes(email)) {
+        alert("此成員已存在於名單中");
+        return;
+      }
+
+      members.push(email);
+      localStorage.setItem("organizationMembers", JSON.stringify(members));
+      input.value = "";
+      alert("邀請已發送給：" + email);
+      renderMembers();
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      renderMembers();
+    });
+
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      sidebar.classList.toggle('collapsed');
+    }
+  </script>
+</body>
+</html>

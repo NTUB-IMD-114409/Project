@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>會議寶｜會議前｜檔案上傳</title>
+  <link rel="stylesheet" href="../../css/navbar_d.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .upload-layout {
+      display: flex;
+      flex: 1;
+      padding: 16px;
+      gap: 16px;
+    }
+    .upload-left {
+      width: 320px;
+      background-color: #fff;
+      border-radius: 12px;
+      box-shadow: 0 0 6px rgba(0, 0, 0, 0.1);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+    }
+    .upload-right {
+      flex: 1;
+      background-color: #fff;
+      border-radius: 12px;
+      box-shadow: 0 0 6px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .upload-header {
+      padding: 16px;
+      border-bottom: 1px solid #ddd;
+    }
+    .chat-footer {
+      padding: 16px;
+      display: flex;
+      border-top: 1px solid #ccc;
+    }
+    .chat-footer input {
+      flex: 1;
+      padding: 10px;
+      border-radius: 20px;
+      border: 1px solid #ccc;
+      outline: none;
+    }
+    .chat-footer button {
+      margin-left: 8px;
+      padding: 10px 16px;
+      border-radius: 20px;
+      border: none;
+      background-color: #175c71;
+      color: white;
+      cursor: pointer;
+    }
+    .file-item {
+      display: flex;
+      align-items: center;
+      background-color: #e4e5e5;
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-size: 14px;
+      color: #205f72;
+      margin-bottom: 10px;
+      width: 100%;
+      box-sizing: border-box;
+      gap: 8px;
+      cursor: pointer;
+    }
+    .file-item input[type="checkbox"] {
+      flex-shrink: 0;
+      margin: 0;
+    }
+    .primary {
+      background-color: #175c71;
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-bottom: 12px;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 999;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+    .modal-content {
+      background-color: #fff;
+      margin: 10% auto;
+      padding: 24px;
+      border-radius: 12px;
+      width: 360px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .modal-content select,
+    .modal-content input[type="file"] {
+      padding: 6px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .close {
+      align-self: flex-end;
+      font-size: 28px;
+      color: #888;
+      cursor: pointer;
+    }
+    .close:hover {
+      color: black;
+    }
+    .send-btn {
+      background-color: #175c71;
+      border: none;
+      border-radius: 50%;
+      padding: 10px;
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .send-btn img {
+      width: 20px;
+      height: 20px;
+      object-fit: contain;
+      filter: brightness(0) invert(1);
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <button class="navbar-toggle" onclick="toggleSidebar()" id="toggleBtn">
+        <img src="../../image/navbar.png" alt="toggle" id="toggleIcon" />
+      </button>
+      <nav class="menu">
+        <a href="../main.function/build_organization.html" class="sidebar-item">
+          <img src="../../image/home.png" alt="Home" class="sidebar-icon" />
+          <span>首頁</span>
+        </a>
+        <a href="../../html/meeting.during/meeting_during_file_upload.html" class="sidebar-item">
+          <img src="../../image/fileupload.png" alt="Upload" class="sidebar-icon" />
+          <span>檔案上傳</span>
+        </a>
+        <a href="../../html/meeting.during/meeting_during_transcript_now.html" class="sidebar-item">
+          <img src="../../image/mic.png" alt="Mic" class="sidebar-icon" />
+          <span>語音轉文字</span>
+        </a>
+        <a href="../login.register/member_sign_in.html" class="sidebar-item">
+          <img src="../../image/logout.png" alt="Logout" class="sidebar-icon" />
+          <span>登出</span>
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <header class="header">
+        <div class="header-left">
+          <a href="../main.function/build_organization.html">
+            <img src="../../image/logo.png" alt="Logo" class="logo-img" />
+          </a>
+        </div>
+
+        <!-- 進度條 -->
+        <div class="progress-bar">
+          <div class="step-group">
+            <div class="circle gray-completed"></div>
+            <div class="label label-gray">前</div>
+          </div>
+          <div class="line solid-gray"></div>
+          <div class="step-group">
+            <div class="circle completed"></div>
+            <div class="label">中</div>
+          </div>
+          <div class="line dashed"></div>
+          <div class="step-group">
+            <div class="circle"></div>
+            <div class="label">後</div>
+          </div>
+        </div>
+
+        <div class="header-right">
+          <a href="meeting_member.html">
+            <img src="../../image/head.png" alt="Head" class="avatar-img" />
+          </a>
+        </div>
+      </header>
+
+      <section class="upload-layout">
+        <div class="upload-left">
+          <button class="primary" onclick="openModal()">＋新增</button>
+          <div id="fileList">
+            <p style="color:#666;">目前尚無檔案</p>
+          </div>
+        </div>
+        <div class="upload-right">
+          <div class="upload-header">
+            <h2>這裡是對話區</h2>
+            <p>點選檔案後可進行提問</p>
+          </div>
+          <div class="chat-footer">
+            <input type="text" placeholder="請輸入問題">
+            <button class="send-btn">
+              <img src="../../image/send.png" alt="送出" />
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal" id="uploadModal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal()">&times;</span>
+      <label for="fileType">選擇檔案類型</label>
+      <select id="fileType">
+        <option value="語音">語音</option>
+        <option value="逐字稿">逐字稿</option>
+        <option value="會議紀錄整理">會議紀錄整理</option>
+        <option value="會議正式文件">會議正式文件</option>
+      </select>
+      <label for="fileInput" style="margin-top: 12px;">選擇檔案</label>
+      <input type="file" id="fileInput" />
+      <button class="primary" style="margin-top: 16px;" onclick="submitUpload()">確認上傳</button>
+    </div>
+  </div>
+
+  <script>
+    function toggleSidebar() {
+      document.getElementById("sidebar").classList.toggle("collapsed");
+    }
+
+    function openModal() {
+      document.getElementById("uploadModal").style.display = "block";
+    }
+
+    function closeModal() {
+      document.getElementById("uploadModal").style.display = "none";
+    }
+
+    function submitUpload() {
+      const fileInput = document.getElementById("fileInput");
+      const fileType = document.getElementById("fileType").value;
+
+      if (!fileInput.files.length) {
+        alert("請選擇檔案");
+        return;
+      }
+
+      const file = fileInput.files[0];
+      const fileList = document.getElementById("fileList");
+
+      const emptyMsg = fileList.querySelector("p");
+      if (emptyMsg) fileList.removeChild(emptyMsg);
+
+      const item = document.createElement("label");
+      item.className = "file-item";
+
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.name = "fileSelect";
+      checkbox.style.marginRight = "8px";
+
+      const filename = document.createTextNode(`📄 ${file.name}（${fileType}）`);
+
+      item.appendChild(checkbox);
+      item.appendChild(filename);
+      fileList.appendChild(item);
+
+      closeModal();
+      fileInput.value = "";
+    }
+  </script>
+</body>
+</html>

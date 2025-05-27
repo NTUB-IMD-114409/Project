@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>會議寶｜會議中｜即時轉錄</title>
+  <link rel="stylesheet" href="../../css/navbar_d.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+  <style>
+    .main-wrapper {
+      height: calc(100vh - 100px);
+      overflow-y: auto;
+      padding: 20px 16px;
+    }
+    .btn-primary {
+      background-color: #205f72;
+    }
+    .btn-primary:hover {
+      background-color: #175c71;
+    }
+    .dashed-box {
+      border: 2px dashed #cedfe4;
+      border-radius: 20px;
+      background-color: #ffffff;
+      padding: 24px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+      min-height: 420px;
+    }
+    .mic-btn {
+      background-color: #205f72;
+      color: #ffffff;
+      border: none;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      font-size: 24px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.2s;
+    }
+    .mic-btn.recording {
+      background-color: #d8392b;
+    }
+    .status-start, .status-stop {
+      font-size: 20px;
+      font-weight: bold;
+      text-align: center;
+      margin-top: 12px;
+    }
+    .status-start { color: #205f72; }
+    .status-stop  { color: #d8392b; }
+    .generate-text {
+      font-size: 14px;
+      color: #28a745;
+      text-align: center;
+      margin-top: 10px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <button class="navbar-toggle" onclick="toggleSidebar()" id="toggleBtn">
+        <img src="../../image/navbar.png" alt="toggle" id="toggleIcon" />
+      </button>
+      <nav class="menu">
+        <a href="../main.function/build_organization.html" class="sidebar-item">
+          <img src="../../image/home.png" alt="Home" class="sidebar-icon" />
+          <span>首頁</span>
+        </a>
+        <a href="../../html/meeting.during/meeting_during_file_upload.html" class="sidebar-item">
+          <img src="../../image/fileupload.png" alt="Upload" class="sidebar-icon" />
+          <span>檔案上傳</span>
+        </a>
+        <a href="../../html/meeting.during/meeting_during_transcript_now.html" class="sidebar-item">
+          <img src="../../image/mic.png" alt="Mic" class="sidebar-icon" />
+          <span>語音轉文字</span>
+        </a>
+        <a href="../login.register/member_sign_in.html" class="sidebar-item">
+          <img src="../../image/logout.png" alt="Logout" class="sidebar-icon" />
+          <span>登出</span>
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <header class="header">
+        <div class="header-left">
+          <a href="../main.function/build_organization.html">
+            <img src="../../image/logo.png" alt="Logo" class="logo-img" />
+          </a>
+        </div>
+        <div class="progress-bar">
+          <div class="step-group">
+            <div class="circle gray-completed"></div>
+            <div class="label label-gray">前</div>
+          </div>
+          <div class="line solid-gray"></div>
+          <div class="step-group">
+            <div class="circle completed"></div>
+            <div class="label">中</div>
+          </div>
+          <div class="line dashed"></div>
+          <div class="step-group">
+            <div class="circle"></div>
+            <div class="label">後</div>
+          </div>
+        </div>
+        <div class="header-right">
+          <a href="meeting_member.html">
+            <img src="../../image/head.png" alt="Head" class="avatar-img" />
+          </a>
+        </div>
+      </header>
+
+      <!-- 語音轉文字區塊 -->
+      <div class="main-wrapper">
+        <section class="flex justify-center px-4">
+          <div class="w-full max-w-4xl dashed-box">
+            <div id="generateContainer" class="min-h-[200px] text-base text-gray-800 space-y-2"></div>
+            <div id="statusContainer" class="text-center mt-4"></div>
+          </div>
+        </section>
+
+        <div class="flex justify-center items-center gap-4 mt-6 pb-6">
+          <button id="micBtn" class="mic-btn" title="錄音/停止">
+            <i class="fas fa-microphone"></i>
+          </button>
+          <button id="generateBtn" class="btn-primary text-white px-4 py-2 rounded-lg text-base font-semibold">
+            <i class="fas fa-file-word"></i> 生成會議記錄整理
+          </button>
+        </div>
+
+        <div id="generateText" class="generate-text">📄 已成功下載會議記錄整理</div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    function toggleSidebar() {
+      document.getElementById("sidebar").classList.toggle("collapsed");
+    }
+
+    const generateContainer = document.getElementById('generateContainer');
+    const micBtn = document.getElementById('micBtn');
+    const generateBtn = document.getElementById('generateBtn');
+    const statusContainer = document.getElementById('statusContainer');
+    const generateText = document.getElementById('generateText');
+
+    function clearStatus() { statusContainer.innerHTML = ''; }
+    function clearGenerated() { generateContainer.innerHTML = ''; }
+    function appendText(text) {
+      const p = document.createElement('p');
+      p.textContent = text;
+      generateContainer.appendChild(p);
+      generateContainer.scrollTop = generateContainer.scrollHeight;
+    }
+    function showStatus(msg, type) {
+      clearStatus();
+      const span = document.createElement('div');
+      span.textContent = msg;
+      span.className = type === 'start' ? 'status-start' : 'status-stop';
+      statusContainer.appendChild(span);
+    }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let recognition, finalTranscript = '';
+    let isRecording = false;
+    let manuallyStopped = false;
+
+    if (SpeechRecognition) {
+      recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'zh-TW';
+
+      recognition.onstart = () => {
+        isRecording = true;
+        manuallyStopped = false;
+        finalTranscript = '';
+        micBtn.classList.add('recording');
+        clearStatus(); clearGenerated();
+        showStatus('請開始說話...', 'start');
+      };
+
+      recognition.onresult = e => {
+        clearStatus();
+        const interim = Array.from(e.results).map(r => r[0].transcript).join('');
+        finalTranscript = interim;
+        clearGenerated();
+        appendText(interim);
+      };
+
+      recognition.onerror = e => {
+        clearStatus();
+        appendText(`辨識失敗：${e.error}`);
+      };
+
+      recognition.onend = () => {
+        micBtn.classList.remove('recording');
+        isRecording = false;
+        if (manuallyStopped) {
+          clearStatus();
+          showStatus('停止辨識', 'stop');
+        }
+      };
+
+      micBtn.addEventListener('click', () => {
+        if (!isRecording) recognition.start();
+        else {
+          manuallyStopped = true;
+          recognition.stop();
+        }
+      });
+    } else {
+      micBtn.disabled = true;
+      appendText('此瀏覽器不支援語音辨識');
+    }
+
+    generateBtn.addEventListener('click', () => {
+      if (!finalTranscript.trim()) return alert("尚無逐字稿可生成會議記錄整理");
+
+      generateText.style.display = 'none';
+      generateBtn.disabled = true;
+      generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 生成中...';
+
+      setTimeout(() => {
+        const note = `會議記錄\n\n逐字稿內容：\n${finalTranscript}`;
+        const blob = new Blob([note], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+        a.href = url;
+        a.download = `會議記錄整理_${timestamp}.docx`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+
+        generateBtn.disabled = false;
+        generateBtn.innerHTML = '<i class="fas fa-file-word"></i> 生成會議記錄整理';
+        generateText.style.display = 'block';
+        setTimeout(() => generateText.style.display = 'none', 1500);
+      }, 1000);
+    });
+  </script>
+</body>
+</html>

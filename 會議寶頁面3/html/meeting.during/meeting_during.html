@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>會議寶｜會議中</title>
+  <link rel="stylesheet" href="../../css/navbar_d.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+  <div class="layout">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <button class="navbar-toggle" onclick="toggleSidebar()" id="toggleBtn">
+        <img src="../../image/navbar.png" alt="toggle" id="toggleIcon" />
+      </button>
+      <nav class="menu">
+        <a href="../main.function/build_organization.html" class="sidebar-item">
+          <img src="../../image/home.png" alt="Home" class="sidebar-icon" />
+          <span>首頁</span>
+        </a>
+        <a href="../../html/meeting.during/meeting_during_file_upload.html" class="sidebar-item">
+          <img src="../../image/fileupload.png" alt="Upload" class="sidebar-icon" />
+          <span>檔案上傳</span>
+        </a>
+        <a href="../../html/meeting.during/meeting_during_transcript_now.html" class="sidebar-item">
+          <img src="../../image/mic.png" alt="Mic" class="sidebar-icon" />
+          <span>語音轉文字</span>
+        </a>
+        <a href="../login.register/member_sign_in.html" class="sidebar-item">
+          <img src="../../image/logout.png" alt="Logout" class="sidebar-icon" />
+          <span>登出</span>
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <header class="header">
+        <div class="header-left">
+          <a href="../main.function/build_organization.html">
+            <img src="../../image/logo.png" alt="Logo" class="logo-img" />
+          </a>
+        </div>
+
+        <!-- 進度條 -->
+        <div class="progress-bar">
+          <div class="step-group">
+            <div class="circle gray-completed"></div>
+            <div class="label label-gray">前</div>
+          </div>
+          <div class="line solid-gray"></div>
+          <div class="step-group">
+            <div class="circle completed"></div>
+            <div class="label">中</div>
+          </div>
+          <div class="line dashed"></div>
+          <div class="step-group">
+            <div class="circle"></div>
+            <div class="label">後</div>
+          </div>
+        </div>
+
+        <div class="header-right">
+          <a href="meeting_member.html">
+            <img src="../../image/head.png" alt="Head" class="avatar-img" />
+          </a>
+        </div>
+      </header>
+
+<script>
+  // 一載入立即跳轉
+  window.onload = () => {
+    window.location.href = "../../html/meeting.during/meeting_during_transcript_now.html";
+  };
+
+  function toggleSidebar() {
+    document.getElementById("sidebar").classList.toggle("collapsed");
+  }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>會議寶｜會議後｜檔案轉錄</title>
+<link rel="stylesheet" href="../../css/navbar_a.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+<script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+/* 📌 補：按鈕樣式 - 與 tailwind 互補用 */
+.btn-primary {
+  background-color: #205f72;
+}
+
+.btn-primary:hover {
+  background-color: #175c71;
+}
+
+/* 📌 補：虛線框樣式（dashed-box）用於轉錄結果區塊 */
+.dashed-box {
+  border: 2px dashed #cedfe4;
+  border-radius: 20px;
+  background-color: #ffffff;
+  padding: 24px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+  min-height: 420px;
+}
+
+/* 📌 補：wrapper 內容區自動滾動（搭配高度計算） */
+.main-wrapper {
+  height: calc(100vh - 100px);
+  overflow-y: auto;
+  padding: 20px 16px;
+}
+
+/* 📌 補：Navbar 上方會議資訊區塊（載入階段、頭像旁） */
+#meetingInfoDisplay {
+  font-size: 14px;
+  font-weight: bold;
+  color: #205f72;
+}
+
+/* 📌 補：小圓點（狀態燈號） */
+.bg-green-500 {
+  background-color: #48bb78; /* Tailwind 預設色，綠色 */
+}
+
+/* 📌 補：隱藏區塊的通用樣式（也可用 inline style） */
+.hidden {
+  display: none !important;
+}
+
+  </style>
+
+</head>
+  <div class="layout">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <button class="navbar-toggle" onclick="toggleSidebar()" id="toggleBtn">
+        <img src="../../image/navbar.png" alt="toggle" id="toggleIcon" />
+      </button>
+      <nav class="menu">
+        <a href="../main.function/build_organization.html" class="sidebar-item">
+          <img src="../../image/home.png" alt="Home" class="sidebar-icon" />
+          <span>首頁</span>
+        </a>
+        <a href="../meeting.after/meeting_after_file_upload.html" class="sidebar-item">
+          <img src="../../image/fileupload.png" alt="Upload" class="sidebar-icon" />
+          <span>檔案上傳</span>
+        </a>
+        <a href="../meeting.after/transcript_file.html" class="sidebar-item">
+          <img src="../../image/mic.png" alt="Mic" class="sidebar-icon" />
+          <span>語音轉文字</span>
+        </a>
+        <a href="../meeting.after/meeting_review.html" class="sidebar-item">
+          <img src="../../image/meetingreview.png" alt="Review" class="sidebar-icon" />
+          <span>會議回顧</span>
+        </a>
+        <a href="../login.register/member_sign_in.html" class="sidebar-item">
+          <img src="../../image/logout.png" alt="Logout" class="sidebar-icon" />
+          <span>登出</span>
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Main -->
+    <main class="main-content">
+      <header class="header">
+        <div class="header-left">
+        <a href="../main.function/build_organization.html">
+          <img src="../../image/logo.png" alt="Logo" class="logo-img" id="logoImg" />
+        </a>
+        </div>
+
+<div class="progress-bar">
+  <div class="step-group">
+    <div class="circle gray-completed"></div>
+    <div class="label label-gray">前</div>
+  </div>
+  <div class="line solid-gray"></div>
+  <div class="step-group">
+    <div class="circle gray-completed"></div>
+    <div class="label label-gray">中</div>
+  </div>
+  <div class="line solid-gray"></div>
+  <div class="step-group">
+    <div class="circle green-completed"></div>
+    <div class="label label-green">後</div>
+  </div>
+</div>
+
+        <div class="header-right">
+        <a href="meeting_member.html">
+          <img src="../../image/head.png" alt="Head" class="avatar-img" />
+        </a>
+        </div>
+      </header>
+
+      <!-- Workspace -->
+      <section class="workspace">
+        <div class="w-full max-w-4xl mx-auto">
+          <div class="bg-white border-2 border-dashed border-[#cedfe4] rounded-2xl p-6 min-h-[400px] shadow-md" id="generateContainer">
+            <p class="text-gray-500">尚未上傳任何音訊或影片檔...</p>
+          </div>
+
+          <div class="mt-6 flex items-center justify-center gap-4">
+            <input type="file" id="fileInput" accept="audio/*,video/*" class="hidden" />
+            <button id="fileBtn" class="bg-[#205f72] hover:bg-[#175c71] text-white py-2 px-4 rounded-lg flex items-center gap-2">
+              <i class="fas fa-upload"></i> 上傳音檔或影片
+            </button>
+            <button id="generateBtn" class="bg-[#205f72] hover:bg-[#175c71] text-white py-2 px-4 rounded-lg flex items-center gap-2">
+              <i class="fas fa-file-word"></i> 生成會議記錄整理
+            </button>
+          </div>
+
+          <div class="text-sm mt-2 text-center">
+            <div id="loadingText" class="text-[#205f72] hidden">上傳中，請稍候...</div>
+            <div id="successText" class="text-green-600 font-medium hidden">✅ 檔案上傳成功！</div>
+            <div id="generateText" class="text-[#205f72] hidden">📄 已成功下載會議記錄整理</div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Script -->
+  <script>
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      sidebar.classList.toggle('collapsed');
+    }
+
+    const fileBtn = document.getElementById('fileBtn');
+    const fileInput = document.getElementById('fileInput');
+    const generateContainer = document.getElementById('generateContainer');
+    const generateBtn = document.getElementById('generateBtn');
+    const loadingText = document.getElementById('loadingText');
+    const successText = document.getElementById('successText');
+    const generateText = document.getElementById('generateText');
+
+    let finalTranscript = '';
+
+    function appendText(text) {
+      const p = document.createElement('p');
+      p.textContent = text;
+      generateContainer.appendChild(p);
+    }
+
+    async function callApi(endpoint, file) {
+      const form = new FormData();
+      form.append('file', file);
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        body: form
+      });
+      if (!res.ok) throw new Error(`${endpoint} 回傳錯誤`);
+      return res.json();
+    }
+
+    fileBtn.addEventListener('click', () => fileInput.click());
+
+    fileInput.addEventListener('change', async e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      generateContainer.innerHTML = '';
+      loadingText.style.display = 'block';
+      successText.style.display = 'none';
+      try {
+        appendText('處理中...');
+        const key = file.type.startsWith('audio/') ? 'transcribe-audio' : 'transcribe-video';
+        const { transcript } = await callApi(`/api/${key}`, file);
+        finalTranscript = transcript;
+        generateContainer.innerHTML = '';
+        transcript.split('\n').forEach(line => appendText(line));
+        successText.style.display = 'block';
+      } catch (err) {
+        appendText(`錯誤：${err.message}`);
+      } finally {
+        fileInput.value = '';
+        loadingText.style.display = 'none';
+      }
+    });
+
+    generateBtn.addEventListener('click', () => {
+      if (!finalTranscript.trim()) return alert("尚無逐字稿可生成會議記錄");
+
+      generateText.style.display = 'none';
+      generateBtn.disabled = true;
+      generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 生成中...';
+
+      setTimeout(() => {
+        const fakeMeetingNote = `會議記錄\n\n主題：檔案轉錄會議\n與會者：開發者、測試人員\n\n逐字稿內容：\n${finalTranscript}\n\n決策摘要：\n- 使用 AI 模型進行音檔轉文字\n- 可下載會議記錄`;
+        const blob = new Blob([fakeMeetingNote], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = '會議記錄.docx';
+        a.click();
+        URL.revokeObjectURL(url);
+
+        generateBtn.disabled = false;
+        generateBtn.innerHTML = '<i class="fas fa-file-word"></i> 生成會議記錄整理';
+        generateText.style.display = 'block';
+        setTimeout(() => generateText.style.display = 'none', 1500);
+      }, 1000);
+    });
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const title = localStorage.getItem("meetingTitle");
+      const date = localStorage.getItem("meetingDate");
+      const stage = localStorage.getItem("meetingStage");
+      if (title && date && stage) {
+        document.getElementById("meetingInfoDisplay").textContent = `${stage} ${date} ${title}`;
+      }
+    });
+  </script>
+</body>
+</html>
