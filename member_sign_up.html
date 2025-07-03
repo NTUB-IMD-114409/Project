@@ -1,41 +1,139 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-TW">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>會議寶 - 會員註冊</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>會議寶｜會員註冊</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body {
-      background-color: #F5F8FA;
-      color: #000000;
+      background-color: #f5f8fa;
+      font-family: 'Arial', sans-serif;
     }
   </style>
 </head>
-<body class="min-h-screen flex items-center justify-center">
-  <!-- 註冊框 -->
-  <div class="bg-[#cedfe4] px-12 py-12 rounded-3xl shadow-md w-full max-w-xl">
-    <h2 class="text-4xl font-bold mb-8 text-center text-[#205f72]">會員註冊</h2>
-    <form>
-      <div class="mb-6">
-        <label class="block mb-2 text-base font-medium">姓名</label>
-        <input type="text" class="w-full border rounded-lg p-4 focus:outline-none focus:ring focus:border-blue-300" required>
+<body class="flex items-center justify-center min-h-screen">
+  <div class="bg-[#cedfe4] px-10 py-10 rounded-3xl shadow-md w-full max-w-md">
+    <h2 class="text-3xl font-bold mb-8 text-center text-[#205f72]">會員註冊</h2>
+    <form onsubmit="handleSignUp(event)">
+      <!-- 姓名欄位 -->
+      <div class="mb-4">
+        <label class="block font-bold mb-1">姓名</label>
+        <input id="signupName" type="text" placeholder="請輸入姓名"
+               class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none" />
+        <p id="nameError" class="text-sm text-red-600 mt-1"></p>
       </div>
-      <div class="mb-6">
-        <label class="block mb-2 text-base font-medium">Email</label>
-        <input type="email" class="w-full border rounded-lg p-4 focus:outline-none focus:ring focus:border-blue-300" required>
+
+      <!-- Email -->
+      <div class="mb-4">
+        <label class="block font-bold mb-1">Email</label>
+        <input id="signUpEmail" type="email" placeholder="請輸入 Email（如 example@domain.com ）"
+               class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none"/>
+        <p id="signUpEmailError" class="text-sm text-red-600 mt-1"></p>
       </div>
-      <div class="mb-6">
-        <label class="block mb-2 text-base font-medium">密碼</label>
-        <input type="password" class="w-full border rounded-lg p-4 focus:outline-none focus:ring focus:border-blue-300" required>
+
+      <!-- 密碼 -->
+      <div class="mb-4">
+        <label class="block font-bold mb-1">密碼</label>
+        <input id="signUpPassword" type="password" placeholder="需包含英文大小寫與數字，至少8碼"
+               class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none"/>
+        <p id="signUpPasswordError" class="text-sm text-red-600 mt-1"></p>
       </div>
+
+      <!-- 確認密碼 -->
       <div class="mb-6">
-        <label class="block mb-2 text-base font-medium">確認密碼</label>
-        <input type="password" class="w-full border rounded-lg p-4 focus:outline-none focus:ring focus:border-blue-300" required>
+        <label class="block font-bold mb-1">確認密碼</label>
+        <input id="signUpConfirmPassword" type="password" placeholder="請再次輸入密碼"
+               class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none"/>
+        <p id="signUpConfirmPasswordError" class="text-sm text-red-600 mt-1"></p>
       </div>
-      <button type="submit" class="w-full text-[#FFFFFF] bg-[#205f72] hover:bg-[#175c71] py-3 text-lg rounded-lg transition">註冊</button>
+
+      <!-- 註冊按鈕 -->
+      <button type="submit" class="w-full bg-[#205f72] hover:bg-[#175c71] text-white py-3 text-lg rounded-lg">註冊</button>
     </form>
-    <p class="text-sm text-center mt-4">已有帳號？<a href="member_sign_in.html" class="text-[#205f72] hover:underline">立即登入</a></p>
   </div>
+
+  <!-- 驗證邏輯 -->
+  <script>
+    function handleSignUp(event) {
+      event.preventDefault();
+
+      const name = document.getElementById("signupName");
+      const email = document.getElementById("signUpEmail");
+      const password = document.getElementById("signUpPassword");
+      const confirmPassword = document.getElementById("signUpConfirmPassword");
+
+      const nameError = document.getElementById("nameError");
+      const emailError = document.getElementById("signUpEmailError");
+      const passwordError = document.getElementById("signUpPasswordError");
+      const confirmError = document.getElementById("signUpConfirmPasswordError");
+
+      nameError.textContent = "";
+      emailError.textContent = "";
+      passwordError.textContent = "";
+      confirmError.textContent = "";
+
+      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const pwPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+      let valid = true;
+
+      if (!name.value.trim()) {
+        nameError.textContent = "請輸入姓名";
+        valid = false;
+      }
+
+if (!email.value.trim()) {
+  emailError.textContent = "請輸入 Email";
+  valid = false;
+} else if (!emailPattern.test(email.value.trim())) {
+  emailError.textContent = "Email 格式錯誤，請重新輸入";
+  valid = false;
+}
+
+      if (!password.value) {
+        passwordError.textContent = "請輸入密碼";
+        valid = false;
+      } else if (!pwPattern.test(password.value)) {
+        passwordError.textContent = "密碼格式錯誤，請確認是否符合條件";
+        valid = false;
+      }
+
+      if (!confirmPassword.value) {
+        confirmError.textContent = "請再次輸入密碼";
+        valid = false;
+      } else if (password.value !== confirmPassword.value) {
+        confirmError.textContent = "兩次輸入的密碼不一致";
+        valid = false;
+      }
+
+      if (valid) {
+      const data = {
+        name: name.value.trim(),
+        email: email.value.trim(),
+        password: password.value
+      };
+
+      fetch("/api/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      })
+      .then(res => res.json())
+      .then(result => {
+        if (result.success) {
+          alert("註冊成功！");
+          window.location.href = "signin";
+        } else {
+          alert("註冊失敗：" + result.message);
+        }
+      })
+      .catch(err => {
+        alert("系統錯誤，請稍後再試");
+        console.error("錯誤：", err);
+      });
+    }
+
+    }
+  </script>
 </body>
 </html>
