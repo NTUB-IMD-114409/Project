@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>會議寶｜會議後｜會議正式文件</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/navbar_a.css') }}" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .section-box {
+      background-color: #fff;
+      border: 2px dashed #cedfe4;
+      border-radius: 16px;
+      padding: 20px;
+      width: 340px;
+      height: 500px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      margin: 0 12px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: stretch;
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: bold;
+      color: #205f72;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+
+    .file-li {
+      display: flex;
+      align-items: center;
+      background: #e4e5e5;
+      border-radius: 6px;
+      padding: 8px 12px;
+      margin-bottom: 8px;
+      font-size: 15px;
+      color: #205f72;
+      gap: 8px;
+    }
+
+    .file-link {
+      color: #175c71;
+      text-decoration: underline;
+      cursor: pointer;
+      font-weight: 500;
+      background: none;
+      border: none;
+      font-size: inherit;
+      padding: 0;
+    }
+
+    .section-box ul {
+      overflow-y: auto;
+      max-height: 160px;
+      margin-bottom: 10px;
+    }
+
+    .btn-area {
+      margin-top: auto;
+      display: flex;
+      justify-content: center;
+    }
+
+    .btn-generate {
+      background-color: #205f72;
+      color: #ffffff;
+      padding: 10px 18px;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    .btn-generate:hover { background-color: #175c71; }
+
+    #downloadModal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background: rgba(0,0,0,0.25);
+      z-index: 999;
+      align-items: center;
+      justify-content: center;
+    }
+    #downloadModal.active { display: flex; }
+
+    #downloadModal .modal-content {
+      background: white;
+      padding: 32px 32px 24px 32px;
+      border-radius: 14px;
+      min-width: 280px;
+      max-width: 90vw;
+      text-align: center;
+      box-shadow: 0 6px 32px rgba(0,0,0,0.12);
+    }
+
+    #downloadModal .btn-generate {
+      width: 80%;
+      margin-bottom: 10px;
+    }
+
+    #downloadModal .close-btn {
+      margin-top: 18px;
+      color: #888;
+      background: none;
+      border: none;
+      font-size: 14px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <button class="navbar-toggle" onclick="toggleSidebar()" id="toggleBtn">
+        <i data-lucide="align-justify" class="w-6 h-6 stroke-[#205f72]"></i>
+      </button>
+      <nav class="menu">
+        <div class="sidebar-item cursor-default hover:bg-transparent select-none">
+          <i data-lucide="building" class="sidebar-icon stroke-[#205f72]"></i>
+          <div class="flex flex-col leading-snug">
+            <span class="text-xs text-gray-500">目前會議</span>
+            <span id="meeting-date" class="text-[#205f72] text-sm font-semibold truncate max-w-[180px]"></span>
+            <span id="meeting-name" class="text-[#205f72] text-sm font-semibold truncate max-w-[180px]"></span>
+          </div>
+        </div>
+        
+        <a href="{{ url_for('build_organization_page') }}" class="sidebar-item">
+          <i data-lucide="home" class="sidebar-icon"></i>
+          <span>首頁</span>
+        </a>
+        <a href="{{ url_for('meeting_after_file_upload_page', meeting_id=meeting_id) }}" class="sidebar-item">
+          <i data-lucide="file-plus" class="sidebar-icon"></i>
+          <span>檔案上傳</span>
+        </a>
+        <a href="{{ url_for('transcript_file_page', meeting_id=meeting_id) }}" class="sidebar-item">
+          <i data-lucide="mic" class="sidebar-icon"></i>
+          <span>語音轉文字</span>
+        </a>
+        <a href="{{ url_for('meeting_review_page', meeting_id=meeting_id) }}" class="sidebar-item">
+          <i data-lucide="folder-search-2" class="sidebar-icon"></i>
+          <span>會議回顧</span>
+        </a>
+        <a href="{{ url_for('meeting_formal_doc_page', meeting_id=meeting_id) }}" class="sidebar-item">
+          <i data-lucide="file-text" class="sidebar-icon"></i>
+          <span>正式文件</span>
+        </a>
+        <a href="{{ url_for('signin_page') }}" class="sidebar-item">
+          <i data-lucide="log-out" class="sidebar-icon"></i>
+          <span>登出</span>
+        </a>
+      </nav>
+    </aside>
+
+    <main class="main-content">
+      <header class="header">
+        <div class="header-left">
+          <a href="{{ url_for('build_organization_page') }}">
+            <img src="{{ url_for('static', filename='image/logo.png') }}" alt="Logo" class="logo-img" />
+          </a>
+        </div>
+
+        <div class="progress-bar">
+          <div class="step-group">
+            <div class="circle gray-completed"></div>
+            <div class="label label-gray">前</div>
+          </div>
+          <div class="line solid-gray"></div>
+          <div class="step-group">
+            <div class="circle gray-completed"></div>
+            <div class="label label-gray">中</div>
+          </div>
+          <div class="line solid-gray"></div>
+          <div class="step-group">
+            <div class="circle green-completed"></div>
+            <div class="label label-green">後</div>
+          </div>
+        </div>
+
+        <div class="header-right">
+          <a href="{{ url_for('meeting_member3_page', meeting_id=meeting_id) }}">
+            <img src="{{ url_for('static', filename='image/head.png') }}" alt="Head" class="avatar-img" />
+          </a>
+        </div>
+      </header>
+
+      <div class="flex justify-center max-w-5xl mx-auto py-10">
+        <div class="section-box">
+          <div class="section-title">1️⃣ 逐字稿區</div>
+          <ul id="transcriptList"></ul>
+          <div class="btn-area"><button id="genSummaryBtn" class="btn-generate">生成會議記錄整理</button></div>
+        </div>
+
+        <div class="section-box">
+          <div class="section-title">2️⃣ 會議記錄整理區</div>
+          <ul id="summaryList"></ul>
+          <div class="btn-area"><button id="genFormalBtn" class="btn-generate">生成會議正式文件</button></div>
+        </div>
+
+        <div class="section-box">
+          <div class="section-title">3️⃣ 正式文件區</div>
+          <ul id="formalList"></ul>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div id="downloadModal">
+    <div class="modal-content">
+      <div style="font-weight:bold; font-size:18px; color:#205f72; margin-bottom:16px;">選擇下載格式</div>
+      <button id="downloadPdfBtn" class="btn-generate">下載 PDF</button><br>
+      <button id="downloadWordBtn" class="btn-generate">下載 Word</button><br>
+      <button onclick="closeModal()" class="close-btn">關閉</button>
+    </div>
+  </div>
+
+  <script>
+    function toggleSidebar() {
+      document.getElementById("sidebar").classList.toggle("collapsed");
+    }
+
+    let downloadFileName = "";
+
+    function renderSections() {
+      let files = JSON.parse(localStorage.getItem("meeting_files") || "[]");
+      let transcript = files.filter(f => f.type === "逐字稿");
+      let summary = files.filter(f => f.type === "會議紀錄整理");
+      let formal = files.filter(f => f.type === "會議正式文件");
+
+      document.getElementById("transcriptList").innerHTML =
+        transcript.length ? transcript.map(f => `<li class="file-li">📄 ${f.name}</li>`).join("") : "<li class='text-gray-400'>無</li>";
+
+      document.getElementById("summaryList").innerHTML =
+        summary.length ? summary.map(f => `<li class="file-li">📄 ${f.name}</li>`).join("") : "<li class='text-gray-400'>無</li>";
+
+      document.getElementById("formalList").innerHTML =
+        formal.length ? formal.map(f => `<li class="file-li"><button class="file-link" onclick="openDownloadModal('${encodeURIComponent(f.name)}')">📄 ${f.name}</button></li>`).join("") : "<li class='text-gray-400'>無</li>";
+    }
+
+    function openDownloadModal(filename) {
+      downloadFileName = decodeURIComponent(filename);
+      document.getElementById("downloadModal").classList.add("active");
+    }
+
+    function closeModal() {
+      document.getElementById("downloadModal").classList.remove("active");
+    }
+
+    document.getElementById("downloadPdfBtn").onclick = function () {
+      downloadFile("../../files/sample_meeting_doc.pdf", downloadFileName.replace(/\.[^/.]+$/, "") + ".pdf");
+      closeModal();
+    };
+    document.getElementById("downloadWordBtn").onclick = function () {
+      downloadFile("../../files/sample_meeting_doc.docx", downloadFileName.replace(/\.[^/.]+$/, "") + ".docx");
+      closeModal();
+    };
+
+    function downloadFile(url, filename) {
+      let a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+
+    document.getElementById("genSummaryBtn").onclick = function () {
+      let files = JSON.parse(localStorage.getItem("meeting_files") || "[]");
+      let transcript = files.find(f => f.type === "逐字稿");
+      if (!transcript) return alert("沒有逐字稿可生成！");
+      files.push({ name: "整理_" + transcript.name, type: "會議紀錄整理", date: new Date().toISOString() });
+      localStorage.setItem("meeting_files", JSON.stringify(files));
+      renderSections();
+      alert("已生成會議記錄整理！");
+    };
+
+    document.getElementById("genFormalBtn").onclick = function () {
+      let files = JSON.parse(localStorage.getItem("meeting_files") || "[]");
+      let summary = files.find(f => f.type === "會議紀錄整理");
+      if (!summary) return alert("沒有會議紀錄整理可生成正式文件！");
+      files.push({ name: "正式_" + summary.name, type: "會議正式文件", date: new Date().toISOString() });
+      localStorage.setItem("meeting_files", JSON.stringify(files));
+      renderSections();
+      alert("已生成正式文件！");
+    };
+
+    renderSections();
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const name = localStorage.getItem("currentMeetingName") || "未命名會議";
+      const date = localStorage.getItem("currentMeetingDate") || "未指定日期";
+      const dateSpan = document.getElementById("meeting-date");
+      const nameSpan = document.getElementById("meeting-name");
+      if (dateSpan) dateSpan.textContent = date;
+      if (nameSpan) nameSpan.textContent = name;
+    });
+  </script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>lucide.createIcons();</script>
+</body>
+</html>

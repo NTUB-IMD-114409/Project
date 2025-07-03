@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>會議寶｜建立組織</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/navbar_b.css') }}" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+  <style>
+    .btn-primary {
+      background-color: #205f72;
+    }
+    .btn-primary:hover {
+      background-color: #175c71;
+    }
+    .org-card {
+      background-color: #cedfe4;
+      border-radius: 16px;
+      padding: 12px 20px;
+      width: calc(25% - 12px);
+      height: 160px;
+      position: relative;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-sizing: border-box;
+    }
+    .menu-button {
+      position: absolute;
+      top: 8px;
+      right: 12px;
+      background: none;
+      border: none;
+      font-size: 18px;
+      cursor: pointer;
+      color: #205f72;
+    }
+    .menu-button:hover {
+      color: #175c71;
+    }
+    .menu-list {
+      position: absolute;
+      top: 30px;
+      right: 10px;
+      background-color: #ffffff;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      display: none;
+      flex-direction: column;
+      z-index: 10;
+    }
+    .menu-list button {
+      padding: 8px 12px;
+      text-align: left;
+      background: none;
+      border: none;
+      cursor: pointer;
+    }
+    .menu-list button:hover {
+      background-color: #f0f0f0;
+    }
+    #orgList {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-start;
+      gap: 16px;
+    }
+    .dashed-box {
+      border: 2px dashed #cedfe4;
+      border-radius: 20px;
+      background-color: #ffffff;
+      padding: 24px;
+      min-height: 150px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+    <button class="navbar-toggle" onclick="toggleSidebar()" id="toggleBtn">
+      <img src="{{ url_for('static', filename='image/navbar.png') }}" alt="toggle" id="toggleIcon" />
+    </button>
+    <nav class="menu">
+      <a href="{{ url_for('build_organization_page') }}" class="sidebar-item">
+        <img src="{{ url_for('static', filename='image/home.png') }}" alt="Home" class="sidebar-icon" />
+        <span>首頁</span>
+      </a>
+      <a href="{{ url_for('signin_page') }}" class="sidebar-item">
+        <img src="{{ url_for('static', filename='image/logout.png') }}" alt="Logout" class="sidebar-icon" />
+        <span>登出</span>
+      </a>
+    </nav>
+  </aside>
+
+  <main class="main-content">
+    <header class="header">
+      <div class="header-left">
+        <a href="{{ url_for('build_organization_page') }}">
+          <img src="{{ url_for('static', filename='image/logo.png') }}" alt="Logo" class="logo-img" />
+        </a>
+      </div>
+      <div class="header-right">
+        <a href="{{ url_for('member_profile_page') }}">
+        <img src="{{ url_for('static', filename='image/head.png') }}" alt="Head" class="avatar-img" />
+        </a>
+      </div>
+    </header>
+
+    <section class="workspace">
+      <button onclick="openModal()" class="btn-primary text-white px-4 py-2 rounded-lg font-bold">＋ 建立組織</button>
+
+      <div class="mt-8 dashed-box text-center">
+        <h2 class="text-2xl font-bold text-[#205f72] mb-2">我的組織</h2>
+        <p id="orgHint" class="text-gray-600">在此顯示建立過的組織</p>
+        <div id="orgList"></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- modal 保持不變 -->
+<!-- 以下 script 區塊只修正 fetch 後的跳轉路徑，以及加上 DOMContentLoaded 時載入卡片 -->
+<script>
+const members = [];
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('collapsed');
+}
+
+function openModal() {
+  document.getElementById("modal").classList.remove("hidden");
+  document.getElementById("modal").classList.add("flex");
+}
+
+function closeModal() {
+  document.getElementById("modal").classList.add("hidden");
+  document.getElementById("modal").classList.remove("flex");
+}
+
+function addMember() {
+  const input = document.getElementById("orgMemberInput");
+  const email = input.value.trim();
+  if (!email.endsWith("@gmail.com")) {
+    alert("請輸入正確的 Gmail 地址");
+    return;
+  }
+  if (members.includes(email)) {
+    alert("此成員已經被邀請過了");
+    return;
+  }
+  members.push(email);
+  input.value = "";
+  renderMembers();
+}
+
+function renderMembers() {
+  const list = document.getElementById("memberList");
+  list.innerHTML = "";
+  members.forEach((email, index) => {
+    const item = document.createElement("li");
+    item.className = "flex justify-between items-center bg-[#f5f8fa] px-3 py-2 rounded";
+    item.innerHTML = `<span>${email}</span><button onclick="removeMember(${index})" class="text-red-600 font-bold">✕</button>`;
+    list.appendChild(item);
+  });
+  document.getElementById("inviteArea").style.display = members.length > 0 ? "block" : "none";
+}
+
+function removeMember(index) {
+  members.splice(index, 1);
+  renderMembers();
+}
+
+function sendInvites() {
+  alert("邀請已發送給：" + members.join(", "));
+}
+
+function createOrganization() {
+  const name = document.getElementById("orgName").value.trim();
+  const creatorId = localStorage.getItem("userId");
+
+  if (!name) {
+    alert("請輸入組織名稱！");
+    return;
+  }
+
+  if (!creatorId) {
+    alert("無法辨識使用者，請先登入");
+    return;
+  }
+
+  fetch("/api/organization", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      name: name,
+      creator_id: creatorId,
+      members: members
+    })
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        alert("組織建立成功！");
+        addOrgCard(name); // ✅ 顯示新卡片
+        closeModal();     // ✅ 關閉視窗
+      } else {
+        alert("建立失敗：" + data.message);
+      }
+    })
+    .catch(err => {
+      alert("發生錯誤：" + err);
+    });
+}
+
+
+function toggleMenu(id) {
+  const menu = document.getElementById("menu-" + id);
+  document.querySelectorAll(".menu-list").forEach(m => {
+    if (m !== menu) m.style.display = "none";
+  });
+  menu.style.display = (menu.style.display === "flex") ? "none" : "flex";
+}
+
+function deleteOrg(id) {
+  if (!confirm("確定要刪除這個組織嗎？此操作無法復原。")) return;
+
+  fetch(`/api/organization/${id}`, {
+    method: "DELETE"
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        document.getElementById("org-" + id).remove();
+        alert("已成功刪除組織！");
+      } else {
+        alert("刪除失敗：" + data.message);
+      }
+    })
+    .catch(err => {
+      alert("發生錯誤：" + err);
+    });
+}
+
+function renameOrg(id) {
+  const title = document.getElementById("title-" + id);
+  const newName = prompt("輸入新的組織名稱：", title.textContent);
+  if (newName) title.textContent = newName;
+}
+
+// ✅ 載入使用者的組織卡片
+window.addEventListener("DOMContentLoaded", () => {
+  const userId = localStorage.getItem("userId");
+  if (!userId) return;
+  fetch(`/api/my_organizations/${userId}`)
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        const orgList = document.getElementById("orgList");
+        const hint = document.getElementById("orgHint");
+        if (data.organizations.length > 0) {
+          hint.style.display = "none";
+          data.organizations.forEach(org => {
+            const card = document.createElement("div");
+            card.className = "org-card";
+            card.id = "org-" + org.id;
+            card.innerHTML = `
+              <a href="/meeting?org_id=${org.id}" style="position: absolute; inset: 0; display: flex; justify-content: center; align-items: center; text-decoration: none;">
+                <h3 id="title-${org.id}" class="font-bold text-base text-[#205f72]">${org.name}</h3>
+              </a>
+
+              <button class="menu-button" onclick="toggleMenu(${org.id})" title="更多操作">
+                <i class="fas fa-ellipsis-vertical"></i>
+              </button>
+              <div id="menu-${org.id}" class="menu-list">
+                <button onclick="renameOrg(${org.id})">重新命名組織</button>
+                <button onclick="deleteOrg(${org.id})">刪除組織</button>
+              </div>
+            `;
+            orgList.appendChild(card);
+          });
+        }
+      }
+    });
+});
+
+function addOrgCard(name) {
+  const id = Date.now();  // 使用時間戳當作暫時 id（不會與資料庫同步）
+  const orgList = document.getElementById("orgList");
+  const hint = document.getElementById("orgHint");
+  hint.style.display = "none";
+
+  const card = document.createElement("div");
+  card.className = "org-card";
+  card.id = "org-" + id;
+  card.innerHTML = `
+    <a href="/meeting?org_id=${id}" style="position: absolute; inset: 0; display: flex; justify-content: center; align-items: center; text-decoration: none;">
+      <h3 id="title-${id}" class="font-bold text-base text-[#205f72]">${name}</h3>
+    </a>
+    <button class="menu-button" onclick="toggleMenu(${id})" title="更多操作">
+      <i class="fas fa-ellipsis-vertical"></i>
+    </button>
+    <div id="menu-${id}" class="menu-list">
+      <button onclick="renameOrg(${id})">重新命名組織</button>
+      <button onclick="deleteOrg(${id})">刪除組織</button>
+    </div>
+  `;
+  orgList.appendChild(card);
+}
+
+</script>
+<!--建立組織彈跳視窗（Modal）-->
+<div id="modal" class="fixed inset-0 hidden items-center justify-center bg-black bg-opacity-50 z-50">
+  <div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-md">
+    <h3 class="text-xl font-bold text-[#205f72] mb-4 text-center">建立新組織</h3>
+    <div class="mb-4">
+      <label class="block font-bold mb-1">組織名稱</label>
+      <input id="orgName" type="text" placeholder="請輸入組織名稱" class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none" />
+    </div>
+    <div class="mb-4">
+      <label class="block font-bold mb-1">邀請組織成員</label>
+      <div class="relative w-full">
+        <input id="orgMemberInput" type="email" placeholder="example@gmail.com" class="w-full p-3 pr-8 rounded-lg border border-gray-300 focus:outline-none" />
+        <button onclick="addMember()" class="absolute top-1/2 right-3 -translate-y-1/2 text-[#205f72] text-xl font-bold leading-none hover:text-[#175c71]">＋</button>
+      </div>
+      <ul id="memberList" class="mt-2 space-y-2"></ul>
+      <div id="inviteArea" class="mt-4 hidden text-right">
+        <button onclick="sendInvites()" class="btn-primary text-white px-4 py-2 rounded-lg">發送邀請</button>
+      </div>
+    </div>
+    <div class="flex justify-end gap-2 mt-2">
+      <button onclick="closeModal()" class="bg-gray-300 text-black px-4 py-2 rounded-lg">取消</button>
+      <button onclick="createOrganization()" class="btn-primary text-white px-4 py-2 rounded-lg">建立</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>

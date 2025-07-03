@@ -1,0 +1,261 @@
+/* Reset */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Arial', sans-serif;
+  background-color: #f5f8fa;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.layout {
+  display: flex;
+  height: 100vh;
+  position: relative;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 240px;
+  background-color: #edebeb;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  position: relative;
+  transition: width 0.3s ease;
+  overflow: hidden;
+}
+
+.sidebar.collapsed {
+  width: 60px;
+}
+
+.sidebar.collapsed .sidebar-item span {
+  display: none;
+}
+
+.sidebar.collapsed .sidebar-item {
+  justify-content: center;
+  padding: 0;
+}
+
+/* 三條線按鈕 */
+.navbar-toggle {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  width: fit-content;
+  margin-bottom: 1px;
+  align-self: flex-start;
+}
+
+.navbar-toggle img {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+  opacity: 0.8;
+  transition: opacity 0.2s ease;
+}
+
+.navbar-toggle img:hover {
+  opacity: 1;
+}
+
+/* Sidebar 項目 */
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 60px;
+  padding: 0 16px;
+  color: #175c71;
+  font-weight: bold;
+  text-decoration: none;
+  border-radius: 6px;
+  transition: background-color 0.2s;
+  font-size: 16px;
+}
+
+.sidebar-item:hover {
+  background-color: #d2dfe2;
+  color: #103f4c;
+}
+
+.sidebar-icon {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+  display: inline-block;
+}
+
+/* 主體區 */
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header */
+.header {
+  min-height: 60px;
+  background-color: #f5f8fa;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 24px;
+  border-bottom: none;
+  box-shadow: none;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-img {
+  height: 70px;
+  width: auto;
+  object-fit: contain;
+  max-width: 200px;
+}
+
+.avatar-img {
+  height: 40px;
+  width: auto;
+  object-fit: contain;
+}
+
+/* 內容區 */
+.workspace {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+  padding-left: 60px;
+  background-color: #f5f8fa;
+  border-radius: 8px;
+  box-shadow: none;
+}
+
+/* 主按鈕 */
+button.primary {
+  background-color: #175c71;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+button.primary:hover {
+  background-color: #205f72;
+}
+
+/* 會議進度條區塊 */
+.progress-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  margin-top: 8px;
+}
+
+.step-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.circle {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid #205f72;
+  background-color: white;
+  z-index: 1;
+}
+
+.circle.completed {
+  background-color: #205f72;
+}
+
+.label {
+  margin-top: 4px;
+  font-size: 14px;       /* ← 字體大小，可調整為 16px 等 */
+  font-weight: bold;     /* ← 字體粗細，可改為 normal, 500, 600, bold 等 */
+  color: #205f72;
+}
+
+.line {
+  width: 300px;
+  height: 2px;
+  margin-bottom: 20px;
+}
+
+.line.dashed {
+  background-image: repeating-linear-gradient(
+    to right,
+    #205f72,
+    #205f72 4px,
+    transparent 4px,
+    transparent 8px
+  );
+  background-size: 100% 2px;
+  background-repeat: repeat-x;
+}
+
+/* 前的圓圈變灰色實心 */
+.circle.gray-completed {
+  background-color: #999999;
+  border-color: #999999;
+}
+
+/* 前→中的線變灰色實線 */
+.line.solid-gray {
+  background-color: #999999;
+  height: 2px;
+  width: 300px;
+  margin-bottom: 20px;
+}
+
+/* 前的文字變灰色 */
+.label-gray {
+  color: #999999;
+}
+
+/* ✅ 前與中的圓圈變灰色實心 */
+.circle.gray-completed {
+  background-color: #999999;
+  border-color: #999999;
+}
+
+/* ✅ 前與中的文字變灰色 */
+.label-gray {
+  color: #999999;
+}
+
+/* ✅ 前→中 & 中→後 的線變灰色實線 */
+.line.solid-gray {
+  background-color: #999999;
+  height: 2px;
+  width: 300px;
+  margin-bottom: 20px;
+}
+
+/* ✅ 會議後為綠色實心圓與文字 */
+.circle.green-completed {
+  background-color: #205f72;
+  border-color: #205f72;
+}
+
+.label-green {
+  color: #205f72;
+}

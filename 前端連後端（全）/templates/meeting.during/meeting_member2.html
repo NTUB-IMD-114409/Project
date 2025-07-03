@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>會議寶｜會議成員</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/navbar_d.css') }}" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    .btn-primary { background-color: #205f72; }
+    .btn-primary:hover { background-color: #175c71; }
+    .card { background-color: #cedfe4; border-radius: 16px; padding: 16px 20px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);}
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <button class="navbar-toggle" onclick="toggleSidebar()" id="toggleBtn">
+        <i data-lucide="align-justify" class="w-6 h-6 stroke-[#205f72]"></i>
+      </button>
+      <nav class="menu">
+        <div class="sidebar-item cursor-default">
+          <i data-lucide="building" class="sidebar-icon stroke-[#205f72]"></i>
+          <div class="flex flex-col leading-snug">
+            <span class="text-xs text-gray-500">目前會議</span>
+            <span id="meeting-date" class="text-[#205f72] text-sm font-semibold truncate max-w-[180px]"></span>
+            <span id="meeting-name" class="text-[#205f72] text-sm font-semibold truncate max-w-[180px]"></span>
+          </div>
+        </div>
+        <a href="{{ url_for('build_organization_page') }}" class="sidebar-item">
+          <i data-lucide="home" class="sidebar-icon"></i><span>首頁</span>
+        </a>
+        <a href="{{ url_for('meeting_during_file_upload_page', meeting_id=meeting_id) }}" class="sidebar-item">
+          <i data-lucide="file-plus" class="sidebar-icon"></i><span>檔案上傳</span>
+        </a>
+        <a href="{{ url_for('meeting_during_transcript_now_page', meeting_id=meeting_id) }}" class="sidebar-item">
+          <i data-lucide="mic" class="sidebar-icon"></i><span>語音轉文字</span>
+        </a>
+        <a href="{{ url_for('signin_page') }}" class="sidebar-item">
+          <i data-lucide="log-out" class="sidebar-icon"></i><span>登出</span>
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <header class="header">
+        <div class="header-left">
+          <a href="{{ url_for('build_organization_page') }}">
+            <img src="{{ url_for('static', filename='image/logo.png') }}" alt="Logo" class="logo-img" />
+          </a>
+        </div>
+        <div class="progress-bar flex items-center">
+          <div class="step-group"><div class="circle gray-completed"></div><div class="label label-gray">前</div></div>
+          <div class="line solid-gray"></div>
+          <div class="step-group"><div class="circle completed"></div><div class="label">中</div></div>
+          <div class="line dashed relative flex-1 flex items-center justify-center">
+            <button onclick="goToNext()" class="absolute z-10 bg-[#175c71] text-white text-sm px-3 py-1 rounded-full hover:bg-[#124654] transition-all">下一步</button>
+          </div>
+          <div class="step-group"><div class="circle"></div><div class="label">後</div></div>
+        </div>
+        <div class="header-right">
+          <a href="{{ url_for('meeting_member2_page', meeting_id=meeting_id) }}">
+            <img src="{{ url_for('static', filename='image/head.png') }}" alt="Head" class="avatar-img" />
+          </a>
+        </div>
+      </header>
+
+      <div class="w-full max-w-4xl mx-auto px-4 mt-6">
+        <h2 class="text-center text-[#205f72] text-2xl font-bold mb-4">會議參與者列表</h2>
+        <div id="memberList" class="flex flex-col gap-3 mb-8"></div>
+        <div class="card">
+          <h3 class="text-lg font-bold text-[#205f72] mb-3">新增會議參與者</h3>
+          <div class="flex flex-col md:flex-row md:items-center gap-2">
+            <input id="newMemberEmail" type="email" placeholder="example@gmail.com" class="flex-1 p-3 rounded-lg border border-gray-300 focus:outline-none" />
+            <select id="newMemberRole" class="p-3 rounded-lg border border-gray-300 focus:outline-none">
+              <option value="edit">可供編輯</option>
+              <option value="view">僅可查看</option>
+            </select>
+            <button onclick="addNewMember()" class="btn-primary text-white px-4 py-2 rounded-lg">新增</button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    function toggleSidebar() {
+      document.getElementById("sidebar").classList.toggle("collapsed");
+    }
+    function goToNext() {
+      // 可以根據流程跳到下一頁（範例路徑，可改）
+      window.location.href = "{{ url_for('meeting_review_page', meeting_id=meeting_id) }}";
+    }
+
+    // 取得會議成員（Flask API）
+    function renderMembers() {
+      const container = document.getElementById("memberList");
+      container.innerHTML = "";
+
+      // meeting_id 從模板變數拿
+      const meetingId = "{{ meeting_id }}";
+
+      fetch(`/api/meeting_members/${meetingId}`)
+        .then(res => res.json())
+        .then(data => {
+          if (!data.success || !data.members.length) {
+            container.innerHTML = '<p class="text-center text-gray-600">尚無會議參與者</p>';
+            return;
+          }
+          data.members.forEach(entry => {
+            const div = document.createElement("div");
+            div.className = "bg-white border border-gray-300 rounded px-4 py-3 flex justify-between items-center";
+            div.innerHTML = `
+              <span class="text-sm text-gray-800">${entry.email}</span>
+              <span class="text-xs text-gray-600">${entry.role === 'edit' ? '可編輯' : '僅可查看'}</span>
+            `;
+            container.appendChild(div);
+          });
+        })
+        .catch(err => {
+          container.innerHTML = '<p class="text-center text-red-600">載入失敗</p>';
+          console.error("載入會議成員失敗：", err);
+        });
+    }
+
+    // 新增會議成員（建議用 API）
+    function addNewMember() {
+      const input = document.getElementById("newMemberEmail");
+      const roleSelect = document.getElementById("newMemberRole");
+      const email = input.value.trim();
+      const role = roleSelect.value;
+      const meetingId = "{{ meeting_id }}";
+      if (!email.endsWith("@gmail.com")) {
+        alert("請輸入有效的 Gmail 地址");
+        return;
+      }
+
+      fetch(`/api/meeting_members/${meetingId}`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ email, role })
+      })
+      .then(res => res.json())
+      .then(result => {
+        if (result.success) {
+          renderMembers(); // 重新刷新列表
+          input.value = "";
+        } else {
+          alert(result.message || "新增失敗");
+        }
+      });
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      renderMembers();
+      document.getElementById("meeting-name").textContent = localStorage.getItem("currentMeetingName") || "未命名會議";
+      document.getElementById("meeting-date").textContent = localStorage.getItem("currentMeetingDate") || "未指定日期";
+      lucide.createIcons();
+      document.getElementById("newMemberEmail").addEventListener("keydown", (e) => {
+        if (e.key === "Enter") addNewMember();
+      });
+    });
+  </script>
+</body>
+</html>

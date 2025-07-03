@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>會議寶｜會議後｜會議回顧</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/navbar_a.css') }}" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: #f5f8fa;
+      font-family: 'Arial', sans-serif;
+      min-height: 100vh;
+    }
+
+    .main-wrapper {
+      height: calc(100vh - 100px);
+      overflow-y: auto;
+      padding: 20px 16px;
+    }
+
+    .dashed-box {
+      border: 2px dashed #cedfe4;
+      border-radius: 20px;
+      background-color: #ffffff;
+      padding: 24px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+    }
+
+    .btn-primary {
+      background-color: #205f72;
+    }
+
+    .btn-primary:hover {
+      background-color: #175c71;
+    }
+
+    button[title] {
+      transition: background-color 0.2s ease;
+    }
+
+    select {
+      appearance: none;
+    }
+
+    textarea {
+      resize: none;
+    }
+
+    .bg-green-500 {
+      background-color: #48bb78;
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <button class="navbar-toggle" onclick="toggleSidebar()" id="toggleBtn">
+        <i data-lucide="align-justify" class="w-6 h-6 stroke-[#205f72]"></i>
+      </button>
+      <nav class="menu">
+        <div class="sidebar-item cursor-default hover:bg-transparent select-none">
+          <i data-lucide="building" class="sidebar-icon stroke-[#205f72]"></i>
+          <div class="flex flex-col leading-snug">
+            <span class="text-xs text-gray-500">目前會議</span>
+            <span id="meeting-date" class="text-[#205f72] text-sm font-semibold truncate max-w-[180px]"></span>
+            <span id="meeting-name" class="text-[#205f72] text-sm font-semibold truncate max-w-[180px]"></span>
+          </div>
+        </div>
+        
+        <a href="{{ url_for('build_organization_page') }}" class="sidebar-item">
+          <i data-lucide="home" class="sidebar-icon"></i>
+          <span>首頁</span>
+        </a>
+        <a href="{{ url_for('meeting_after_file_upload_page', meeting_id=meeting_id) }}" class="sidebar-item">
+          <i data-lucide="file-plus" class="sidebar-icon"></i>
+          <span>檔案上傳</span>
+        </a>
+        <a href="{{ url_for('transcript_file_page', meeting_id=meeting_id) }}" class="sidebar-item">
+          <i data-lucide="mic" class="sidebar-icon"></i>
+          <span>語音轉文字</span>
+        </a>
+        <a href="{{ url_for('meeting_review_page', meeting_id=meeting_id) }}" class="sidebar-item">
+          <i data-lucide="folder-search-2" class="sidebar-icon"></i>
+          <span>會議回顧</span>
+        </a>
+        <a href="{{ url_for('meeting_formal_doc_page', meeting_id=meeting_id) }}" class="sidebar-item">
+          <i data-lucide="file-text" class="sidebar-icon"></i>
+          <span>正式文件</span>
+        </a>
+        <a href="{{ url_for('signin_page') }}" class="sidebar-item">
+          <i data-lucide="log-out" class="sidebar-icon"></i>
+          <span>登出</span>
+        </a>
+      </nav>
+    </aside>
+
+    <main class="main-content">
+      <header class="header">
+        <div class="header-left">
+          <a href="{{ url_for('build_organization_page') }}">
+            <img src="{{ url_for('static', filename='image/logo.png') }}" alt="Logo" class="logo-img" />
+          </a>
+        </div>
+
+        <div class="progress-bar">
+          <div class="step-group">
+            <div class="circle gray-completed"></div>
+            <div class="label label-gray">前</div>
+          </div>
+          <div class="line solid-gray"></div>
+          <div class="step-group">
+            <div class="circle gray-completed"></div>
+            <div class="label label-gray">中</div>
+          </div>
+          <div class="line solid-gray"></div>
+          <div class="step-group">
+            <div class="circle green-completed"></div>
+            <div class="label label-green">後</div>
+          </div>
+        </div>
+
+        <div class="header-right">
+          <a href="{{ url_for('meeting_member3_page', meeting_id=meeting_id) }}">
+            <img src="{{ url_for('static', filename='image/head.png') }}" alt="Head" class="avatar-img" />
+          </a>
+        </div>
+      </header>
+
+      <div class="main-wrapper">
+        <section class="flex justify-center px-4">
+          <div class="w-full max-w-4xl space-y-6">
+            <div class="dashed-box">
+              <h2 class="text-2xl font-bold text-[#205f72] mb-6">會議摘要</h2>
+              <div class="flex flex-col md:flex-row gap-4 mb-6">
+                <div class="flex-1">
+                  <label for="meetingDate" class="block mb-1 text-[#205f72] font-semibold">選擇日期</label>
+                  <input type="date" id="meetingDate" class="w-full px-5 py-3 bg-white border border-[#cedfe4] rounded-lg" />
+                </div>
+                <div class="flex-1">
+                  <label for="meetingTitle" class="block mb-1 text-[#205f72] font-semibold">選擇會議</label>
+                  <select id="meetingTitle" class="w-full px-5 py-3 bg-white border border-[#cedfe4] text-black rounded-lg">
+                    <option>請選擇會議</option>
+                    <option value="會議 A">會議 A</option>
+                    <option value="會議 B">會議 B</option>
+                    <option value="會議 C">會議 C</option>
+                  </select>
+                </div>
+              </div>
+
+              <textarea class="w-full h-40 border-2 border-dashed border-[#cedfe4] rounded-xl p-4 text-gray-700 text-base resize-none" placeholder="請輸入摘要內容..."></textarea>
+
+              <div class="flex justify-end gap-4 mt-4">
+                <button title="複製" class="p-2 rounded-full hover:bg-gray-100 transition">
+                  <i data-lucide="copy" class="w-5 h-5"></i>
+                </button>
+                <button title="編輯" class="p-2 rounded-full hover:bg-gray-100 transition">
+                  <i data-lucide="pen" class="w-5 h-5"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="dashed-box text-center">
+              <h2 class="text-2xl font-bold text-[#205f72]">修改紀錄</h2>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    function toggleSidebar() {
+      document.getElementById("sidebar").classList.toggle("collapsed");
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      lucide.createIcons();
+
+      const titleSelect = document.getElementById("meetingTitle");
+      const dateInput = document.getElementById("meetingDate");
+
+      function updateDisplay() {
+        const date = dateInput.value;
+        const title = titleSelect.value;
+        if (date && title && title !== "請選擇會議") {
+          localStorage.setItem("meetingDate", date);
+          localStorage.setItem("meetingTitle", title);
+          localStorage.setItem("meetingStage", "後");
+        }
+      }
+
+      titleSelect.addEventListener("change", updateDisplay);
+      dateInput.addEventListener("change", updateDisplay);
+
+      const storedDate = localStorage.getItem("meetingDate");
+      const storedTitle = localStorage.getItem("meetingTitle");
+      if (storedDate) dateInput.value = storedDate;
+      if (storedTitle) titleSelect.value = storedTitle;
+    });
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const name = localStorage.getItem("currentMeetingName") || "未命名會議";
+      const date = localStorage.getItem("currentMeetingDate") || "未指定日期";
+      const dateSpan = document.getElementById("meeting-date");
+      const nameSpan = document.getElementById("meeting-name");
+      if (dateSpan) dateSpan.textContent = date;
+      if (nameSpan) nameSpan.textContent = name;
+    });
+  </script
+  </script>
+</body>
+</html>
+
+      <div class="main-wrapper">
+        <section class="flex justify-center px-4">
+          <div class="w-full max-w-4xl space-y-6">
+            <div class="dashed-box">
+              <h2 class="text-2xl font-bold text-[#205f72] mb-6">會議摘要</h2>
+              <div class="flex flex-col md:flex-row gap-4 mb-6">
+                <div class="flex-1">
+                  <label for="meetingDate" class="block mb-1 text-[#205f72] font-semibold">選擇日期</label>
+                  <input type="date" id="meetingDate" class="w-full px-5 py-3 bg-white border border-[#cedfe4] rounded-lg" />
+                </div>
+                <div class="flex-1">
+                  <label for="meetingTitle" class="block mb-1 text-[#205f72] font-semibold">選擇會議</label>
+                  <select id="meetingTitle" class="w-full px-5 py-3 bg-white border border-[#cedfe4] text-black rounded-lg">
+                    <option>請選擇會議</option>
+                    <option value="會議 A">會議 A</option>
+                    <option value="會議 B">會議 B</option>
+                    <option value="會議 C">會議 C</option>
+                  </select>
+                </div>
+              </div>
+
+              <textarea class="w-full h-40 border-2 border-dashed border-[#cedfe4] rounded-xl p-4 text-gray-700 text-base resize-none" placeholder="請輸入摘要內容..."></textarea>
+
+              <div class="flex justify-end gap-4 mt-4">
+                <button title="複製" class="p-2 rounded-full hover:bg-gray-100 transition">
+                  <i data-lucide="copy" class="w-5 h-5"></i>
+                </button>
+                <button title="編輯" class="p-2 rounded-full hover:bg-gray-100 transition">
+                  <i data-lucide="pen" class="w-5 h-5"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="dashed-box text-center">
+              <h2 class="text-2xl font-bold text-[#205f72]">修改紀錄</h2>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    function toggleSidebar() {
+      document.getElementById("sidebar").classList.toggle("collapsed");
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      lucide.createIcons();
+
+      const titleSelect = document.getElementById("meetingTitle");
+      const dateInput = document.getElementById("meetingDate");
+
+      function updateDisplay() {
+        const date = dateInput.value;
+        const title = titleSelect.value;
+        if (date && title && title !== "請選擇會議") {
+          localStorage.setItem("meetingDate", date);
+          localStorage.setItem("meetingTitle", title);
+          localStorage.setItem("meetingStage", "後");
+        }
+      }
+
+      titleSelect.addEventListener("change", updateDisplay);
+      dateInput.addEventListener("change", updateDisplay);
+
+      const storedDate = localStorage.getItem("meetingDate");
+      const storedTitle = localStorage.getItem("meetingTitle");
+      if (storedDate) dateInput.value = storedDate;
+      if (storedTitle) titleSelect.value = storedTitle;
+    });
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const name = localStorage.getItem("currentMeetingName") || "未命名會議";
+      const date = localStorage.getItem("currentMeetingDate") || "未指定日期";
+      const dateSpan = document.getElementById("meeting-date");
+      const nameSpan = document.getElementById("meeting-name");
+      if (dateSpan) dateSpan.textContent = date;
+      if (nameSpan) nameSpan.textContent = name;
+    });
+  </script
+  </script>
+</body>
+</html>

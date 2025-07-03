@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>會議寶｜會議前｜檔案上傳</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/navbar_b.css') }}" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* ...（原本 style 不變）... */
+    .upload-layout { display: flex; flex: 1; padding: 16px; gap: 16px; }
+    .upload-left { width: 320px; background-color: #fff; border-radius: 12px; box-shadow: 0 0 6px rgba(0, 0, 0, 0.1); padding: 16px; display: flex; flex-direction: column; }
+    .upload-right { flex: 1; background-color: #fff; border-radius: 12px; box-shadow: 0 0 6px rgba(0, 0, 0, 0.1); display: flex; flex-direction: column; justify-content: space-between; }
+    .upload-header { padding: 16px; border-bottom: 1px solid #ddd; }
+    .chat-footer { padding: 16px; display: flex; border-top: 1px solid #ccc; }
+    .chat-footer input { flex: 1; padding: 10px; border-radius: 20px; border: 1px solid #ccc; outline: none; }
+    .file-item { display: flex; align-items: center; background-color: #e4e5e5; border-radius: 6px; padding: 6px 12px; font-size: 14px; color: #205f72; margin-bottom: 10px; width: 100%; box-sizing: border-box; gap: 8px; cursor: pointer; }
+    .file-item input[type="checkbox"] { flex-shrink: 0; margin: 0; }
+    .primary { background-color: #175c71; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; margin-bottom: 12px; }
+    .modal { display: none; position: fixed; z-index: 999; inset: 0; background-color: rgba(0, 0, 0, 0.5);}
+    .modal.show { display: flex; align-items: center; justify-content: center;}
+    .modal-content { background-color: #fff; padding: 24px; border-radius: 12px; width: 360px; display: flex; flex-direction: column; gap: 10px;}
+    .modal-content select, .modal-content input[type="file"] { padding: 6px; border: 1px solid #ccc; border-radius: 4px;}
+    .close { align-self: flex-end; font-size: 28px; color: #888; cursor: pointer;}
+    .close:hover { color: black; }
+    .send-btn { background-color: #175c71; border: none; border-radius: 50%; padding: 10px; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer;}
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <button class="navbar-toggle" onclick="toggleSidebar()" id="toggleBtn">
+        <i data-lucide="align-justify" class="w-6 h-6 stroke-[#205f72]"></i>
+      </button>
+      <nav class="menu">
+        <div class="sidebar-item cursor-default hover:bg-transparent select-none">
+          <i data-lucide="building" class="sidebar-icon stroke-[#205f72]"></i>
+          <div class="flex flex-col leading-snug">
+            <span class="text-xs text-gray-500">目前會議</span>
+            <span id="meeting-date" class="text-[#205f72] text-sm font-semibold truncate max-w-[180px]"></span>
+            <span id="meeting-name" class="text-[#205f72] text-sm font-semibold truncate max-w-[180px]"></span>
+          </div>
+        </div>
+        <a href="{{ url_for('build_organization_page') }}" class="sidebar-item">
+          <i data-lucide="home" class="sidebar-icon"></i>
+          <span>首頁</span>
+        </a>
+        <a href="{{ url_for('meeting_before_file_upload_page', meeting_id=meeting_id) }}" class="sidebar-item">
+          <i data-lucide="file-plus" class="sidebar-icon"></i>
+          <span>檔案上傳</span>
+        </a>
+        <button onclick="openNotifyModal()" class="sidebar-item text-left w-full">
+          <i data-lucide="bell-ring" class="sidebar-icon"></i>
+          <span>發送會議通知</span>
+        </button>
+        <a href="{{ url_for('signin_page') }}" class="sidebar-item">
+          <i data-lucide="log-out" class="sidebar-icon"></i>
+          <span>登出</span>
+        </a>
+      </nav>
+    </aside>
+
+    <main class="main-content">
+      <header class="header">
+        <div class="header-left">
+          <a href="{{ url_for('build_organization_page') }}">
+            <img src="{{ url_for('static', filename='image/logo.png') }}" alt="Logo" class="logo-img" id="logoImg" />
+          </a>
+        </div>
+        <div class="header-center">
+          <div class="progress-bar flex items-center">
+            <div class="step-group">
+              <div class="circle completed"></div>
+              <div class="label">前</div>
+            </div>
+            <div class="line dashed relative flex-1 flex items-center justify-center">
+              <button onclick="goToNext()" class="absolute z-10 bg-[#175c71] text-white text-sm px-3 py-1 rounded-full hover:bg-[#124654] transition-all">下一步</button>
+            </div>
+            <div class="step-group">
+              <div class="circle"></div>
+              <div class="label">中</div>
+            </div>
+            <div class="line dashed"></div>
+            <div class="step-group">
+              <div class="circle"></div>
+              <div class="label">後</div>
+            </div>
+          </div>
+        </div>
+        <div class="header-right">
+          <a href="{{ url_for('meeting_member_page', meeting_id=meeting_id) }}">
+            <img src="{{ url_for('static', filename='image/head.png') }}" alt="Head" class="avatar-img" />
+          </a>
+        </div>
+      </header>
+      <section class="upload-layout">
+        <div class="upload-left">
+          <button class="primary" onclick="openModal()">＋新增</button>
+          <div id="fileList">
+            <p style="color:#666;">目前尚無檔案</p>
+          </div>
+        </div>
+        <div class="upload-right">
+          <div class="upload-header">
+            <p>智能查詢（點選檔案後可進行提問）</p>
+          </div>
+          <div class="chat-footer">
+            <input type="text" placeholder="請輸入問題">
+            <button class="send-btn border border-black hover:scale-105 transition-transform">
+              <i data-lucide="send-horizontal" class="w-[12px] h-[12px] scale-[1.8] text-white"></i>
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="notifyModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeNotifyModal()">&times;</span>
+      <h3 class="text-lg font-bold mb-4 text-[#205f72]">發送會議通知</h3>
+      <label class="block text-sm font-semibold mb-1">會議名稱</label>
+      <input id="notifyMeetingName" type="text" disabled class="w-full p-2 border border-gray-300 rounded mb-3" />
+      <label class="block text-sm font-semibold mb-1">會議時間</label>
+      <input type="time" id="notifyMeetingClock" class="w-full p-2 border border-gray-300 rounded mb-3" />
+      <label class="block text-sm font-semibold mb-1">會議議程</label>
+      <textarea id="notifyAgenda" rows="3" placeholder="請輸入議程..." class="w-full p-2 border border-gray-300 rounded mb-3"></textarea>
+      <input type="file" id="notifyAgendaFile" class="w-full mb-4" />
+      <button onclick="submitNotify()" class="primary w-full">📣 發送通知</button>
+    </div>
+  </div>
+
+  <div class="modal" id="uploadModal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal()">&times;</span>
+      <label for="fileType">選擇檔案類型</label>
+      <select id="fileType">
+        <option value="語音">語音</option>
+        <option value="逐字稿">逐字稿</option>
+        <option value="會議紀錄整理">會議紀錄整理</option>
+        <option value="會議正式文件">會議正式文件</option>
+      </select>
+      <label for="fileInput" style="margin-top: 12px;">選擇檔案</label>
+      <input type="file" id="fileInput" />
+      <button class="primary" style="margin-top: 16px;" onclick="submitUpload()">確認上傳</button>
+    </div>
+  </div>
+
+  <script>
+    function toggleSidebar() { document.getElementById("sidebar").classList.toggle("collapsed"); }
+    function openModal() { document.getElementById("uploadModal").classList.add("show"); }
+    function closeModal() { document.getElementById("uploadModal").classList.remove("show"); }
+    function submitUpload() {
+      const fileInput = document.getElementById("fileInput");
+      const fileType = document.getElementById("fileType").value;
+      if (!fileInput.files.length) { alert("請選擇檔案"); return; }
+      const file = fileInput.files[0];
+      let files = JSON.parse(localStorage.getItem("meeting_files") || "[]");
+      files.push({ name: file.name, type: fileType, date: new Date().toISOString() });
+      localStorage.setItem("meeting_files", JSON.stringify(files));
+      renderFileList(); closeModal(); fileInput.value = "";
+    }
+    function renderFileList() {
+      const fileList = document.getElementById("fileList");
+      let files = JSON.parse(localStorage.getItem("meeting_files") || "[]");
+      fileList.innerHTML = "";
+      if (!files.length) {
+        fileList.innerHTML = `<p style="color:#666;">目前尚無檔案</p>`;
+        return;
+      }
+      files.forEach((file, idx) => {
+        const item = document.createElement("label");
+        item.className = "file-item";
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.name = "fileSelect";
+        checkbox.style.marginRight = "8px";
+        const filename = document.createTextNode(`📄 ${file.name}（${file.type}）`);
+        const delBtn = document.createElement("button");
+        delBtn.innerHTML = "&#10006;";
+        delBtn.title = "刪除";
+        delBtn.style.background = "none";
+        delBtn.style.color = "#d32f2f";
+        delBtn.style.border = "none";
+        delBtn.style.fontSize = "16px";
+        delBtn.style.marginLeft = "10px";
+        delBtn.style.cursor = "pointer";
+        delBtn.style.borderRadius = "50%";
+        delBtn.style.width = "22px";
+        delBtn.style.height = "22px";
+        delBtn.style.display = "flex";
+        delBtn.style.alignItems = "center";
+        delBtn.style.justifyContent = "center";
+        delBtn.style.lineHeight = "1";
+        delBtn.onmouseover = () => delBtn.style.background = "#ffd6d6";
+        delBtn.onmouseout = () => delBtn.style.background = "none";
+        delBtn.onclick = (e) => { e.stopPropagation(); deleteFile(idx); };
+        item.appendChild(checkbox);
+        item.appendChild(filename);
+        item.appendChild(delBtn);
+        fileList.appendChild(item);
+      });
+    }
+    function deleteFile(idx) {
+      let files = JSON.parse(localStorage.getItem("meeting_files") || "[]");
+      files.splice(idx, 1);
+      localStorage.setItem("meeting_files", JSON.stringify(files));
+      renderFileList();
+    }
+    renderFileList();
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const name = localStorage.getItem("currentMeetingName") || "未命名會議";
+      const date = localStorage.getItem("currentMeetingDate") || "未指定日期";
+      const dateSpan = document.getElementById("meeting-date");
+      const nameSpan = document.getElementById("meeting-name");
+      if (dateSpan) dateSpan.textContent = date;
+      if (nameSpan) nameSpan.textContent = name;
+    });
+
+    function goToNext() {
+      // 這裡要依 Flask 實際 routing 帶 meeting_id 參數
+      window.location.href = "{{ url_for('meeting_during_transcript_now_page', meeting_id=meeting_id) }}";
+    }
+
+    function openNotifyModal() {
+      const modal = document.getElementById("notifyModal");
+      modal.classList.add("show");
+      const date = localStorage.getItem("currentMeetingDate") || "未指定日期";
+      const name = localStorage.getItem("currentMeetingName") || "未命名會議";
+      document.getElementById("notifyMeetingName").value = `${date}｜${name}`;
+    }
+    function closeNotifyModal() {
+      document.getElementById("notifyModal").classList.remove("show");
+    }
+    function submitNotify() {
+      const clock = document.getElementById("notifyMeetingClock").value;
+      const agenda = document.getElementById("notifyAgenda").value;
+      const file = document.getElementById("notifyAgendaFile").files[0];
+      const time = clock || "未選擇時間";
+      alert(`📣 會議通知已送出\n時間：${time}\n議程：${agenda || "未輸入"}\n檔案：${file ? file.name : "無"}`);
+      closeNotifyModal();
+    }
+  </script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    lucide.createIcons();
+  </script>
+</body>
+</html>

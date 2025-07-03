@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>會議寶｜會議後｜檔案轉錄</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/navbar_a.css') }}" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    .btn-primary { background-color: #205f72; }
+    .btn-primary:hover { background-color: #175c71; }
+
+    .dashed-box {
+      border: 2px dashed #cedfe4;
+      border-radius: 20px;
+      background-color: #ffffff;
+      padding: 24px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+      min-height: 420px;
+    }
+
+    .main-wrapper {
+      height: calc(100vh - 100px);
+      overflow-y: auto;
+      padding: 20px 16px;
+    }
+
+    .bg-green-500 {
+      background-color: #48bb78;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+    <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <button class="navbar-toggle" onclick="toggleSidebar()" id="toggleBtn">
+        <i data-lucide="align-justify" class="w-6 h-6 stroke-[#205f72]"></i>
+      </button>
+      <nav class="menu">
+        <div class="sidebar-item cursor-default hover:bg-transparent select-none">
+          <i data-lucide="building" class="sidebar-icon stroke-[#205f72]"></i>
+          <div class="flex flex-col leading-snug">
+            <span class="text-xs text-gray-500">目前會議</span>
+            <span id="meeting-date" class="text-[#205f72] text-sm font-semibold truncate max-w-[180px]"></span>
+            <span id="meeting-name" class="text-[#205f72] text-sm font-semibold truncate max-w-[180px]"></span>
+          </div>
+        </div>
+        
+        <a href="{{ url_for('build_organization_page') }}" class="sidebar-item">
+          <i data-lucide="home" class="sidebar-icon"></i>
+          <span>首頁</span>
+        </a>
+        <a href="{{ url_for('meeting_after_file_upload_page', meeting_id=meeting_id) }}" class="sidebar-item">
+          <i data-lucide="file-plus" class="sidebar-icon"></i>
+          <span>檔案上傳</span>
+        </a>
+        <a href="{{ url_for('transcript_file_page', meeting_id=meeting_id) }}" class="sidebar-item">
+          <i data-lucide="mic" class="sidebar-icon"></i>
+          <span>語音轉文字</span>
+        </a>
+        <a href="{{ url_for('meeting_review_page', meeting_id=meeting_id) }}" class="sidebar-item">
+          <i data-lucide="folder-search-2" class="sidebar-icon"></i>
+          <span>會議回顧</span>
+        </a>
+        <a href="{{ url_for('meeting_formal_doc_page', meeting_id=meeting_id) }}" class="sidebar-item">
+          <i data-lucide="file-text" class="sidebar-icon"></i>
+          <span>正式文件</span>
+        </a>
+        <a href="{{ url_for('signin_page') }}" class="sidebar-item">
+          <i data-lucide="log-out" class="sidebar-icon"></i>
+          <span>登出</span>
+        </a>
+      </nav>
+    </aside>
+
+    <main class="main-content">
+      <header class="header">
+        <div class="header-left">
+          <a href="{{ url_for('build_organization_page') }}">
+            <img src="{{ url_for('static', filename='image/logo.png') }}" alt="Logo" class="logo-img" />
+          </a>
+        </div>
+
+        <div class="progress-bar">
+          <div class="step-group">
+            <div class="circle gray-completed"></div>
+            <div class="label label-gray">前</div>
+          </div>
+          <div class="line solid-gray"></div>
+          <div class="step-group">
+            <div class="circle gray-completed"></div>
+            <div class="label label-gray">中</div>
+          </div>
+          <div class="line solid-gray"></div>
+          <div class="step-group">
+            <div class="circle green-completed"></div>
+            <div class="label label-green">後</div>
+          </div>
+        </div>
+
+        <div class="header-right">
+          <a href="{{ url_for('meeting_member3_page', meeting_id=meeting_id) }}">
+            <img src="{{ url_for('static', filename='image/head.png') }}" alt="Head" class="avatar-img" />
+          </a>
+        </div>
+      </header>
+
+      <section class="main-wrapper">
+        <div class="w-full max-w-4xl mx-auto">
+          <div class="bg-white border-2 border-dashed border-[#cedfe4] rounded-2xl p-6 min-h-[400px] shadow-md" id="generateContainer">
+            <p class="text-gray-500">尚未上傳任何音訊或影片檔...</p>
+          </div>
+
+          <div class="mt-6 flex items-center justify-center gap-4">
+            <input type="file" id="fileInput" accept="audio/*,video/*" class="hidden" />
+            <button id="fileBtn" class="btn-primary text-white py-2 px-4 rounded-lg flex items-center gap-2">
+              <i data-lucide="upload" class="w-5 h-5"></i> 上傳音檔或影片
+            </button>
+            <button id="generateBtn" class="btn-primary text-white py-2 px-4 rounded-lg flex items-center gap-2">
+              <i data-lucide="file-text" class="w-5 h-5"></i> 下載逐字稿
+            </button>
+          </div>
+
+          <div class="text-sm mt-2 text-center">
+            <div id="loadingText" class="text-[#205f72] hidden">上傳中，請稍候...</div>
+            <div id="successText" class="text-green-600 font-medium hidden">✅ 檔案上傳成功！</div>
+            <div id="generateText" class="text-[#205f72] hidden">📄 已成功下載逐字稿</div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('collapsed');
+    }
+
+    const fileBtn = document.getElementById('fileBtn');
+    const fileInput = document.getElementById('fileInput');
+    const generateContainer = document.getElementById('generateContainer');
+    const generateBtn = document.getElementById('generateBtn');
+    const loadingText = document.getElementById('loadingText');
+    const successText = document.getElementById('successText');
+    const generateText = document.getElementById('generateText');
+
+    let finalTranscript = '';
+
+    function appendText(text) {
+      const p = document.createElement('p');
+      p.textContent = text;
+      generateContainer.appendChild(p);
+    }
+
+    async function callApi(endpoint, file) {
+      const form = new FormData();
+      form.append('file', file);
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        body: form
+      });
+      if (!res.ok) throw new Error(`${endpoint} 回傳錯誤`);
+      return res.json();
+    }
+
+    fileBtn.addEventListener('click', () => fileInput.click());
+
+    fileInput.addEventListener('change', async e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      generateContainer.innerHTML = '';
+      loadingText.style.display = 'block';
+      successText.style.display = 'none';
+      try {
+        appendText('處理中...');
+        const key = file.type.startsWith('audio/') ? 'transcribe-audio' : 'transcribe-video';
+        const { transcript } = await callApi(`/api/${key}`, file);
+        finalTranscript = transcript;
+        generateContainer.innerHTML = '';
+        transcript.split('\n').forEach(line => appendText(line));
+        successText.style.display = 'block';
+      } catch (err) {
+        appendText(`錯誤：${err.message}`);
+      } finally {
+        fileInput.value = '';
+        loadingText.style.display = 'none';
+      }
+    });
+
+    generateBtn.addEventListener('click', () => {
+      if (!finalTranscript.trim()) return alert("尚無內容可下載逐字稿");
+
+      generateText.style.display = 'none';
+      generateBtn.disabled = true;
+      generateBtn.innerHTML = '<i data-lucide="loader" class="animate-spin"></i> 生成中...';
+      lucide.createIcons();
+
+      setTimeout(() => {
+        const fakeMeetingNote = `會議記錄\n\n主題：檔案轉錄會議\n與會者：開發者、測試人員\n\n逐字稿內容：\n${finalTranscript}\n\n決策摘要：\n- 使用 AI 模型進行音檔轉文字\n- 可下載會議記錄`;
+        const blob = new Blob([fakeMeetingNote], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = '逐字稿.docx';
+        a.click();
+        URL.revokeObjectURL(url);
+
+        generateBtn.disabled = false;
+        generateBtn.innerHTML = '<i data-lucide="file-text" class="w-5 h-5"></i> 生成逐字稿';
+        generateText.style.display = 'block';
+        lucide.createIcons();
+        setTimeout(() => generateText.style.display = 'none', 1500);
+      }, 1000);
+    });
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const name = localStorage.getItem("currentMeetingName") || "未命名會議";
+      const date = localStorage.getItem("currentMeetingDate") || "未指定日期";
+      document.getElementById("meeting-date").textContent = date;
+      document.getElementById("meeting-name").textContent = name;
+      lucide.createIcons();
+    });
+  </script>
+</body>
+</html>

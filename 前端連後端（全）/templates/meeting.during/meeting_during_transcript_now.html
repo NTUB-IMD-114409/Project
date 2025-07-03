@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>會議寶｜會議中｜即時轉錄</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/navbar_d.css') }}" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    .main-wrapper { height: calc(100vh - 100px); overflow-y: auto; padding: 20px 16px; }
+    .btn-primary { background-color: #205f72; }
+    .btn-primary:hover { background-color: #175c71; }
+    .dashed-box { border: 2px dashed #cedfe4; border-radius: 20px; background-color: #ffffff; padding: 24px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08); min-height: 420px; }
+    .status-start, .status-stop { font-size: 20px; font-weight: bold; text-align: center; margin-top: 12px; }
+    .status-start { color: #205f72; }
+    .status-stop { color: #d8392b; }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <button class="navbar-toggle" onclick="toggleSidebar()" id="toggleBtn">
+        <i data-lucide="align-justify" class="w-6 h-6 stroke-[#205f72]"></i>
+      </button>
+      <nav class="menu">
+        <div class="sidebar-item cursor-default">
+          <i data-lucide="building" class="sidebar-icon stroke-[#205f72]"></i>
+          <div class="flex flex-col leading-snug">
+            <span class="text-xs text-gray-500">目前會議</span>
+            <span id="meeting-date" class="text-[#205f72] text-sm font-semibold truncate max-w-[180px]"></span>
+            <span id="meeting-name" class="text-[#205f72] text-sm font-semibold truncate max-w-[180px]"></span>
+          </div>
+        </div>
+        <a href="{{ url_for('build_organization_page') }}" class="sidebar-item">
+          <i data-lucide="home" class="sidebar-icon"></i><span>首頁</span>
+        </a>
+        <a href="{{ url_for('meeting_during_file_upload_page', meeting_id=meeting_id) }}" class="sidebar-item">
+          <i data-lucide="file-plus" class="sidebar-icon"></i><span>檔案上傳</span>
+        </a>
+        <a href="{{ url_for('meeting_during_transcript_now_page', meeting_id=meeting_id) }}" class="sidebar-item">
+          <i data-lucide="mic" class="sidebar-icon"></i><span>語音轉文字</span>
+        </a>
+        <a href="{{ url_for('signin_page') }}" class="sidebar-item">
+          <i data-lucide="log-out" class="sidebar-icon"></i><span>登出</span>
+        </a>
+      </nav>
+    </aside>
+
+    <main class="main-content">
+      <header class="header">
+        <div class="header-left">
+          <a href="{{ url_for('build_organization_page') }}">
+            <img src="{{ url_for('static', filename='image/logo.png') }}" alt="Logo" class="logo-img" />
+          </a>
+        </div>
+        <div class="progress-bar flex items-center">
+          <div class="step-group"><div class="circle gray-completed"></div><div class="label label-gray">前</div></div>
+          <div class="line solid-gray"></div>
+          <div class="step-group"><div class="circle completed"></div><div class="label">中</div></div>
+          <div class="line dashed relative flex-1 flex items-center justify-center">
+            <button onclick="goToNext()" class="absolute z-10 bg-[#175c71] text-white text-sm px-3 py-1 rounded-full hover:bg-[#124654] transition-all">下一步</button>
+          </div>
+          <div class="step-group"><div class="circle"></div><div class="label">後</div></div>
+        </div>
+        <div class="header-right">
+          <a href="{{ url_for('meeting_member2_page', meeting_id=meeting_id) }}">
+            <img src="{{ url_for('static', filename='image/head.png') }}" alt="Head" class="avatar-img" />
+          </a>
+        </div>
+      </header>
+
+      <div class="main-wrapper">
+        <section class="flex justify-center px-4">
+          <div class="w-full max-w-4xl dashed-box">
+            <div id="generateContainer" class="min-h-[200px] text-base text-gray-800 space-y-2"></div>
+            <div id="statusContainer" class="text-center mt-4">
+              <button id="generateTranscriptBtn"
+                      class="mt-4 hidden bg-[#205f72] text-white px-4 py-2 rounded-lg font-semibold hover:bg-[#124654] transition"
+              >
+                📄 下載逐字稿
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <div class="flex justify-center items-center gap-4 mt-6 pb-6">
+          <button id="startBtn" class="btn-primary text-white px-4 py-2 rounded-lg font-semibold flex items-center gap-2">
+            <i data-lucide="play" class="w-5 h-5"></i> 開始
+          </button>
+          <button id="pauseBtn" class="btn-primary text-white px-4 py-2 rounded-lg font-semibold flex items-center gap-2">
+            <i data-lucide="pause" class="w-5 h-5"></i> 暫停
+          </button>
+          <button id="stopBtn" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-semibold flex items-center gap-2">
+            <i data-lucide="square" class="w-5 h-5"></i> 結束
+          </button>
+        </div>
+      </div>
+    </main>
+  </div>
+
+<script>
+    function toggleSidebar() {
+      document.getElementById("sidebar").classList.toggle("collapsed");
+    }
+    function goToNext() {
+      window.location.href = "{{ url_for('meeting_review_page', meeting_id=meeting_id) }}";
+    }
+
+    window.addEventListener("load", () => {
+      const startBtn = document.getElementById("startBtn");
+      const pauseBtn = document.getElementById("pauseBtn");
+      const stopBtn = document.getElementById("stopBtn");
+      const generateTranscriptBtn = document.getElementById("generateTranscriptBtn");
+      const statusContainer = document.getElementById("statusContainer");
+
+      function clearStatus() {
+        while (statusContainer.firstChild && statusContainer.firstChild !== generateTranscriptBtn) {
+          statusContainer.removeChild(statusContainer.firstChild);
+        }
+      }
+
+      function showStatus(msg, type) {
+        clearStatus();
+        const div = document.createElement("div");
+        div.textContent = msg;
+        div.className = type === "start" ? "status-start" : "status-stop";
+        statusContainer.insertBefore(div, generateTranscriptBtn);
+      }
+
+      startBtn.addEventListener("click", () => {
+        showStatus("🎤 請開始說話...", "start");
+        generateTranscriptBtn.classList.add("hidden");
+      });
+
+      pauseBtn.addEventListener("click", () => {
+        showStatus("⏸️ 錄音已暫停", "stop");
+      });
+
+      stopBtn.addEventListener("click", () => {
+        showStatus("⏹️ 錄音已結束(標記發言者)", "stop");
+        generateTranscriptBtn.classList.remove("hidden");
+      });
+
+      generateTranscriptBtn.addEventListener("click", () => {
+        alert("成功下載逐字稿並存入檔案區");
+      });
+
+      // 初始化 lucide 圖示和會議資訊
+      document.getElementById("meeting-name").textContent = localStorage.getItem("currentMeetingName") || "未命名會議";
+      document.getElementById("meeting-date").textContent = localStorage.getItem("currentMeetingDate") || "未指定日期";
+      lucide.createIcons();
+    });
+</script>
+</body>
+</html>
