@@ -19,7 +19,7 @@
 
     <!-- 左側 Logo 與按鈕 -->
     <div class="flex flex-col items-center justify-center">
-      <img src="../../image/logo.png" alt="會議寶 Logo" class="w-[260px] h-auto mb-10" />
+      <img src="{{ url_for('static', filename='image/logo.png') }}" alt="會議寶 Logo" class="w-[260px] h-auto mb-10" />
       <div class="flex flex-row gap-8 text-[#205f72] text-lg font-semibold underline">
         <button onclick="openModal('featureModal')" class="hover:text-[#175c71]">功能簡介</button>
         <button onclick="openModal('aboutModal')" class="hover:text-[#175c71]">關於我們</button>
@@ -72,27 +72,27 @@
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
         <!-- 成員卡片 -->
         <div class="bg-[#cedfe4] rounded-2xl p-4 text-center shadow-md flex flex-col items-center">
-          <img src="../../image/yun.png" alt="姜筱雲" class="w-24 h-24 rounded-full object-cover mb-3" />
+          <img src="{{ url_for('static', filename='image/yun.png') }}" alt="姜筱雲" class="w-24 h-24 rounded-full object-cover mb-3" />
           <div class="font-bold text-base text-[#143139]">姜筱雲</div>
           <div class="text-sm text-black">11146065@ntub.edu.tw</div>
         </div>
         <div class="bg-[#cedfe4] rounded-2xl p-4 text-center shadow-md flex flex-col items-center">
-          <img src="../../image/kiki.png" alt="連湘琪" class="w-24 h-24 rounded-full object-cover mb-3" />
+          <img src="{{ url_for('static', filename='image/kiki.png') }}" alt="連湘琪" class="w-24 h-24 rounded-full object-cover mb-3" />
           <div class="font-bold text-base text-[#143139]">連湘琪</div>
           <div class="text-sm text-black">11146067@ntub.edu.tw</div>
         </div>
         <div class="bg-[#cedfe4] rounded-2xl p-4 text-center shadow-md flex flex-col items-center">
-          <img src="../../image/chi.png" alt="邵紫綺" class="w-24 h-24 rounded-full object-cover mb-3" />
+          <img src="{{ url_for('static', filename='image/chi.png') }}" alt="邵紫綺" class="w-24 h-24 rounded-full object-cover mb-3" />
           <div class="font-bold text-base text-[#143139]">邵紫綺</div>
           <div class="text-sm text-black">11146074@ntub.edu.tw</div>
         </div>
         <div class="bg-[#cedfe4] rounded-2xl p-4 text-center shadow-md flex flex-col items-center">
-          <img src="../../image/yu.png" alt="李曼鈺" class="w-24 h-24 rounded-full object-cover mb-3" />
+          <img src="{{ url_for('static', filename='image/yu.png') }}" alt="李曼鈺" class="w-24 h-24 rounded-full object-cover mb-3" />
           <div class="font-bold text-base text-[#143139]">李曼鈺</div>
           <div class="text-sm text-black">11146079@ntub.edu.tw</div>
         </div>
         <div class="bg-[#cedfe4] rounded-2xl p-4 text-center shadow-md flex flex-col items-center">
-          <img src="../../image/ya.png" alt="范雅淇" class="w-24 h-24 rounded-full object-cover mb-3" />
+          <img src="{{ url_for('static', filename='image/ya.png') }}" alt="范雅淇" class="w-24 h-24 rounded-full object-cover mb-3" />
           <div class="font-bold text-base text-[#143139]">范雅淇</div>
           <div class="text-sm text-black">11146082@ntub.edu.tw</div>
         </div>
@@ -104,65 +104,65 @@
   </div>
 
   <!-- JS 控制區 -->
-  <script>
-    function handleLogin(event) {
-      event.preventDefault();
-      const email = document.getElementById("loginEmail");
-      const password = document.getElementById("loginPassword");
-      const emailError = document.getElementById("emailError");
-      const passwordError = document.getElementById("passwordError");
+<script>
+  function openModal(id) {
+    document.getElementById(id).classList.remove('hidden');
+    document.getElementById(id).classList.add('flex');
+  }
 
-      emailError.textContent = "";
-      passwordError.textContent = "";
+  function closeModal(id) {
+    document.getElementById(id).classList.remove('flex');
+    document.getElementById(id).classList.add('hidden');
+  }
 
-      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      const pwPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
-      let valid = true;
+  function handleLogin(event) {
+    event.preventDefault();
+    const email = document.getElementById("loginEmail");
+    const password = document.getElementById("loginPassword");
+    const emailError = document.getElementById("emailError");
+    const passwordError = document.getElementById("passwordError");
 
-if (!email.value.trim()) {
-  emailError.textContent = "請輸入 Email";
-  valid = false;
-} else if (!emailPattern.test(email.value.trim())) {
-  emailError.textContent = "Email 格式錯誤，請重新輸入";
-  valid = false;
-}
+    emailError.textContent = "";
+    passwordError.textContent = "";
 
-      if (!password.value) {
-        passwordError.textContent = "請輸入密碼";
-        valid = false;
-      } else if (!pwPattern.test(password.value)) {
-        passwordError.textContent = "密碼格式錯誤，請確認是否包含英文大小寫與數字，至少 8 碼";
-        valid = false;
-      }
-      function openModal(id) {
-      document.getElementById(id).classList.remove('hidden');
-      document.getElementById(id).classList.add('flex');
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const pwPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+    let valid = true;
+
+    if (!email.value.trim()) {
+      emailError.textContent = "請輸入 Email";
+      valid = false;
+    } else if (!emailPattern.test(email.value.trim())) {
+      emailError.textContent = "Email 格式錯誤，請重新輸入";
+      valid = false;
     }
 
-    function closeModal(id) {
-      document.getElementById(id).classList.remove('flex');
-      document.getElementById(id).classList.add('hidden');
+    if (!password.value) {
+      passwordError.textContent = "請輸入密碼";
+      valid = false;
+    } else if (!pwPattern.test(password.value)) {
+      passwordError.textContent = "密碼格式錯誤，請確認是否包含英文大小寫與數字，至少 8 碼";
+      valid = false;
     }
-      if (valid) {
+
+    if (valid) {
       const data = {
         email: email.value.trim(),
         password: password.value
       };
 
-          fetch("/api/signin", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data)
-    })
+      fetch("/api/signin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      })
       .then(res => res.json())
       .then(result => {
         if (result.success) {
-          // 🔥 儲存使用者資料
           localStorage.setItem("userId", result.user.id);
           localStorage.setItem("userName", result.user.name);
-
           alert("登入成功！");
-          window.location.href = "/organization";  // 頁面要記得加斜線
+          window.location.href = "/organization";
         } else {
           alert("登入失敗：" + result.message);
         }
@@ -171,12 +171,9 @@ if (!email.value.trim()) {
         alert("系統錯誤，請稍後再試");
         console.error("登入錯誤：", err);
       });
+    }
+  }
+</script>
 
-        }
-
-        }
-
-    
-  </script>
 </body>
 </html>
