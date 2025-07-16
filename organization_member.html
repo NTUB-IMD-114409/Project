@@ -37,8 +37,7 @@
           <i data-lucide="building" class="sidebar-icon stroke-[#205f72]"></i>
           <div class="flex flex-col leading-snug">
             <span class="text-xs text-gray-500">目前組織</span>
-            <span id="meeting-date" class="text-[#205f72] text-sm font-semibold truncate max-w-[180px]"></span>
-            <span id="meeting-name" class="text-[#205f72] text-sm font-semibold truncate max-w-[180px]"></span>
+            <span id="org-name" class="text-[#205f72] text-sm font-semibold truncate max-w-[180px]"></span>
           </div>
         </div>
         <a href="{{ url_for('build_organization_page') }}" class="sidebar-item flex items-center gap-2">
@@ -70,19 +69,19 @@
         <h2 class="text-center text-[#205f72] text-2xl font-bold mb-4">組織成員列表</h2>
         <div class="flex flex-col gap-3 mb-8" id="memberList">
           {% if members %}
-          {% for m in members %}
-          <div id="member-{{ m.user_id }}"
-            class="bg-white border border-gray-300 rounded px-4 py-3 flex justify-between items-center">
-            <div>
-              <span class="text-sm text-gray-800">{{ m.email }}</span>
-              <span class="text-xs text-gray-500 ml-2">{{ m.role }}</span>
-            </div>
-            <button onclick="deleteMember({{ m.org_id }}, {{ m.user_id }}, '{{ m.email }}')"
-              class="ml-2 text-red-600 hover:text-red-800" title="移除成員">
-              <i data-lucide="x-circle" class="w-5 h-5"></i>
-            </button>
-          </div>
-          {% endfor %}
+{% for m in members %}
+<div id="member-{{ m.email }}"
+  class="bg-white border border-gray-300 rounded px-4 py-3 flex justify-between items-center">
+  <div class="text-sm text-gray-800">{{ m.email }}</div>
+  <div class="flex items-center gap-3">
+    <span class="text-xs text-gray-500 whitespace-nowrap">{{ m.role }}</span>
+    <button onclick="deleteMember({{ org_id }}, '{{ m.email }}')" class="ml-2" title="移除成員">
+      <i data-lucide="x" class="w-5 h-5 stroke-red-600 hover:stroke-red-800"></i>
+    </button>
+  </div>
+</div>
+{% endfor %}
+
           {% else %}
           <p class="text-center text-gray-600">尚無組織成員</p>
           {% endif %}
@@ -97,7 +96,7 @@
               發送邀請
             </button>
           </div>
-          
+
         </div>
       </div>
     </main>
@@ -106,18 +105,17 @@
 
   <script>
     // 刪除按鈕觸發
-    function deleteMember(orgId, userId, email) {
+    function deleteMember(orgId, email) {
       if (!confirm(`確定要移除 ${email} 嗎？`)) return;
 
-      fetch(`/api/organization_members/${orgId}/${userId}`, {
+      fetch(`/api/organization_members/${orgId}/${encodeURIComponent(email)}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" }
       })
         .then(res => res.json())
         .then(result => {
           if (result.success) {
-            // 這裡會移除剛才加上 id 的 <div>
-            document.getElementById(`member-${userId}`).remove();
+            document.getElementById(`member-${email}`).remove();
             alert("已移除：" + email);
           } else {
             alert("刪除失敗：" + result.message);
@@ -125,7 +123,7 @@
         })
         .catch(err => {
           console.error(err);
-          alert("發生錯誤，請重試");
+          alert("發生錯誤，請重試" + err);
         });
     }
 
@@ -166,6 +164,14 @@
 
     document.addEventListener("DOMContentLoaded", () => {
       lucide.createIcons();
+    });
+
+    document.addEventListener("DOMContentLoaded", function () {
+      const orgName = localStorage.getItem("org_name");
+      if (orgName) {
+        const el = document.getElementById("org-name");
+        if (el) el.textContent = orgName;
+      }
     });
   </script>
 </body>
