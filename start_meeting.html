@@ -287,24 +287,28 @@ function createMeeting() {
         // ✅ 加入畫面上的卡片
         const displayDate = formatDate(date);
         const id = result.meeting_id; // <--- 這裡直接用後端回傳的 id
-        const card = document.createElement("div");
-        card.className = "org-card";
-        card.id = "meeting-" + id;
+const card = document.createElement("div");
+card.className = "org-card cursor-pointer";
+card.id = "meeting-" + id;
+card.onclick = function(e) {
+  if (e.target.closest(".menu-button") || e.target.closest(".menu-list")) return;
+  enterMeeting(id, title, displayDate);
+};
 
-        card.innerHTML = `
-          <div class='text-center w-full cursor-pointer' onclick="enterMeeting('${id}', '${title}', '${displayDate}')">
-            <h3 id="meeting-title-${id}" class="font-bold text-base text-[#205f72] truncate max-w-full">${title}</h3>
-            <div class='text-sm text-gray-700'>發起人：${creator}</div>
-            <div class='text-sm text-gray-700'>日期：${displayDate}</div>
-          </div>
-          <button class="menu-button" onclick="toggleMenu(${id})" title="更多操作">
-            <i class="fas fa-ellipsis-vertical"></i>
-          </button>
-          <div id="menu-${id}" class="menu-list">
-            <button onclick="renameMeeting(${id})">重新命名會議</button>
-            <button onclick="deleteMeeting(${id})">刪除會議</button>
-          </div>
-        `;
+card.innerHTML = `
+  <div class='text-center w-full'>
+    <h3 id="meeting-title-${id}" class="font-bold text-base text-[#205f72] truncate max-w-full">${title}</h3>
+    <div class='text-sm text-gray-700'>發起人：${creator}</div>
+    <div class='text-sm text-gray-700'>日期：${displayDate}</div>
+  </div>
+  <button class="menu-button" onclick="toggleMenu(${id}); event.stopPropagation();" title="更多操作">
+    <i class="fas fa-ellipsis-vertical"></i>
+  </button>
+  <div id="menu-${id}" class="menu-list">
+    <button onclick="renameMeeting(${id}); event.stopPropagation();">重新命名會議</button>
+    <button onclick="deleteMeeting(${id}); event.stopPropagation();">刪除會議</button>
+  </div>
+`;
 
         document.getElementById("meetingList").appendChild(card);
         document.getElementById("meetingHint").style.display = "none";
@@ -412,28 +416,33 @@ function loadMyMeetings() {
         document.getElementById("meetingHint").style.display = "none";
       }
 
-      data.meetings.forEach(meeting => {
-        const displayDate = formatDate(meeting.date);
-        const card = document.createElement("div");
-        card.className = "org-card";
-        card.id = "meeting-" + meeting.id;
+data.meetings.forEach(meeting => {
+  const displayDate = formatDate(meeting.date);
+  const card = document.createElement("div");
+  card.className = "org-card cursor-pointer";
+  card.id = "meeting-" + meeting.id;
+  card.onclick = function(e) {
+    if (e.target.closest(".menu-button") || e.target.closest(".menu-list")) return;
+    enterMeeting(meeting.id, meeting.title, displayDate);
+  };
 
-        card.innerHTML = `
-          <div class='text-center w-full cursor-pointer' onclick="enterMeeting('${meeting.id}', '${meeting.title}', '${displayDate}')">
-            <h3 id="meeting-title-${meeting.id}" class="font-bold text-base text-[#205f72] truncate max-w-full">${meeting.title}</h3>
-            <div class='text-sm text-gray-700'>發起人：${meeting.creator_name}</div>
-            <div class='text-sm text-gray-700'>日期：${displayDate}</div>
-          </div>
-          <button class="menu-button" onclick="toggleMenu(${meeting.id})" title="更多操作">
-            <i class="fas fa-ellipsis-vertical"></i>
-          </button>
-          <div id="menu-${meeting.id}" class="menu-list">
-            <button onclick="renameMeeting(${meeting.id})">重新命名會議</button>
-            <button onclick="deleteMeeting(${meeting.id})">刪除會議</button>
-          </div>
-        `;
-        list.appendChild(card);
-      });
+  card.innerHTML = `
+    <div class='text-center w-full'>
+      <h3 id="meeting-title-${meeting.id}" class="font-bold text-base text-[#205f72] truncate max-w-full">${meeting.title}</h3>
+      <div class='text-sm text-gray-700'>發起人：${meeting.creator_name}</div>
+      <div class='text-sm text-gray-700'>日期：${displayDate}</div>
+    </div>
+    <button class="menu-button" onclick="toggleMenu(${meeting.id}); event.stopPropagation();" title="更多操作">
+      <i class="fas fa-ellipsis-vertical"></i>
+    </button>
+    <div id="menu-${meeting.id}" class="menu-list">
+      <button onclick="renameMeeting(${meeting.id}); event.stopPropagation();">重新命名會議</button>
+      <button onclick="deleteMeeting(${meeting.id}); event.stopPropagation();">刪除會議</button>
+    </div>
+  `;
+  list.appendChild(card);
+});
+
     })
     .catch(err => {
       console.error("錯誤發生：", err);
