@@ -2,6 +2,7 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.message import EmailMessage
+from db import get_db
 
 SENDER_EMAIL = "ntubimd55555@gmail.com"
 SENDER_PASSWORD = "sdcy qael qrcm cqqw"
@@ -62,3 +63,12 @@ def send_meeting_email(emails, meeting_title, meeting_date, org_name):
 
     for email in emails:
         send_email_notification(email, subject, body)
+
+
+#忘記密碼
+def get_user_by_email(email):
+    conn = get_db()
+    cursor = conn.cursor(dictionary=True)
+    sql = "SELECT * FROM users WHERE email = %s"
+    cursor.execute(sql, (email,))
+    return cursor.fetchone()
