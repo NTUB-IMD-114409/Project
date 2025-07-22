@@ -23,6 +23,7 @@
     /* ...（原本 style 不變）... */
     .upload-layout {
       display: flex;
+      min-height: 0;
       flex: 1;
       padding: 16px;
       gap: 16px;
@@ -44,8 +45,10 @@
       border-radius: 12px;
       box-shadow: 0 0 6px rgba(0, 0, 0, 0.1);
       display: flex;
+      min-height: 0;
       flex-direction: column;
       justify-content: space-between;
+
     }
 
     .upload-header {
@@ -54,8 +57,10 @@
     }
 
     .chat-footer {
+      position: relative;
       padding: 16px;
       display: flex;
+      align-items: flex-end;
       border-top: 1px solid #ccc;
     }
 
@@ -66,6 +71,21 @@
       border: 1px solid #ccc;
       outline: none;
     }
+
+
+    .chat-footer textarea {
+      flex: 1;
+      padding: 10px;
+      border-radius: 20px;
+      border: 1px solid #ccc;
+      outline: none;
+      line-height: 1.6;
+      resize: none;
+      overflow: hidden;
+      min-height: 40px;
+      font-size: 16px;
+    }
+
 
     .file-item {
       display: flex;
@@ -165,15 +185,18 @@
       cursor: pointer;
     }
 
-    #chatHistory {
-      margin: 16px;
-      min-height: 80px;
-      max-height: 420px;
+    .chat-history {
+      flex: 1 1 0%;
+      min-height: 0;
       overflow-y: auto;
-      padding-right: 6px;
-      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      color: #205f72;
       font-size: 16px;
     }
+
 
     .msg-row {
       display: flex;
@@ -218,6 +241,7 @@
 </head>
 
 <body>
+  <body style="height:100vh;"></body>
   <div class="layout">
     <aside class="sidebar" id="sidebar">
       <button class="navbar-toggle" onclick="toggleSidebar()" id="toggleBtn">
@@ -311,9 +335,11 @@
           <div class="upload-header">
             <p>智能查詢（點選檔案後可進行提問）</p>
           </div>
-          <div id="chatHistory" style="margin: 16px; min-height: 80px; color: #205f72; font-size: 16px;"></div>
+          <div id="chatHistory" class="chat-history"></div>
           <div class="chat-footer">
-            <input id="questionInput" type="text" placeholder="請輸入問題">
+            <textarea id="questionInput" rows="1" placeholder="請輸入問題"
+              style="resize: none; overflow: hidden; width: 100%; border-radius: 20px; padding: 10px; border: 1px solid #ccc; outline: none; min-height: 40px; line-height: 1.6;"></textarea>
+
             <button class="send-btn border border-black hover:scale-105 transition-transform"
               onclick="askLlamaFromFile()">
               <i data-lucide="send-horizontal" class="w-[12px] h-[12px] scale-[1.8] text-white"></i>
@@ -326,33 +352,47 @@
 
   <div id="notifyModal" class="modal">
     <div class="modal-content">
-      <span class="close" onclick="closeNotifyModal()">&times;</span>
-      <h3 class="text-lg font-bold mb-4 text-[#205f72]">發送會議通知</h3>
-      <label class="block text-sm font-semibold mb-1">會議名稱</label>
-      <input id="notifyMeetingName" type="text" readonly class="w-full p-2 border border-gray-300 rounded mb-3" />
-      <label class="block text-sm font-semibold mb-1">會議時間</label>
-      <input type="time" id="notifyMeetingClock" class="w-full p-2 border border-gray-300 rounded mb-3" />
-      <label class="block text-sm font-semibold mb-1">會議議程</label>
-      <textarea id="notifyAgenda" rows="3" placeholder="請輸入議程..."
-        class="w-full p-2 border border-gray-300 rounded mb-3"></textarea>
-      <input type="file" id="notifyAgendaFile" class="w-full mb-4" />
-      <button onclick="submitNotify()" class="primary w-full">📣 發送通知</button>
-    </div>
-  </div>
+    <h3 class="text-lg font-bold mb-4 text-center text-[#205f72]">發送會議通知</h3>
 
+    <label class="block text-sm font-semibold mb-1">會議名稱</label>
+    <input id="notifyMeetingName" type="text" readonly class="w-full p-2 border border-gray-300 rounded mb-3" />
+
+    <label class="block text-sm font-semibold mb-1">會議時間</label>
+    <input type="time" id="notifyMeetingClock" class="w-full p-2 border border-gray-300 rounded mb-3" />
+
+    <label class="block text-sm font-semibold mb-1">會議議程</label>
+    <textarea id="notifyAgenda" rows="3" placeholder="請輸入議程..."
+      class="w-full p-2 border border-gray-300 rounded mb-3"></textarea>
+
+    <input type="file" id="notifyAgendaFile" class="w-full mb-4" />
+
+    <!-- 底部按鈕（右對齊） -->
+    <div class="flex justify-end gap-4 mt-6">
+      <button onclick="closeNotifyModal()" class="text-gray-600 hover:text-gray-900 font-medium">取消</button>
+      <button onclick="submitNotify()" class="bg-[#175c71] text-white px-4 py-2 rounded hover:bg-[#124654]">發送通知</button>
+    </div>
   <div class="modal" id="uploadModal">
-    <div class="modal-content">
-      <span class="close" onclick="closeModal()">&times;</span>
-      <label for="fileType">選擇檔案類型</label>
-      <select id="fileType">
+    <div class="modal-content relative">
+      <!-- 沒有叉叉，留空隱藏 -->
+      <h3 class="text-lg font-bold mb-4 text-center text-[#205f72]">檔案上傳</h3>
+
+      <label for="fileType" class="block text-sm font-semibold mb-1">選擇檔案類型</label>
+      <select id="fileType" class="w-full border border-gray-300 rounded px-2 py-2 mb-3">
         <option value="語音">語音</option>
         <option value="逐字稿">逐字稿</option>
         <option value="會議紀錄整理">會議紀錄整理</option>
         <option value="會議正式文件">會議正式文件</option>
       </select>
-      <label for="fileInput" style="margin-top: 12px;">選擇檔案</label>
-      <input type="file" id="fileInput" />
-      <button class="primary" style="margin-top: 16px;" onclick="submitUpload()">確認上傳</button>
+
+      <label for="fileInput" class="block text-sm font-semibold mb-1">選擇檔案</label>
+      <input type="file" id="fileInput" class="w-full border border-gray-300 rounded px-2 py-2 mb-4" />
+
+      <!-- 底部按鈕 -->
+      <div class="flex justify-end gap-4 mt-6">
+        <button onclick="closeModal()" class="text-gray-600 hover:text-gray-900 font-medium">取消</button>
+        <button onclick="submitUpload()"
+          class="bg-[#175c71] text-white px-4 py-2 rounded hover:bg-[#124654]">確認上傳</button>
+      </div>
     </div>
   </div>
 
@@ -629,10 +669,6 @@
           alert("⚠️ 系統錯誤：" + err);
         });
     }
-
-  </script>
-
-  <script>
     // 智能查詢：送出問題按鈕處理
     // 智能查詢：送出問題按鈕處理
     document.querySelector(".send-btn").addEventListener("click", async () => {
@@ -669,10 +705,12 @@
       chatHistory.scrollTop = chatHistory.scrollHeight;
 
       try {
+        const meetingId = window.MEETING.id;
+        const userId = localStorage.getItem("user_id");
         const response = await fetch("/api/ask_file", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ file_path: filePath, question: question }),
+          body: JSON.stringify({ file_path: filePath, question: question, user_id: userId, meeting_id: meetingId }),
         });
         const result = await response.json();
 
@@ -709,12 +747,60 @@
     }
 
 
-    //輸入框支援 Enter 送出
+    let enterCount = 0;
+    let lastEnterTime = 0;
+
     document.getElementById("questionInput").addEventListener("keydown", function (e) {
-      if (e.key === "Enter") {
+      // 👉 Shift + Enter：換行
+      if (e.key === "Enter" && e.shiftKey) {
+        return; // 不阻止預設行為，讓它換行
+      }
+
+      // 👉 Command + Enter：立即送出（Mac 上是 metaKey，Windows 是 ctrlKey）
+      if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
         document.querySelector(".send-btn").click();
+        return;
+      }
+
+      // 👉 單純 Enter（不含 Shift/Cmd）：做兩次按下的判斷
+      if (e.key === "Enter") {
+        e.preventDefault(); // 防止送出表單或換行
+
+        const now = Date.now();
+        if (now - lastEnterTime < 1000) {
+          // 如果在 1 秒內按兩次 Enter，才送出
+          document.querySelector(".send-btn").click();
+          enterCount = 0;
+        } else {
+          // 第一次 Enter，只記錄時間
+          enterCount = 1;
+          lastEnterTime = now;
+        }
       }
     });
+
+    const textarea = document.getElementById("questionInput");
+
+    textarea.addEventListener("input", () => {
+      textarea.style.height = "auto";
+      if (textarea.value.trim() === "") {
+    textarea.style.height = "40px"; // 強制恢復初始高度
+  } else {
+    textarea.style.height = Math.max(textarea.scrollHeight, 40) + "px";
+  }
+});
+
+
+  // ✅ 保險用：Delete 後也重新檢查
+  textarea.addEventListener("keyup", () => {
+    textarea.style.height = "auto";
+    if (textarea.value.trim() === "") {
+      textarea.style.height = "40px";
+    } else {
+      textarea.style.height = Math.max(textarea.scrollHeight, 40) + "px";
+    }
+  });
 
   </script>
 
