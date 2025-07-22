@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>會議寶</title>
+  <link rel="stylesheet" href="../../css/navbar.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+  <div class="layout">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <button class="navbar-toggle" onclick="toggleSidebar()" id="toggleBtn">
+        <img src="../../image/navbar.png" alt="toggle" id="toggleIcon" />
+      </button>
+
+      <nav class="menu">
+        <a href="build_organization.html" class="sidebar-item">
+          <img src="../../image/home.png" alt="Home" class="sidebar-icon" />
+          <span>首頁</span>
+        </a>
+        <a href="../login.register/member_sign_in.html" class="sidebar-item">
+          <img src="../../image/logout.png" alt="Logout" class="sidebar-icon" />
+          <span>登出</span>
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Main -->
+    <main class="main-content">
+      <header class="header">
+        <div class="header-left">
+          <img src="../../image/logo.png" alt="Logo" class="logo-img" id="logoImg" />
+        </div>
+
+        <div class="header-center">
+          <div class="progress-bar">
+            <div class="step-group">
+              <div class="circle completed"></div>
+              <div class="label">前</div>
+            </div>
+            <div class="line dashed"></div>
+            <div class="step-group">
+              <div class="circle"></div>
+              <div class="label">中</div>
+            </div>
+            <div class="line dashed"></div>
+            <div class="step-group">
+              <div class="circle"></div>
+              <div class="label">後</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ✅ 右上角頭像與資訊 -->
+        <div class="header-right relative">
+          <!-- 頭像按鈕 -->
+          <button id="avatarBtn" class="focus:outline-none">
+            <img src="../../image/head.png" alt="Head" class="avatar-img" />
+          </button>
+
+          <!-- 使用者資訊彈出視窗 -->
+          <div id="userInfoBox" class="hidden absolute right-0 mt-2 w-60 bg-white rounded-lg shadow-xl p-4 z-50">
+            <p class="text-sm font-bold text-gray-800">使用者名稱：</p>
+            <p id="userName" class="text-sm text-gray-700 mb-2">載入中...</p>
+            <p class="text-sm font-bold text-gray-800">Email：</p>
+            <p id="userEmail" class="text-sm text-gray-700">載入中...</p>
+            <hr class="my-3">
+            <button onclick="logout()" class="text-sm text-red-600 underline hover:text-red-800">登出</button>
+          </div>
+        </div>
+      </header>
+
+      <section class="workspace">
+        <!-- 主要內容 -->
+      </section>
+    </main>
+  </div>
+
+  <!-- JS：側邊欄與頭像邏輯 -->
+  <script>
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      sidebar.classList.toggle('collapsed');
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const userName = localStorage.getItem("userName") || "未知使用者";
+      const userEmail = localStorage.getItem("userEmail") || "無信箱資料";
+
+      document.getElementById("userName").textContent = userName;
+      document.getElementById("userEmail").textContent = userEmail;
+
+      const avatarBtn = document.getElementById("avatarBtn");
+      const userInfoBox = document.getElementById("userInfoBox");
+
+      avatarBtn.addEventListener("click", () => {
+        userInfoBox.classList.toggle("hidden");
+      });
+    });
+
+    function logout() {
+      localStorage.clear();
+      window.location.href = "../login.register/member_sign_in.html";
+    }
+  </script>
+</body>
+</html>
