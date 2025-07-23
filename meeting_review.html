@@ -60,9 +60,13 @@
     }
 
     .disabled-edit-btn {
-      color: #bbb !important;
+      color: #AAA !important;
       cursor: not-allowed !important;
-      pointer-events: none;
+      /* 刪除 pointer-events: none; */
+    }
+
+    .disabled-edit-btn svg {
+      stroke: #AAA !important;
     }
   </style>
 </head>
@@ -87,6 +91,20 @@
         </div>
         <a href="{{ url_for('build_organization_page') }}" class="sidebar-item"><i data-lucide="home"
             class="sidebar-icon"></i><span>首頁</span></a>
+        <a id="startMeetingLink" href="#" class="sidebar-item flex items-center gap-2">
+          <i data-lucide="user-plus" class="sidebar-icon"></i>
+          <span>發起會議</span>
+        </a>
+
+        <script>
+          document.addEventListener("DOMContentLoaded", () => {
+            const orgId = localStorage.getItem("currentOrgId");
+            const link = document.getElementById("startMeetingLink");
+            if (link && orgId) {
+              link.href = `/start_meeting?org_id=${orgId}`;
+            }
+          });
+        </script>
         <a href="{{ url_for('meeting_after_file_upload_page', meeting_id=meeting_id) }}" class="sidebar-item"><i
             data-lucide="file-plus" class="sidebar-icon"></i><span>檔案上傳</span></a>
         <a href="{{ url_for('transcript_file_page', meeting_id=meeting_id) }}" class="sidebar-item"><i data-lucide="mic"
@@ -134,14 +152,8 @@
         <section class="flex justify-center px-4">
           <div class="w-full max-w-4xl space-y-6">
             <div class="dashed-box">
-              <h2 class="text-2xl font-bold text-[#205f72] mb-6">會議摘要</h2>
+              <h2 class="text-2xl font-bold text-[#205f72] mb-6 text-center w-full">會議摘要</h2>
               <div class="flex flex-col md:flex-row gap-4 mb-6">
-                <div class="flex-1">
-                  <label for="meetingDate" class="block mb-1 text-[#205f72] font-semibold">選擇日期</label>
-                  <select id="meetingDate" class="w-full px-5 py-3 bg-white border border-[#cedfe4] rounded-lg">
-                    <option value="">請選擇日期</option>
-                  </select>
-                </div>
                 <div class="flex-1">
                   <label for="meetingTitle" class="block mb-1 text-[#205f72] font-semibold">選擇會議</label>
                   <select id="meetingTitle"
@@ -149,14 +161,34 @@
                     <option value="">請選擇會議</option>
                   </select>
                 </div>
+                <div class="flex-1 flex items-end gap-2">
+                  <div class="flex-1">
+                    <label for="fileSelect" class="block mb-1 text-[#205f72] font-semibold">選擇檔案</label>
+                    <select id="fileSelect" class="w-full px-5 py-3 bg-white border border-[#cedfe4] rounded-lg">
+                      <option value="">請選擇檔案</option>
+                    </select>
+                  </div>
+                  <div class="flex flex-col items-center">
+                    <button id="generate-summary" title="AI 生成會議摘要"
+                      class="w-11 h-11 rounded-full flex items-center justify-center bg-[#205f72] hover:bg-[#175c71] transition mb-2">
+                      <i data-lucide="sparkles" class="w-6 h-6 text-white"></i>
+                    </button>
+                    <span id="summary-progress" style="display:none; color:#205f72; font-size:14px;">AI 摘要產生中...</span>
+                  </div>
+
+
+                </div>
+
               </div>
               <textarea
                 class="w-full h-40 border-2 border-dashed border-[#cedfe4] rounded-xl p-4 text-gray-700 text-base resize-none"
-                placeholder="請輸入摘要內容..."></textarea>
+                placeholder="會議摘要內容..."></textarea>
+
               <div class="flex justify-end gap-4 mt-4">
                 <button title="複製" class="p-2 rounded-full hover:bg-gray-100 transition"><i data-lucide="copy"
                     class="w-5 h-5"></i></button>
-                <button id="edit-btn" title="編輯" class="p-2 rounded-full hover:bg-gray-100 transition">
+                <!-- 把 title="編輯" 移除！ -->
+                <button id="edit-btn" class="p-2 rounded-full hover:bg-gray-100 transition">
                   <i data-lucide="pencil" class="w-5 h-5"></i>
                 </button>
               </div>
@@ -171,118 +203,121 @@
   </div>
   <!-- ==== 主要 JS ==== -->
   <script>
-    function toggleSidebar() {
-      document.getElementById("sidebar").classList.toggle("collapsed");
-    }
+    document.addEventListener("DOMContentLoaded", function () {
+      // === 側邊欄開關 ===
+      window.toggleSidebar = function () {
+        document.getElementById("sidebar").classList.toggle("collapsed");
+      };
 
-    let allMeetings = [];
-    document.addEventListener("DOMContentLoaded", () => {
-      const dateSelect = document.getElementById("meetingDate");
+      // === 會議摘要區 ===
       const titleSelect = document.getElementById("meetingTitle");
+      const fileSelect = document.getElementById("fileSelect");
+      const summaryBtn = document.getElementById("generate-summary");   // 產生摘要按鈕
+      const summaryProgress = document.getElementById("summary-progress"); // 進度圈圈
+      const summaryTextarea = document.querySelector("textarea");
 
-      fetch("/api/all_meetings")
+      // 載入會議清單
+      let allMeetings = [];
+      fetch("/api/my_meetings_simple")
         .then(res => res.json())
         .then(data => {
           if (!data.success) return alert("載入會議失敗！");
-          allMeetings = data.meetings;
-          renderDateOptions();
+          allMeetings = data.meetings || [];
           renderTitleOptions();
-
-          // 載入 localStorage 選項
-          const storedDate = localStorage.getItem("meetingDate");
-          const storedMeetingId = localStorage.getItem("meetingId");
-          if (storedDate) dateSelect.value = storedDate;
-          if (storedMeetingId) titleSelect.value = storedMeetingId;
         });
 
-      dateSelect.addEventListener("change", () => {
-        renderTitleOptions();
-        localStorage.setItem("meetingDate", dateSelect.value);
-        titleSelect.value = "";
-        localStorage.removeItem("meetingId");
-        localStorage.removeItem("meetingTitle");
-      });
-
-      titleSelect.addEventListener("change", () => {
-        const selectedId = titleSelect.value;
-        const selectedMeeting = allMeetings.find(m => m.id == selectedId);
-        if (selectedMeeting) {
-          localStorage.setItem("meetingId", selectedId);
-          localStorage.setItem("meetingTitle", selectedMeeting.title);
-          localStorage.setItem("meetingDate", selectedMeeting.date.slice(0, 10));
-          localStorage.setItem("meetingStage", "後");
-        }
-      });
-
-      function renderDateOptions() {
-        const dates = [...new Set(allMeetings.map(m => {
-          let d = new Date(m.date);
-          if (isNaN(d)) return m.date; // 解析失敗就回原值
-          return `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`;
-        }))];
-        dateSelect.innerHTML = `<option value="">請選擇日期</option>` +
-          dates.map(date => `<option value="${date}">${date}</option>`).join("");
-      }
-
-      function toDateString(input) {
-        let d = new Date(input);
-        if (isNaN(d)) return input;
-        let year = d.getFullYear();
-        let month = String(d.getMonth() + 1).padStart(2, '0');
-        let day = String(d.getDate()).padStart(2, '0');
-        return `${year}/${month}/${day}`;
-      }
+      // 產生會議下拉選單
       function renderTitleOptions() {
-        const selectedDate = dateSelect.value;
-        let meetings = selectedDate
-          ? allMeetings.filter(m => toDateString(m.date) === selectedDate)
-          : [];
         titleSelect.innerHTML = `<option value="">請選擇會議</option>` +
-          meetings.map(m => `<option value="${m.id}">${m.title}</option>`).join("");
+          allMeetings.map(m => `<option value="${m.id}">${m.title}</option>`).join("");
+        fileSelect.innerHTML = `<option value="">請選擇檔案</option>`;
       }
-      // 會議名稱與日期
-      const name = localStorage.getItem("currentMeetingName") || "未命名會議";
-      const date = localStorage.getItem("currentMeetingDate") || "未指定日期";
-      const dateSpan = document.getElementById("meeting-date");
-      const nameSpan = document.getElementById("meeting-name");
-      if (dateSpan) dateSpan.textContent = date;
-      if (nameSpan) nameSpan.textContent = name;
-    });
 
-    document.addEventListener("DOMContentLoaded", function () {
-      // Debug: 輸出權限值
-      console.log("window.PERMISSION =", window.PERMISSION);
+      // 選會議→載入檔案
+      titleSelect.addEventListener("change", function () {
+        const meetingId = titleSelect.value;
+        if (!meetingId) {
+          fileSelect.innerHTML = `<option value="">請選擇檔案</option>`;
+          return;
+        }
+        fetch(`/api/meeting_files/${meetingId}`)
+          .then(res => res.json())
+          .then(data => {
+            fileSelect.innerHTML = `<option value="">請選擇檔案</option>` +
+              (data.files || []).map(f => `<option value="${f.file_path}">${f.file_name}（${f.file_type}）</option>`).join("");
+          });
+      });
 
+      // 產生摘要
+      if (summaryBtn && summaryProgress) {
+        summaryBtn.addEventListener("click", function () {
+          const filePath = fileSelect.value;
+          if (!filePath) return alert("請先選擇檔案！");
+
+          summaryBtn.disabled = true;
+          summaryProgress.style.display = "block";
+
+          fetch("/api/llama_summarize", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ file_path: filePath })
+          })
+            .then(res => res.json())
+            .then(data => {
+              if (summaryTextarea) {
+                summaryTextarea.value = data.summary || "AI 產生失敗";
+              }
+            })
+            .catch(() => {
+              if (summaryTextarea) {
+                summaryTextarea.value = "AI 產生失敗";
+              }
+            })
+            .finally(() => {
+              summaryBtn.disabled = false;
+              summaryProgress.style.display = "none";
+            });
+        });
+      }
+
+      // === 權限控制區 ===
       const editBtn = document.getElementById("edit-btn");
-      const summaryTextarea = document.querySelector("textarea");
       const canEdit = ["主持人", "edit"];
-
       if (!canEdit.includes(window.PERMISSION)) {
-        // 禁用按鈕與 textarea
         if (editBtn) {
           editBtn.classList.add("disabled-edit-btn");
           editBtn.setAttribute("disabled", "disabled");
+          editBtn.setAttribute("title", "您沒有權限");
         }
         if (summaryTextarea) {
-          summaryTextarea.setAttribute("readonly", "readonly");
-          summaryTextarea.style.background = "#f5f8fa";
+          summaryTextarea.setAttribute("disabled", "disabled");
+          summaryTextarea.setAttribute("title", "您沒有權限");
+          summaryTextarea.style.background = "#edebeb";
+          summaryTextarea.style.cursor = "not-allowed";
         }
       } else {
-        // 可編輯狀態（可選）
         if (editBtn) {
           editBtn.classList.remove("disabled-edit-btn");
           editBtn.removeAttribute("disabled");
+          editBtn.setAttribute("title", "編輯摘要");
         }
         if (summaryTextarea) {
-          summaryTextarea.removeAttribute("readonly");
+          summaryTextarea.removeAttribute("disabled");
+          summaryTextarea.removeAttribute("title");
           summaryTextarea.style.background = "#fff";
+          summaryTextarea.style.cursor = "text";
         }
       }
     });
-
-
-
+              document.addEventListener("DOMContentLoaded", () => {
+            const name = localStorage.getItem("currentMeetingName") || "未命名會議";
+            const date = localStorage.getItem("currentMeetingDate") || "未指定日期";
+            document.getElementById("meeting-date").textContent = date;
+            document.getElementById("meeting-name").textContent = name;
+            lucide.createIcons();  // 僅初始化一次
+          });
   </script>
+
   <script src="https://unpkg.com/lucide@latest"></script>
   <script>lucide.createIcons();</script>
 
