@@ -15,32 +15,66 @@
     .btn-primary:hover {
       background-color: #175c71;
     }
-    .org-card {
-      background-color: #cedfe4;
-      border-radius: 16px;
-      padding: 12px 20px;
-      width: calc(25% - 12px);
-      height: 160px;
-      position: relative;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      box-sizing: border-box;
-    }
-    .menu-button {
-      position: absolute;
-      top: 8px;
-      right: 12px;
-      background: none;
-      border: none;
-      font-size: 18px;
-      cursor: pointer;
-      color: #205f72;
-    }
-    .menu-button:hover {
-      color: #175c71;
-    }
+.org-card {
+  background-color: #cedfe4;
+  border-radius: 16px;
+  padding: 12px 20px;
+  width: calc(25% - 12px);
+  height: 160px;
+  position: relative;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-sizing: border-box;
+}
+.card-hover-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(255, 255, 255, 0.75);
+  font-size: 16px;
+  font-weight: bold;
+  color: #205f72;
+  border-radius: 16px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.org-card:hover .card-hover-text {
+  opacity: 1;
+}
+
+.menu-button {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  color: #205f72;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%; /* 圓形 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease-in-out;
+}
+
+.menu-button:hover,
+.menu-button:focus {
+  background-color: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.2);
+  transform: scale(1.1);
+  color: #103c47;
+}
+
     .menu-list {
       position: absolute;
       top: 30px;
@@ -84,16 +118,16 @@
 <body>
 <div class="layout">
   <aside class="sidebar" id="sidebar">
-<button class="navbar-toggle" onclick="toggleSidebar()" id="toggleBtn">
-  <i data-lucide="menu" id="toggleIcon" class="w-6 h-6 text-[#205f72]"></i>
-</button>
+      <button class="navbar-toggle" onclick="toggleSidebar()" id="toggleBtn">
+        <i data-lucide="align-justify" class="w-6 h-6 stroke-[#205f72]"></i>
+      </button>
 <nav class="menu">
   <a href="{{ url_for('build_organization_page') }}" class="sidebar-item flex items-center gap-2">
-    <i data-lucide="home" class="w-6 h-6"></i>
+    <i data-lucide="home" class="sidebar-icon"></i>
     <span>首頁</span>
   </a>
   <a href="{{ url_for('signin_page') }}" class="sidebar-item flex items-center gap-2">
-    <i data-lucide="log-out" class="w-6 h-6"></i>
+    <i data-lucide="log-out" class="sidebar-icon"></i>
     <span>登出</span>
   </a>
 </nav>
@@ -113,7 +147,7 @@
       </div>
     </header>
 
-    <section class="workspace">
+    <section class="workspace px-10 py-8">
       <button onclick="openModal()" class="btn-primary text-white px-4 py-2 rounded-lg font-bold">＋ 建立組織</button>
 
       <div class="mt-8 dashed-box text-center">
@@ -147,10 +181,12 @@ function closeModal() {
 function addMember() {
   const input = document.getElementById("orgMemberInput");
   const email = input.value.trim();
-  if (!email.endsWith("@gmail.com")) {
-    alert("請輸入正確的 Gmail 地址");
-    return;
-  }
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+if (!emailPattern.test(email)) {
+  alert("請輸入正確的 Email 格式");
+  return;
+}
+
   if (members.includes(email)) {
     alert("此成員已經被邀請過了");
     return;
@@ -206,19 +242,24 @@ function createOrganization() {
   })
     .then(res => res.json())
     .then(data => {
-      if (data.success) {
-        alert("組織建立成功！");
-        addOrgCard(name); // ✅ 顯示新卡片
-        closeModal();     // ✅ 關閉視窗
-      } else {
-        alert("建立失敗：" + data.message);
-      }
+if (data.success) {
+  alert("組織建立成功！");
+  
+  // ✅ 儲存組織名稱到 localStorage（供 sidebar 顯示）
+  localStorage.setItem("org_name", name);
+  
+  closeModal(); // ✅ 關閉視窗
+
+  // ✅ 直接用資料庫真正的 ID 新增卡片
+  addOrgCard(name, data.organization_id, "admin");
+} else {
+  alert("建立失敗：" + data.message);
+}
     })
     .catch(err => {
       alert("發生錯誤：" + err);
     });
 }
-
 
 function toggleMenu(id) {
   const menu = document.getElementById("menu-" + id);
@@ -267,31 +308,13 @@ window.addEventListener("DOMContentLoaded", () => {
         if (data.organizations.length > 0) {
           hint.style.display = "none";
           data.organizations.forEach(org => {
-            const card = document.createElement("div");
-            card.className = "org-card";
-            card.id = "org-" + org.id;
-            card.innerHTML = `
-              <a href="/meeting?org_id=${org.id}" style="position: absolute; inset: 0; display: flex; justify-content: center; align-items: center; text-decoration: none;">
-                <h3 id="title-${org.id}" class="font-bold text-base text-[#205f72]">${org.name}</h3>
-              </a>
-
-              <button class="menu-button" onclick="toggleMenu(${org.id})" title="更多操作">
-                <i class="fas fa-ellipsis-vertical"></i>
-              </button>
-              <div id="menu-${org.id}" class="menu-list">
-                <button onclick="renameOrg(${org.id})">重新命名組織</button>
-                <button onclick="deleteOrg(${org.id})">刪除組織</button>
-              </div>
-            `;
-            orgList.appendChild(card);
-          });
+  addOrgCard(org.name, org.id, org.role || "admin");
+});
         }
       }
     });
 });
-
-function addOrgCard(name) {
-  const id = Date.now();  // 使用時間戳當作暫時 id（不會與資料庫同步）
+function addOrgCard(name, id, role = "admin") {
   const orgList = document.getElementById("orgList");
   const hint = document.getElementById("orgHint");
   hint.style.display = "none";
@@ -299,24 +322,36 @@ function addOrgCard(name) {
   const card = document.createElement("div");
   card.className = "org-card";
   card.id = "org-" + id;
-  card.innerHTML = `
-    <a href="/meeting?org_id=${id}" style="position: absolute; inset: 0; display: flex; justify-content: center; align-items: center; text-decoration: none;">
+
+  let innerHTML = `
+    <a href="/meeting?org_id=${id}"
+       onclick="localStorage.setItem('org_name', '${name}')"
+       style="position: absolute; inset: 0; display: flex; justify-content: center; align-items: center; text-decoration: none;">
       <h3 id="title-${id}" class="font-bold text-base text-[#205f72]">${name}</h3>
     </a>
-    <button class="menu-button" onclick="toggleMenu(${id})" title="更多操作">
-      <i class="fas fa-ellipsis-vertical"></i>
-    </button>
-    <div id="menu-${id}" class="menu-list">
-      <button onclick="renameOrg(${id})">重新命名組織</button>
-      <button onclick="deleteOrg(${id})">刪除組織</button>
-    </div>
   `;
+
+  // ✅ 只有 admin 才能看到三點功能
+  if (role === "admin") {
+    innerHTML += `
+      <button class="menu-button" onclick="toggleMenu(${id})" title="更多操作">
+        <i class="fas fa-ellipsis-vertical"></i>
+      </button>
+      <div id="menu-${id}" class="menu-list">
+        <button onclick="renameOrg(${id})">重新命名組織</button>
+        <button onclick="deleteOrg(${id})">刪除組織</button>
+      </div>
+    `;
+  }
+
+  card.innerHTML = innerHTML;
   orgList.appendChild(card);
 }
 
-document.addEventListener("DOMContentLoaded", function () {
-  lucide.createIcons();
-});
+
+function setOrgName(name) {
+  localStorage.setItem("org_name", name);
+}
 
 </script>
 <!--建立組織彈跳視窗（Modal）-->
@@ -330,7 +365,7 @@ document.addEventListener("DOMContentLoaded", function () {
     <div class="mb-4">
       <label class="block font-bold mb-1">邀請組織成員</label>
       <div class="relative w-full">
-        <input id="orgMemberInput" type="email" placeholder="example@gmail.com" class="w-full p-3 pr-8 rounded-lg border border-gray-300 focus:outline-none" />
+        <input id="orgMemberInput" type="email" placeholder="請輸入Email" class="w-full p-3 pr-8 rounded-lg border border-gray-300 focus:outline-none" />
         <button onclick="addMember()" class="absolute top-1/2 right-3 -translate-y-1/2 text-[#205f72] text-xl font-bold leading-none hover:text-[#175c71]">＋</button>
       </div>
       <ul id="memberList" class="mt-2 space-y-2"></ul>
@@ -344,5 +379,6 @@ document.addEventListener("DOMContentLoaded", function () {
     </div>
   </div>
 </div>
+<script>lucide.createIcons();</script>
 </body>
 </html>
