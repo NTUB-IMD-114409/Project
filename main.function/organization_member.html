@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>會議寶｜組織成員</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/navbar_b.css') }}">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    .btn-primary {
+      background-color: #205f72;
+    }
+    .btn-primary:hover {
+      background-color: #175c71;
+    }
+    .card {
+      background-color: #cedfe4;
+      border-radius: 16px;
+      padding: 16px 20px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+  </style>
+</head>
+
+<body>
+  <script>
+    window.CURRENT_USER_ROLE = "{{ current_user_role }}";
+    window.CURRENT_USER_EMAIL = "{{ current_user_email }}";
+    window.ORG_ID = {{ org_id }};
+  </script>
+
+  <div class="layout">
+    <!-- 側邊欄 -->
+    <aside class="sidebar" id="sidebar">
+      <button class="navbar-toggle" onclick="toggleSidebar()" id="toggleBtn">
+        <i data-lucide="align-justify" class="w-6 h-6 stroke-[#205f72]"></i>
+      </button>
+      <nav class="menu">
+        <div class="sidebar-item cursor-default hover:bg-transparent select-none">
+          <i data-lucide="building" class="sidebar-icon stroke-[#205f72]"></i>
+          <div class="flex flex-col leading-snug">
+            <span class="text-xs text-gray-500">目前組織</span>
+            <span id="org-name" class="text-[#205f72] text-sm font-semibold truncate max-w-[180px]"></span>
+          </div>
+        </div>
+        <a href="{{ url_for('build_organization_page') }}" class="sidebar-item flex items-center gap-2">
+          <i data-lucide="home" class="sidebar-icon"></i>
+          <span>首頁</span>
+              <a id="startMeetingLink" href="#" class="sidebar-item flex items-center gap-2">
+          <i data-lucide="user-plus" class="sidebar-icon"></i>
+          <span>發起會議</span>
+        </a>
+
+        <script>
+          document.addEventListener("DOMContentLoaded", () => {
+            const orgId = localStorage.getItem("currentOrgId");
+            const link = document.getElementById("startMeetingLink");
+            if (link && orgId) {
+              link.href = `/start_meeting?org_id=${orgId}`;
+            }
+          });
+        </script>
+        <a href="{{ url_for('task_page') }}" class="sidebar-item">
+          <i data-lucide="list-todo" class="sidebar-icon"></i>
+          <span>任務追蹤</span>
+        </a>
+        </a>
+        <a href="{{ url_for('signin_page') }}" class="sidebar-item flex items-center gap-2">
+          <i data-lucide="log-out" class="sidebar-icon"></i>
+          <span>登出</span>
+        </a>
+      </nav>
+    </aside>
+
+    <!-- 主要內容 -->
+    <main class="main-content">
+      <header class="header">
+        <div class="header-left">
+          <a href="{{ url_for('build_organization_page') }}">
+            <img src="{{ url_for('static', filename='image/logo.png') }}" alt="Logo" class="logo-img" />
+          </a>
+        </div>
+        <div class="header-right">
+          <a href="{{ url_for('organization_member_page', org_id=org_id) }}">
+            <img src="{{ url_for('static', filename='image/head.png') }}" alt="Head" class="avatar-img" />
+          </a>
+        </div>
+      </header>
+
+      <div class="w-full max-w-4xl mx-auto px-4 mt-6">
+        <h2 class="text-center text-[#205f72] text-2xl font-bold mb-4">組織成員列表</h2>
+
+        <div class="flex flex-col gap-3 mb-8" id="memberList">
+          {% for m in members %}
+            <div id="member-{{ m.email }}"
+              class="bg-white border border-gray-300 rounded px-4 py-3 flex justify-between items-center">
+              <div class="text-sm text-gray-800">{{ m.email }}</div>
+              <div class="flex items-center gap-3 min-w-[120px] justify-end">
+                <span class="text-xs text-gray-500 whitespace-nowrap">{{ m.role }}</span>
+
+                {% if current_user_email == m.email and m.role == "創建者" %}
+                  <i class="w-5 h-5 stroke-gray-300 cursor-not-allowed" data-lucide="x" title="無法刪除自己"></i>
+                {% elif current_user_role == "創建者" and m.role != "創建者" %}
+                  <button onclick='deleteMember({{ org_id }}, "{{ m.email }}")' class="ml-2" title="移除成員">
+                    <i class="w-5 h-5 stroke-red-600 hover:stroke-red-800" data-lucide="x"></i>
+                  </button>
+                {% endif %}
+              </div>
+            </div>
+          {% endfor %}
+
+          <!-- 只有創建者才顯示的新增成員區塊 -->
+        <div id="invite-section" style="display: none;">
+          <div class="card">
+            <h3 class="text-lg font-bold text-[#205f72] mb-3">新增成員</h3>
+            <div class="flex flex-col md:flex-row md:items-center gap-2">
+              <input id="newMemberEmail" type="email" placeholder="請輸入Email"
+                class="flex-1 p-3 rounded-lg border border-gray-300 focus:outline-none" />
+              <button onclick="addNewMember()" class="btn-primary text-white px-4 py-2 rounded-lg">
+                發送邀請
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Script -->
+  <script>
+    function deleteMember(orgId, email) {
+      if (!confirm(`確定要移除 ${email} 嗎？`)) return;
+      fetch(`/api/organization_members/${orgId}/${encodeURIComponent(email)}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" }
+      })
+        .then(res => res.json())
+        .then(result => {
+          if (result.success) {
+            document.getElementById(`member-${email}`).remove();
+            alert("已移除：" + email);
+          } else {
+            alert("刪除失敗：" + result.message);
+          }
+        })
+        .catch(err => {
+          console.error(err);
+          alert("發生錯誤：" + err);
+        });
+    }
+
+    function addNewMember() {
+  const email = document.getElementById("newMemberEmail").value.trim();
+  const orgName = localStorage.getItem("org_name") || "未知組織";
+  const orgId = window.ORG_ID;
+
+  if (!email) {
+    alert("請輸入 Email");
+    return;
+  }
+
+  fetch("/api/email/invite", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email: email, org_name: orgName }),
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (data.message) {
+        // ✅ 邀請成功，接著新增進組織
+        fetch(`/api/organization_members/${orgId}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: email })
+        })
+          .then(res => res.json())
+          .then(result => {
+            if (result.success) {
+              alert("✅ 成員已新增並寄出邀請");
+
+              // 加入畫面
+              const memberList = document.getElementById("memberList");
+              const div = document.createElement("div");
+              div.id = `member-${email}`;
+              div.className = "bg-white border border-gray-300 rounded px-4 py-3 flex justify-between items-center";
+              div.innerHTML = `
+                <div class="text-sm text-gray-800">${email}</div>
+                <div class="flex items-center gap-3">
+                  <span class="text-xs text-gray-500 whitespace-nowrap">成員</span>
+                  ${window.CURRENT_USER_ROLE === "創建者"
+                    ? `<button onclick='deleteMember(${orgId}, "${email}")' class="ml-2" title="移除成員">
+                        <i class="w-5 h-5 stroke-red-600 hover:stroke-red-800" data-lucide="x"></i>
+                      </button>` : ""}
+                </div>
+              `;
+              memberList.insertBefore(div, memberList.lastElementChild);
+              lucide.createIcons();
+              document.getElementById("newMemberEmail").value = "";
+            } else {
+              alert("❌ 新增成員失敗：" + result.message);
+            }
+          });
+      } else {
+        alert("❌ 邀請信寄送失敗");
+      }
+    })
+    .catch(err => {
+      console.error(err);
+      alert("❌ 發生錯誤：" + err);
+    });
+}
+
+
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('collapsed');
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      lucide.createIcons();
+
+      const orgName = localStorage.getItem("org_name");
+      if (orgName) {
+        const el = document.getElementById("org-name");
+        if (el) el.textContent = orgName;
+      }
+      
+      // 根據角色控制新增成員區塊顯示
+      if (window.CURRENT_USER_ROLE === "創建者") {
+        document.getElementById("invite-section").style.display = "block";
+      }
+
+      document.getElementById("newMemberEmail").addEventListener("keydown", (e) => {
+        if (e.key === "Enter") addNewMember();
+      });
+    });
+  </script>
+</body>
+</html>
+

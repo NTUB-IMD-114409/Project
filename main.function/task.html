@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>會議寶｜任務追蹤</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/navbar_a.css') }}" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <button class="navbar-toggle" onclick="toggleSidebar()" id="toggleBtn">
+        <i data-lucide="align-justify" class="w-6 h-6 stroke-[#205f72]"></i>
+      </button>
+      <nav class="menu">
+        <div class="sidebar-item cursor-default hover:bg-transparent select-none">
+          <i data-lucide="building" class="sidebar-icon stroke-[#205f72]"></i>
+          <div class="flex flex-col leading-snug">
+            <span class="text-xs text-gray-500">目前組織</span>
+            <span id="org-name" class="text-[#205f72] text-sm font-semibold truncate max-w-[180px]"></span>
+          </div>
+        </div>
+        <a href="{{ url_for('build_organization_page') }}" class="sidebar-item flex items-center gap-2">
+          <i data-lucide="home" class="sidebar-icon"></i>
+          <span>首頁</span>
+        </a>
+        <a id="startMeetingLink" href="#" class="sidebar-item flex items-center gap-2">
+          <i data-lucide="user-plus" class="sidebar-icon"></i>
+          <span>發起會議</span>
+        </a>
+
+        <script>
+          document.addEventListener("DOMContentLoaded", () => {
+            const orgId = localStorage.getItem("currentOrgId");
+            const link = document.getElementById("startMeetingLink");
+            if (link && orgId) {
+              link.href = `/start_meeting?org_id=${orgId}`;
+            }
+          });
+        </script>
+        <a href="{{ url_for('task_page') }}" class="sidebar-item">
+          <i data-lucide="list-todo" class="sidebar-icon"></i>
+          <span>任務追蹤</span>
+        </a>
+        <a href="{{ url_for('signin_page') }}" class="sidebar-item flex items-center gap-2">
+          <i data-lucide="log-out" class="sidebar-icon"></i>
+          <span>登出</span>
+        </a>
+      </nav>
+    </aside>
+
+    <main class="main-content">
+      <header class="header">
+        <div class="header-left">
+          <a href="{{ url_for('build_organization_page') }}">
+            <img src="{{ url_for('static', filename='image/logo.png') }}" alt="Logo" class="logo-img" />
+          </a>
+        </div>
+        <div class="header-right">
+        <a href="#" onclick="goToOrganizationMemberPage()">
+          <img src="{{ url_for('static', filename='image/head.png') }}" alt="Head" class="avatar-img" />
+        </a>
+      </header><section class="px-6 py-4">
+  <div class="flex justify-between items-center mb-4">
+    <h2 class="text-xl font-bold text-[#205f72]">我的任務📝</h2>
+    <button onclick="openModal()" class="bg-[#205f72] hover:bg-[#175c71] text-white font-semibold py-2 px-4 rounded-lg shadow">
+      ＋ 新增任務
+    </button>
+  </div>
+
+  <div class="bg-white shadow-md rounded-lg overflow-x-auto">
+    <table class="min-w-full text-center">
+      <thead class="bg-[#cedfe4] text-[#205f72]">
+        <tr>
+          <th class="py-3 px-4">任務名稱</th>
+          <th class="py-3 px-4">所屬會議</th>
+          <th class="py-3 px-4">截止日</th>
+          <th class="py-3 px-4">編輯</th>
+          <th class="py-3 px-4">刪除</th>
+        </tr>
+      </thead>
+      <tbody class="text-gray-700">
+        <!-- 空白範例列，可用 JS 動態加入 -->
+        <tr class="border-t">
+          <td class="py-3 px-4"></td>
+          <td class="py-3 px-4"></td>
+          <td class="py-3 px-4"></td>
+          <td class="py-3 px-4">
+            <button class="text-blue-600 hover:text-blue-800" title="編輯">
+              <i data-lucide="pencil" class="w-5 h-5"></i>
+            </button>
+          </td>
+          <td class="py-3 px-4">
+            <button class="text-red-600 hover:text-red-800" title="刪除">
+              <i data-lucide="trash-2" class="w-5 h-5"></i>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- 新增任務 Modal -->
+<div id="taskModal" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 hidden">
+  <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
+    <h3 class="text-lg font-bold text-[#205f72] mb-4 text-center">新增任務</h3>
+    <form id="taskForm" class="space-y-4">
+      <div>
+        <label class="block text-sm font-semibold text-black mb-1">任務名稱</label>
+        <input type="text" id="taskName" class="w-full border border-gray-300 rounded px-3 py-2" placeholder="請輸入任務名稱">
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-black mb-1">所屬會議</label>
+        <input type="text" id="taskMeeting" class="w-full border border-gray-300 rounded px-3 py-2" placeholder="請輸入會議名稱">
+      </div>
+      <script>
+        // 當頁面載入時，自動設定 min 為今天
+        window.addEventListener("DOMContentLoaded", () => {
+          const today = new Date().toISOString().split("T")[0];
+          document.getElementById("taskDeadline").setAttribute("min", today);
+        });
+      </script>
+      <div>
+        <label class="block text-sm font-semibold text-black mb-1">截止日</label>
+        <input type="date" id="taskDeadline" class="w-full border border-gray-300 rounded px-3 py-2">
+      </div>
+      <div class="flex justify-end gap-3 pt-4">
+        <button type="button" onclick="closeModal()" class="text-gray-600 hover:text-gray-800">取消</button>
+        <button type="submit" class="bg-[#205f72] text-white px-4 py-2 rounded hover:bg-[#175c71]">確認新增</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+<script>
+    function toggleSidebar() {
+    document.getElementById("sidebar").classList.toggle("collapsed");
+  }
+  document.addEventListener("DOMContentLoaded", () => {
+    const name = localStorage.getItem("currentMeetingName") || "未命名會議";
+    const date = localStorage.getItem("currentMeetingDate") || "未指定日期";
+    const mid = localStorage.getItem("currentMeetingId");
+
+    // 填會議名稱/日期
+    document.getElementById("meeting-name").textContent = name;
+    document.getElementById("meeting-date").textContent = date;
+
+    // 補上每個需要 meeting_id 的連結
+    if (mid) {
+      document.querySelectorAll(".sidebar-item").forEach(link => {
+        if (link.href && link.href.includes("meeting_id=")) {
+          const url = new URL(link.href);
+          url.searchParams.set("meeting_id", mid);
+          link.href = url.toString();
+        }
+      });
+
+      // 同樣補右上角頭像連結
+      const avatarLink = document.querySelector(".header-right a");
+      if (avatarLink && avatarLink.href.includes("meeting_id=")) {
+        const url = new URL(avatarLink.href);
+        url.searchParams.set("meeting_id", mid);
+        avatarLink.href = url.toString();
+      }
+    }
+    lucide.createIcons(); // 如果沒加會導致 icon 不顯示
+  });
+
+  function openModal() {
+    document.getElementById('taskModal').classList.remove('hidden');
+  }
+
+  function closeModal() {
+    document.getElementById('taskModal').classList.add('hidden');
+  }
+
+  // 可加上表單提交攔截處理
+  document.getElementById('taskForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    const name = document.getElementById('taskName').value;
+    const meeting = document.getElementById('taskMeeting').value;
+    const deadline = document.getElementById('taskDeadline').value;
+
+    console.log('任務：', name, meeting, deadline); // 測試用
+
+    closeModal();
+
+    // 可在此處加上新增資料到表格的邏輯
+  });
+
+    function goToOrganizationMemberPage() {
+    const orgId = localStorage.getItem("currentOrgId");
+    if (!orgId) {
+      alert("尚未選擇組織，請先返回首頁選擇組織");
+      return;
+    }
+    window.location.href = `/organization_member/${orgId}`;
+  }
+
+    document.addEventListener("DOMContentLoaded", function () {
+      const orgName = localStorage.getItem("org_name");
+      if (orgName) {
+        const el = document.getElementById("org-name");
+        if (el) el.textContent = orgName;
+      }
+    });
+
+</script>
+<script>
+  window.addEventListener("DOMContentLoaded", () => {
+    if (window.lucide) {
+      lucide.createIcons();
+    } else {
+      // 如果 lucide 尚未載入，稍等一下再執行
+      const interval = setInterval(() => {
+        if (window.lucide) {
+          lucide.createIcons();
+          clearInterval(interval);
+        }
+      }, 50);
+    }
+  });
+</script>
