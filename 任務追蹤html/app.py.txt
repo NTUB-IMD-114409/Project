@@ -1,0 +1,225 @@
+# === 任務追蹤：取得負責人（組織成員）下拉選單 ===
+@app.route("/api/organization_members/<int:org_id>", methods=["GET"])
+def api_organization_members(org_id):
+    conn = None
+    cursor = None
+    try:
+        conn = get_db()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("""
+            SELECT u.id AS user_id, u.name
+            FROM organization_members om
+            JOIN users u ON om.user_id = u.id
+            WHERE om.org_id = %s
+        """, (org_id,))
+        members = cursor.fetchall()
+        return jsonify({"success": True, "members": members})
+    except Exception as e:
+        print("❌ 無法取得組織成員:", e)
+        return jsonify({"success": False, "message": str(e)})
+    finally:
+        if cursor: cursor.close()
+        if conn: conn.close()
+
+# === 任務追蹤：取得所屬會議（組織成員參與的會議）下拉選單 ===
+@app.route("/api/member_meetings/<int:user_id>", methods=["GET"])
+def get_member_meetings(user_id):
+    try:
+        conn = get_db()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("""
+            SELECT m.id, m.title
+            FROM meeting_participants mp
+            JOIN meetings m ON mp.meeting_id = m.id
+            WHERE mp.user_id = %s
+        """, (user_id,))
+        meetings = cursor.fetchall()
+        return jsonify({"success": True, "meetings": meetings})
+    except Exception as e:
+        print("❌ 無法取得會議清單:", e)
+        return jsonify({"success": False, "message": str(e)})
+    finally:
+        if cursor: cursor.close()
+        if conn: conn.close()
+
+# === 任務追蹤：新增寫入資料表 ===
+@app.route("/api/add_task", methods=["POST"])
+def add_task():
+    try:
+        data = request.get_json()
+        title = data.get("title")
+        due_date = data.get("due_date")
+        user_id = data.get("user_id")
+        meeting_id = data.get("meeting_id")
+        assigner_id = data.get("assigner_id")
+
+        conn = get_db()
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT INTO tasks (title, meeting_id, user_id, due_date, status, created_at, assigner_id)
+            VALUES (%s, %s, %s, %s, %s, NOW(), %s)
+        """, (title, meeting_id, user_id, due_date, "pending", assigner_id))
+        conn.commit()
+
+        task_id = cursor.lastrowid
+        return jsonify({"success": True, "message": "任務已成功建立", "task_id": task_id})
+    except Exception as e:
+        print("❌ 新增任務失敗：", e)
+        return jsonify({"success": False, "message": str(e)})
+    finally:
+        cursor.close()
+        conn.close()
+
+# === 任務追蹤：取得該組織下所有任務（所有成員都能看到） ===
+@app.route("/api/tasks")
+def get_tasks():
+    org_id = request.args.get("org_id")
+    if not org_id:
+        return jsonify({"success": False, "message": "缺少 org_id"})
+
+    try:
+        conn = get_db()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("""
+            SELECT t.*, 
+                   u1.name AS responsible_name, 
+                   u2.name AS assigner_name, 
+                   m.title AS meeting_title
+            FROM tasks t
+            LEFT JOIN users u1 ON t.user_id = u1.id
+            LEFT JOIN users u2 ON t.assigner_id = u2.id
+            LEFT JOIN meetings m ON t.meeting_id = m.id
+            WHERE m.org_id = %s
+            ORDER BY t.created_at DESC
+        """, (org_id,))
+        tasks = cursor.fetchall()
+        return jsonify({"success": True, "tasks": tasks})
+    except Exception as e:
+        print("❌ 任務查詢失敗：", e)
+        return jsonify({"success": False, "message": str(e)})
+    finally:
+        cursor.close()
+        conn.close()
+
+# === 任務追蹤：取得某組織的所有任務（不限指派者與負責人） ===
+@app.route("/api/tasks", methods=["GET"])
+def get_tasks_by_org():
+    org_id = request.args.get("org_id")
+    if not org_id:
+        return jsonify({"success": False, "message": "缺少 org_id"})
+
+    try:
+        conn = get_db()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("""
+            SELECT
+                t.*,
+                u1.name AS responsible_name,
+                u2.name AS assigner_name,
+                m.title AS meeting_title
+            FROM tasks t
+            LEFT JOIN users u1 ON t.user_id = u1.id
+            LEFT JOIN users u2 ON t.assigner_id = u2.id
+            LEFT JOIN meetings m ON t.meeting_id = m.id
+            WHERE t.meeting_id IN (
+                SELECT id FROM meetings WHERE org_id = %s
+            )
+            ORDER BY t.created_at DESC
+        """, (org_id,))
+        tasks = cursor.fetchall()
+        return jsonify({"success": True, "tasks": tasks})
+    except Exception as e:
+        print("❌ 取得任務失敗：", e)
+        return jsonify({"success": False, "message": str(e)})
+    finally:
+        cursor.close()
+        conn.close()
+
+# === 任務追蹤：刪除任務 ===
+@app.route("/api/delete_task/<int:task_id>", methods=["DELETE"])
+def delete_task(task_id):
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM tasks WHERE id = %s", (task_id,))
+        conn.commit()
+        return jsonify({"success": True})
+    except Exception as e:
+        print("❌ 刪除任務錯誤：", e)
+        return jsonify({"success": False, "message": str(e)})
+
+# === 任務追蹤：編輯任務 ===
+@app.route("/api/update_task", methods=["POST"])
+def update_task():
+    try:
+        session_user_id = session.get("user_id")
+        if not session_user_id:
+            return jsonify({"success": False, "message": "未登入"})
+
+        data = request.get_json()
+        task_id = data.get("id")
+        title = data.get("title")
+        due_date = data.get("due_date")
+        user_id = data.get("user_id")
+        meeting_id = data.get("meeting_id")
+
+        conn = get_db()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT user_id FROM tasks WHERE id = %s", (task_id,))
+        row = cursor.fetchone()
+
+        if not row:
+            return jsonify({"success": False, "message": "任務不存在"})
+
+        if str(row["user_id"]) != str(session_user_id):
+            return jsonify({"success": False, "message": "只有負責人可以修改任務"})
+
+        cursor.execute(
+            "UPDATE tasks SET title=%s, due_date=%s, user_id=%s, meeting_id=%s WHERE id=%s",
+            (title, due_date, user_id, meeting_id, task_id),
+        )
+        conn.commit()
+        return jsonify({"success": True})
+    except Exception as e:
+        print("❌ 任務更新錯誤：", e)
+        return jsonify({"success": False, "message": str(e)})
+    finally:
+        cursor.close()
+        conn.close()
+
+# === 任務追蹤：狀態身分驗證 ===
+@app.route("/api/update_task_status", methods=["POST"])
+def update_task_status():
+    try:
+        data = request.get_json()
+        task_id = data.get("task_id")
+        new_status = data.get("status")
+        session_user_id = session.get("user_id")
+
+        if new_status not in ["pending", "completed"]:
+            return jsonify({"success": False, "message": "不合法的狀態"})
+
+        conn = get_db()
+        cursor = conn.cursor(dictionary=True)
+
+        # 查該任務的負責人
+        cursor.execute("SELECT user_id FROM tasks WHERE id = %s", (task_id,))
+        task = cursor.fetchone()
+
+        if not task:
+            return jsonify({"success": False, "message": "任務不存在"})
+
+        if str(task["user_id"]) != str(session_user_id):
+            return jsonify({"success": False, "message": "只有任務負責人能修改狀態"})
+
+        cursor.execute("UPDATE tasks SET status = %s WHERE id = %s", (new_status, task_id))
+        conn.commit()
+        return jsonify({"success": True, "message": "任務狀態已更新"})
+
+    except Exception as e:
+        print("❌ 更新任務狀態失敗：", e)
+        return jsonify({"success": False, "message": str(e)})
+
+    finally:
+        cursor.close()
+        conn.close()
