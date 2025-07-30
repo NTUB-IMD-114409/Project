@@ -1,0 +1,135 @@
+# === 任務追蹤：新增寫入資料表，並寄送 Email 通知 ===
+@app.route("/api/add_task", methods=["POST"])
+def add_task():
+    try:
+        data = request.get_json()
+        title = data.get("title")
+        due_date = data.get("due_date")
+        user_id = data.get("user_id")           # 負責人 ID
+        meeting_id = data.get("meeting_id")
+        assigner_id = data.get("assigner_id")   # 指派人 ID
+
+        conn = get_db()
+        cursor = conn.cursor()
+
+        # ✅ 寫入 tasks 資料表
+        cursor.execute("""
+            INSERT INTO tasks (title, meeting_id, user_id, due_date, status, created_at, assigner_id)
+            VALUES (%s, %s, %s, %s, %s, NOW(), %s)
+        """, (title, meeting_id, user_id, due_date, "pending", assigner_id))
+        conn.commit()
+
+        task_id = cursor.lastrowid
+
+        # ✅ 查詢負責人姓名與 email
+        cursor.execute("SELECT name, email FROM users WHERE id = %s", (user_id,))
+        user_row = cursor.fetchone()
+        responsible_name = user_row[0] if user_row else "使用者"
+        responsible_email = user_row[1] if user_row else None
+
+        # ✅ 查詢會議名稱（如無會議則顯示預設文字）
+        meeting_title = "（無所屬會議）"
+        if meeting_id:
+            cursor.execute("SELECT title FROM meetings WHERE id = %s", (meeting_id,))
+            meeting_row = cursor.fetchone()
+            if meeting_row:
+                meeting_title = meeting_row[0]
+
+        # ✅ 組裝寄信內容
+        subject = f"📌 新任務通知：{title}"
+        body = f"""親愛的 {responsible_name} 您好，
+
+您被指派了一項新任務：
+
+📝 任務名稱：{title}
+📅 截止日期：{due_date}
+🔗 所屬會議：{meeting_title}
+
+請登入「會議寶」系統查看詳細內容與進度。
+
+—— 會議寶 系統通知
+"""
+
+        # ✅ 寄送 Email
+        if responsible_email:
+            try:
+                from email_utils import send_email_notification
+                send_email_notification(responsible_email, subject, body)
+                print(f"✅ 通知信已寄出給 {responsible_email}")
+            except Exception as mail_err:
+                print(f"❌ 通知信寄送失敗：{mail_err}")
+
+        return jsonify({"success": True, "message": "任務已成功建立", "task_id": task_id})
+
+    except Exception as e:
+        print("❌ 新增任務失敗：", e)
+        return jsonify({"success": False, "message": str(e)})
+
+    finally:
+        cursor.close()
+        conn.close()
+
+# === 任務追蹤：每日檢查任務排程 ===
+from apscheduler.schedulers.background import BackgroundScheduler
+from datetime import datetime, timedelta
+from email_utils import send_email_notification
+
+def check_and_notify_due_tasks():
+    print("📬 正在檢查即將到期任務...")
+
+    conn = get_db()
+    cursor = conn.cursor(dictionary=True)
+
+    try:
+        today = datetime.now().date()
+        three_days_later = today + timedelta(days=3)
+
+        cursor.execute("""
+            SELECT 
+                t.id AS task_id,
+                t.title AS task_title,
+                t.due_date,
+                u.name AS user_name,
+                u.email AS user_email,
+                m.title AS meeting_title
+            FROM tasks t
+            JOIN users u ON t.user_id = u.id
+            LEFT JOIN meetings m ON t.meeting_id = m.id
+            WHERE t.status = 'pending' 
+              AND t.due_date BETWEEN %s AND %s
+              AND t.notified = 0
+        """, (today, three_days_later))
+
+        tasks = cursor.fetchall()
+        for task in tasks:
+            subject = f"⏰ 任務提醒：『{task['task_title']}』即將到期"
+            body = f"""親愛的 {task['user_name']} 您好，
+
+您被指派的任務即將到期，請留意以下資訊：
+
+📝 任務名稱：{task['task_title']}
+📅 截止日期：{task['due_date']}
+🔗 所屬會議：{task['meeting_title'] or '（無所屬會議）'}
+
+請儘速處理，避免逾期。
+
+—— 會議寶 系統通知"""
+
+            send_email_notification(task["user_email"], subject, body)
+            print(f"✅ 已寄出通知給：{task['user_email']}")
+
+            # 更新 notified 為 1，避免重複寄送
+            cursor.execute("UPDATE tasks SET notified = 1 WHERE id = %s", (task["task_id"],))
+
+        conn.commit()
+
+    except Exception as e:
+        print("❌ 任務提醒發送錯誤：", e)
+    finally:
+        cursor.close()
+        conn.close()
+
+# 每天早上 8 點執行
+scheduler = BackgroundScheduler()
+scheduler.add_job(check_and_notify_due_tasks, 'cron', hour=8)
+scheduler.start()
