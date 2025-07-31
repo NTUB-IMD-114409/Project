@@ -1,0 +1,526 @@
+# === 任務追蹤：取得負責人（組織成員）下拉選單 ===
+@app.route("/api/organization_members/<int:org_id>", methods=["GET"])
+def api_organization_members(org_id):
+    conn = None
+    cursor = None
+    try:
+        conn = get_db()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("""
+            SELECT u.id AS user_id, u.name
+            FROM organization_members om
+            JOIN users u ON om.user_id = u.id
+            WHERE om.org_id = %s
+        """, (org_id,))
+        members = cursor.fetchall()
+        return jsonify({"success": True, "members": members})
+    except Exception as e:
+        print("❌ 無法取得組織成員:", e)
+        return jsonify({"success": False, "message": str(e)})
+    finally:
+        if cursor: cursor.close()
+        if conn: conn.close()
+
+# === 任務追蹤：取得所屬會議（組織成員參與的會議）下拉選單 ===
+@app.route("/api/member_meetings/<int:user_id>", methods=["GET"])
+def get_member_meetings(user_id):
+    try:
+        conn = get_db()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("""
+            SELECT m.id, m.title
+            FROM meeting_participants mp
+            JOIN meetings m ON mp.meeting_id = m.id
+            WHERE mp.user_id = %s
+        """, (user_id,))
+        meetings = cursor.fetchall()
+        return jsonify({"success": True, "meetings": meetings})
+    except Exception as e:
+        print("❌ 無法取得會議清單:", e)
+        return jsonify({"success": False, "message": str(e)})
+    finally:
+        if cursor: cursor.close()
+        if conn: conn.close()
+
+# === 任務追蹤：新增寫入資料表，並寄送 Email 通知 ===
+@app.route("/api/add_task", methods=["POST"])
+def add_task():
+    try:
+        from datetime import datetime, timedelta  # ⏰ 用來判斷是否快到期
+
+        data = request.get_json()
+        title = data.get("title")
+        due_date = data.get("due_date")  # 字串格式："2025-08-01"
+        user_id = data.get("user_id")           # 負責人 ID
+        meeting_id = data.get("meeting_id")
+        assigner_id = data.get("assigner_id")   # 指派人 ID
+
+        conn = get_db()
+        cursor = conn.cursor()
+
+        # 預設為未提醒（notified=0）
+        cursor.execute("""
+            INSERT INTO tasks (title, meeting_id, user_id, due_date, status, created_at, assigner_id, notified)
+            VALUES (%s, %s, %s, %s, %s, NOW(), %s, %s)
+        """, (title, meeting_id, user_id, due_date, "pending", assigner_id, 0))
+        conn.commit()
+
+        task_id = cursor.lastrowid
+
+        # ✅ 查詢負責人姓名與 email
+        cursor.execute("SELECT name, email FROM users WHERE id = %s", (user_id,))
+        user_row = cursor.fetchone()
+        responsible_name = user_row[0] if user_row else "使用者"
+        responsible_email = user_row[1] if user_row else None
+
+        # ✅ 查詢指派者姓名
+        cursor.execute("SELECT name FROM users WHERE id = %s", (assigner_id,))
+        assigner_row = cursor.fetchone()
+        assigner_name = assigner_row[0] if assigner_row else "未知指派者"
+
+        # ✅ 查詢會議與組織名稱（如無會議則顯示預設文字）
+        meeting_title = "（無所屬會議）"
+        org_name = "（未知組織）"
+        if meeting_id:
+            cursor.execute("""
+                SELECT m.title, o.name 
+                FROM meetings m 
+                LEFT JOIN organizations o ON m.org_id = o.id 
+                WHERE m.id = %s
+            """, (meeting_id,))
+            meeting_row = cursor.fetchone()
+            if meeting_row:
+                meeting_title = meeting_row[0] or meeting_title
+                org_name = meeting_row[1] or org_name
+
+        # ⏰ 判斷是否三天內要到期
+        today = datetime.now().date()
+        task_due_date = datetime.strptime(due_date, "%Y-%m-%d").date()
+
+        if task_due_date <= today + timedelta(days=3):
+            # 🔔 緊急任務通知 + 不再排程通知
+            subject = f"⏰ 緊急任務通知：{title}"
+            body = f"""親愛的 {responsible_name} 您好，
+
+您被指派了一項即將到期的任務，請立即處理：
+
+📝 任務名稱：{title}
+📅 截止日期：{due_date}
+🔗 所屬會議：{meeting_title}
+📂 所屬組織：{org_name}
+👤 指派者：{assigner_name}
+
+由於此任務在三天內即將到期，系統不會再次提醒，
+請儘速完成任務以免逾期。
+
+—— 會議寶 系統通知
+"""
+            # ✅ 更新 notified=1，避免重複通知
+            cursor.execute("UPDATE tasks SET notified = 1 WHERE id = %s", (task_id,))
+            conn.commit()
+        else:
+            # 📌 一般任務通知，後續還會提醒
+            subject = f"📌 新任務通知：{title}"
+            body = f"""親愛的 {responsible_name} 您好，
+
+您被指派了一項新的任務，請留意以下資訊：
+
+📝 任務名稱：{title}
+📅 截止日期：{due_date}
+🔗 所屬會議：{meeting_title}
+📂 所屬組織：{org_name}
+👤 指派者：{assigner_name}
+
+目前距離截止日尚有一段時間，請妥善安排進度。
+系統將會在截止日前再次提醒您，請隨時留意。
+
+—— 會議寶 系統通知
+"""
+
+        # ✅ 寄送 Email
+        if responsible_email:
+            try:
+                from email_utils import send_email_notification
+                send_email_notification(responsible_email, subject, body)
+                print(f"✅ 通知信已寄出給 {responsible_email}")
+            except Exception as mail_err:
+                print(f"❌ 通知信寄送失敗：{mail_err}")
+
+        return jsonify({"success": True, "message": "任務已成功建立", "task_id": task_id})
+
+    except Exception as e:
+        print("❌ 新增任務失敗：", e)
+        return jsonify({"success": False, "message": str(e)})
+
+    finally:
+        cursor.close()
+        conn.close()
+
+# === 任務追蹤：取得某組織的所有任務（不限指派者與負責人） ===
+@app.route("/api/tasks", methods=["GET"])
+def get_tasks_by_org():
+    org_id = request.args.get("org_id")
+    if not org_id:
+        return jsonify({"success": False, "message": "缺少 org_id"})
+
+    try:
+        conn = get_db()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("""
+            SELECT
+                t.*,
+                u1.name AS responsible_name,
+                u2.name AS assigner_name,
+                m.title AS meeting_title
+            FROM tasks t
+            LEFT JOIN users u1 ON t.user_id = u1.id
+            LEFT JOIN users u2 ON t.assigner_id = u2.id
+            LEFT JOIN meetings m ON t.meeting_id = m.id
+            WHERE t.meeting_id IN (
+                SELECT id FROM meetings WHERE org_id = %s
+            )
+            ORDER BY t.created_at DESC
+        """, (org_id,))
+        tasks = cursor.fetchall()
+        return jsonify({"success": True, "tasks": tasks})
+    except Exception as e:
+        print("❌ 取得任務失敗：", e)
+        return jsonify({"success": False, "message": str(e)})
+    finally:
+        cursor.close()
+        conn.close()
+
+# === 任務追蹤：刪除任務 ===
+@app.route("/api/delete_task/<int:task_id>", methods=["DELETE"])
+def delete_task(task_id):
+    try:
+        from email_utils import send_email_notification
+        session_user_id = session.get("user_id")
+        if not session_user_id:
+            return jsonify({"success": False, "message": "未登入"})
+
+        conn = get_db()
+        cursor = conn.cursor(dictionary=True)
+
+        # ✅ 查任務的完整資訊
+        cursor.execute("""
+            SELECT t.*, 
+                   u.name AS responsible_name, u.email AS responsible_email, 
+                   a.name AS assigner_name,
+                   m.title AS meeting_title,
+                   o.name AS org_name
+            FROM tasks t
+            JOIN users u ON t.user_id = u.id
+            JOIN users a ON t.assigner_id = a.id
+            LEFT JOIN meetings m ON t.meeting_id = m.id
+            LEFT JOIN organizations o ON m.org_id = o.id
+            WHERE t.id = %s
+        """, (task_id,))
+        task = cursor.fetchone()
+
+        if not task:
+            return jsonify({"success": False, "message": "任務不存在"})
+
+        if str(task["assigner_id"]) != str(session_user_id):
+            return jsonify({"success": False, "message": "只有指派者可刪除任務"})
+
+        # ✅ 先通知負責人
+        if task["responsible_email"]:
+            subject = f"❌ 任務取消通知：{task['title']}"
+            body = f"""親愛的 {task['responsible_name']} 您好，
+
+您被指派的任務已被指派者取消，以下為任務資訊：
+
+📝 任務名稱：{task['title']}
+📅 原截止日期：{task['due_date']}
+🔗 所屬會議：{task['meeting_title'] or '（無所屬會議）'}
+📂 所屬組織：{task['org_name'] or '（未知組織）'}
+👤 指派者：{task['assigner_name']}
+
+若有任何疑問，請與指派者聯繫。
+
+—— 會議寶 系統通知
+"""
+            send_email_notification(task["responsible_email"], subject, body)
+            print(f"✅ 已通知負責人 {task['responsible_email']} 任務取消")
+
+        # ✅ 再刪除任務
+        cursor.execute("DELETE FROM tasks WHERE id = %s", (task_id,))
+        conn.commit()
+        return jsonify({"success": True})
+
+    except Exception as e:
+        print("❌ 刪除任務錯誤：", e)
+        return jsonify({"success": False, "message": str(e)})
+    finally:
+        cursor.close()
+        conn.close()
+
+# === 任務追蹤：編輯任務 ===
+@app.route("/api/update_task", methods=["POST"])
+def update_task():
+    try:
+        from email_utils import send_email_notification
+        session_user_id = session.get("user_id")
+        if not session_user_id:
+            return jsonify({"success": False, "message": "未登入"})
+
+        data = request.get_json()
+        task_id = data.get("id")
+        title = data.get("title")
+        due_date = data.get("due_date")
+        user_id = data.get("user_id")  # 新負責人
+        meeting_id = data.get("meeting_id")
+
+        conn = get_db()
+        cursor = conn.cursor(dictionary=True)
+
+        # ✅ 查該任務完整資訊
+        cursor.execute("""
+            SELECT t.*, u.name AS assigner_name
+            FROM tasks t
+            JOIN users u ON t.assigner_id = u.id
+            WHERE t.id = %s
+        """, (task_id,))
+        old_task = cursor.fetchone()
+
+        if not old_task:
+            return jsonify({"success": False, "message": "任務不存在"})
+
+        if str(old_task["assigner_id"]) != str(session_user_id):
+            return jsonify({"success": False, "message": "只有指派者可修改任務"})
+
+        # ✅ 更新任務
+        cursor.execute("""
+            UPDATE tasks SET title=%s, due_date=%s, user_id=%s, meeting_id=%s WHERE id=%s
+        """, (title, due_date, user_id, meeting_id, task_id))
+        conn.commit()
+
+        # ✅ 查詢會議與組織資訊
+        meeting_title = "（無所屬會議）"
+        org_name = "（未知組織）"
+        if meeting_id:
+            cursor.execute("""
+                SELECT m.title, o.name
+                FROM meetings m
+                LEFT JOIN organizations o ON m.org_id = o.id
+                WHERE m.id = %s
+            """, (meeting_id,))
+            meeting_row = cursor.fetchone()
+            if meeting_row:
+                meeting_title = meeting_row["title"] or meeting_title
+                org_name = meeting_row["name"] or org_name
+
+        # ✅ 若負責人有變更，通知新舊負責人
+        if str(user_id) != str(old_task["user_id"]):
+            # 🔔 新負責人
+            cursor.execute("SELECT name, email FROM users WHERE id = %s", (user_id,))
+            new_user = cursor.fetchone()
+            if new_user and new_user["email"]:
+                subject_new = f"📌 任務更新通知：{title}"
+                body_new = f"""親愛的 {new_user['name']} 您好，
+
+您被指派了一項新任務，請確認以下資訊：
+
+📝 任務名稱：{title}
+📅 截止日期：{due_date}
+🔗 所屬會議：{meeting_title}
+📂 所屬組織：{org_name}
+👤 指派者：{old_task['assigner_name']}
+
+請妥善安排進度，並隨時追蹤任務狀態。
+
+—— 會議寶 系統通知
+"""
+                send_email_notification(new_user["email"], subject_new, body_new)
+                print(f"✅ 已通知新負責人 {new_user['email']}")
+
+            # 🔔 舊負責人
+            cursor.execute("SELECT name, email FROM users WHERE id = %s", (old_task["user_id"],))
+            old_user = cursor.fetchone()
+            if old_user and old_user["email"]:
+                subject_old = f"📢 任務移交通知：{title}"
+                body_old = f"""親愛的 {old_user['name']} 您好，
+
+您原先負責的任務已由指派者重新分配給其他人，以下是任務資訊：
+
+📝 任務名稱：{title}
+📅 原截止日：{due_date}
+🔗 所屬會議：{meeting_title}
+📂 所屬組織：{org_name}
+👤 指派者：{old_task['assigner_name']}
+
+若有任何疑問，請與指派者聯繫。
+
+—— 會議寶 系統通知
+"""
+                send_email_notification(old_user["email"], subject_old, body_old)
+                print(f"✅ 已通知舊負責人 {old_user['email']}")
+        else:
+            # 若負責人沒變，但其他資訊有更新，通知本人
+            cursor.execute("SELECT name, email FROM users WHERE id = %s", (user_id,))
+            user = cursor.fetchone()
+            if user and user["email"]:
+                subject = f"📌 任務內容更新：{title}"
+                body = f"""親愛的 {user['name']} 您好，
+
+您負責的任務內容已由指派者進行更新，請確認以下資訊：
+
+📝 任務名稱：{title}
+📅 截止日期：{due_date}
+🔗 所屬會議：{meeting_title}
+📂 所屬組織：{org_name}
+👤 指派者：{old_task['assigner_name']}
+
+請依據最新內容調整安排。
+
+—— 會議寶 系統通知
+"""
+                send_email_notification(user["email"], subject, body)
+                print(f"✅ 已通知負責人 {user['email']}")
+
+        return jsonify({"success": True})
+
+    except Exception as e:
+        print("❌ 任務更新錯誤：", e)
+        return jsonify({"success": False, "message": str(e)})
+
+    finally:
+        cursor.close()
+        conn.close()
+
+# === 任務追蹤：狀態身分驗證 ===
+@app.route("/api/update_task_status", methods=["POST"])
+def update_task_status():
+    try:
+        data = request.get_json()
+        task_id = data.get("task_id")
+        new_status = data.get("status")
+        session_user_id = session.get("user_id")
+
+        if new_status not in ["pending", "completed"]:
+            return jsonify({"success": False, "message": "不合法的狀態"})
+
+        conn = get_db()
+        cursor = conn.cursor(dictionary=True)
+
+        # 查該任務的負責人
+        cursor.execute("SELECT user_id FROM tasks WHERE id = %s", (task_id,))
+        task = cursor.fetchone()
+
+        if not task:
+            return jsonify({"success": False, "message": "任務不存在"})
+
+        if str(task["user_id"]) != str(session_user_id):
+            return jsonify({"success": False, "message": "只有任務負責人能修改狀態"})
+
+        cursor.execute("UPDATE tasks SET status = %s WHERE id = %s", (new_status, task_id))
+        conn.commit()
+        return jsonify({"success": True, "message": "任務狀態已更新"})
+
+    except Exception as e:
+        print("❌ 更新任務狀態失敗：", e)
+        return jsonify({"success": False, "message": str(e)})
+
+    finally:
+        cursor.close()
+        conn.close()
+
+# === 選擇正式會議文件模板 ===
+@app.route("/api/templates")
+def get_templates():
+    templates = [
+        {
+            "id": 1,
+            "name": "大學會議模板",
+            "description": "適用於校級會議、行政會議、委員會",
+            "preview_url": "/static/image/大學會議模板.png"
+        },
+        {
+            "id": 2,
+            "name": "例行性會議模板",
+            "description": "適合例行性、紀錄保存需求高之會議",
+            "preview_url": "/static/image/例行性會議模板.png"
+        },
+        {
+            "id": 3,
+            "name": "法律效力會議模板",
+            "description": "適用於公司股東會、董事會、具法律或規範依據之正式會議記錄",
+            "preview_url": "/static/image/法律效力會議模板.png"
+        }
+    ]
+    return jsonify(templates)
+
+
+
+# === 任務追蹤：每日檢查任務排程 ===
+from apscheduler.schedulers.background import BackgroundScheduler
+from datetime import datetime, timedelta
+from email_utils import send_email_notification
+
+def check_and_notify_due_tasks():
+    print("📬 正在檢查即將到期任務...")
+
+    conn = get_db()
+    cursor = conn.cursor(dictionary=True)
+
+    try:
+        today = datetime.now().date()
+        three_days_later = today + timedelta(days=3)
+
+        cursor.execute("""
+            SELECT 
+                t.id AS task_id,
+                t.title AS task_title,
+                t.due_date,
+                u.name AS user_name,
+                u.email AS user_email,
+                m.title AS meeting_title,
+                o.name AS org_name,
+                assigner.name AS assigner_name
+            FROM tasks t
+            JOIN users u ON t.user_id = u.id
+            LEFT JOIN meetings m ON t.meeting_id = m.id
+            LEFT JOIN organizations o ON m.org_id = o.id
+            JOIN users assigner ON t.assigner_id = assigner.id
+            WHERE t.status = 'pending' 
+              AND t.due_date BETWEEN %s AND %s
+              AND t.notified = 0
+        """, (today, three_days_later))
+
+        tasks = cursor.fetchall()
+        for task in tasks:
+            subject = f"⏰ 任務提醒：『{task['task_title']}』即將到期"
+            body = f"""親愛的 {task['user_name']} 您好，
+
+您被指派的任務即將到期，請留意以下資訊：
+
+📝 任務名稱：{task['task_title']}
+📅 截止日期：{task['due_date']}
+🔗 所屬會議：{task['meeting_title'] or '（無所屬會議）'}
+📂 所屬組織：{task['org_name'] or '（未知組織）'}
+👤 指派者：{task['assigner_name'] or '（未知指派者）'}
+
+請儘速處理，避免逾期。
+
+—— 會議寶 系統通知
+"""
+
+            send_email_notification(task["user_email"], subject, body)
+            print(f"✅ 已寄出通知給：{task['user_email']}")
+
+            # ✅ 更新 notified = 1，避免重複寄送
+            cursor.execute("UPDATE tasks SET notified = 1 WHERE id = %s", (task["task_id"],))
+
+        conn.commit()
+
+    except Exception as e:
+        print("❌ 任務提醒發送錯誤：", e)
+    finally:
+        cursor.close()
+        conn.close()
+
+# 每天早上 8 點執行
+scheduler = BackgroundScheduler()
+scheduler.add_job(check_and_notify_due_tasks, 'cron', hour=8)
+scheduler.start()
