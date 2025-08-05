@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<!-- saved from url=(0039)http://127.0.0.1:57391/topics?org_id=55 -->
+<html lang="zh-TW"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>會議寶｜創建議題</title>
+    <link rel="stylesheet" href="./會議寶｜創建議題_files/navbar_b.css">
+    <script src="./會議寶｜創建議題_files/saved_resource"></script>
+    <link rel="stylesheet" href="./會議寶｜創建議題_files/all.min.css">
+    <script src="./會議寶｜創建議題_files/lucide@latest"></script>
+
+    <style>
+        .btn-primary {
+            background-color: #205f72;
+        }
+
+        .btn-primary:hover {
+            background-color: #175c71;
+        }
+
+        .org-card {
+            background-color: #cedfe4;
+            border-radius: 16px;
+            padding: 12px 20px;
+            width: calc(25% - 12px);
+            height: 160px;
+            position: relative;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-sizing: border-box;
+        }
+
+        .card-hover-text {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: rgba(255, 255, 255, 0.75);
+            font-size: 16px;
+            font-weight: bold;
+            color: #205f72;
+            border-radius: 16px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .org-card:hover .card-hover-text {
+            opacity: 1;
+        }
+
+        .menu-button {
+            position: absolute;
+            top: 8px;
+            right: 12px;
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            color: #205f72;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            /* 圓形 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .menu-button:hover,
+        .menu-button:focus {
+            background-color: rgba(255, 255, 255, 0.8);
+            box-shadow: 0 0 6px rgba(0, 0, 0, 0.2);
+            transform: scale(1.1);
+            color: #103c47;
+        }
+
+        .menu-list button {
+            white-space: nowrap;
+            padding: 8px 16px;
+            text-align: left;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-weight: normal;
+            font-size: 15px;
+        }
+
+        .menu-list button:hover {
+            background-color: #f0f0f0;
+        }
+
+        #orgList {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+            gap: 16px;
+        }
+
+        .dashed-box {
+            border: 2px dashed #cedfe4;
+            border-radius: 20px;
+            background-color: #ffffff;
+            padding: 24px;
+            min-height: 150px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .menu-button {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .org-card {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .menu-wrapper {
+            position: absolute;
+            top: 8px;
+            right: 5px;
+            width: 36px;
+            height: 36px;
+        }
+
+        .menu-button:hover+.menu-list,
+        .menu-list:hover {
+            display: flex;
+        }
+
+        .menu-list {
+            display: none;
+            flex-direction: column;
+            position: absolute;
+            top: 36px;
+            right: 0;
+            background-color: #ffffff;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+            padding: 4px 0;
+            min-width: 140px;
+        }
+    </style>
+<style>*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.pointer-events-none{pointer-events:none}.fixed{position:fixed}.inset-0{inset:0px}.z-50{z-index:50}.mb-1{margin-bottom:0.25rem}.mb-2{margin-bottom:0.5rem}.mb-4{margin-bottom:1rem}.mt-2{margin-top:0.5rem}.mt-8{margin-top:2rem}.block{display:block}.flex{display:flex}.hidden{display:none}.h-6{height:1.5rem}.max-h-48{max-height:12rem}.w-6{width:1.5rem}.w-full{width:100%}.max-w-\[180px\]{max-width:180px}.max-w-md{max-width:28rem}.flex-1{flex:1 1 0%}.cursor-default{cursor:default}.cursor-not-allowed{cursor:not-allowed}.cursor-pointer{cursor:pointer}.select-none{-webkit-user-select:none;user-select:none}.flex-col{flex-direction:column}.items-center{align-items:center}.justify-end{justify-content:flex-end}.justify-center{justify-content:center}.gap-2{gap:0.5rem}.gap-3{gap:0.75rem}.space-y-2 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.5rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.5rem * var(--tw-space-y-reverse))}.overflow-y-auto{overflow-y:auto}.truncate{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rounded-2xl{border-radius:1rem}.rounded-lg{border-radius:0.5rem}.border{border-width:1px}.border-gray-300{--tw-border-opacity:1;border-color:rgb(209 213 219 / var(--tw-border-opacity, 1))}.bg-black{--tw-bg-opacity:1;background-color:rgb(0 0 0 / var(--tw-bg-opacity, 1))}.bg-gray-100{--tw-bg-opacity:1;background-color:rgb(243 244 246 / var(--tw-bg-opacity, 1))}.bg-gray-300{--tw-bg-opacity:1;background-color:rgb(209 213 219 / var(--tw-bg-opacity, 1))}.bg-white{--tw-bg-opacity:1;background-color:rgb(255 255 255 / var(--tw-bg-opacity, 1))}.bg-opacity-50{--tw-bg-opacity:0.5}.stroke-\[\#205f72\]{stroke:#205f72}.p-3{padding:0.75rem}.p-6{padding:1.5rem}.px-10{padding-left:2.5rem;padding-right:2.5rem}.px-4{padding-left:1rem;padding-right:1rem}.py-2{padding-top:0.5rem;padding-bottom:0.5rem}.py-8{padding-top:2rem;padding-bottom:2rem}.text-center{text-align:center}.text-2xl{font-size:1.5rem;line-height:2rem}.text-sm{font-size:0.875rem;line-height:1.25rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.text-xs{font-size:0.75rem;line-height:1rem}.text-lg{font-size:1.125rem;line-height:1.75rem}.font-bold{font-weight:700}.font-semibold{font-weight:600}.leading-snug{line-height:1.375}.text-\[\#205f72\]{--tw-text-opacity:1;color:rgb(32 95 114 / var(--tw-text-opacity, 1))}.text-black{--tw-text-opacity:1;color:rgb(0 0 0 / var(--tw-text-opacity, 1))}.text-gray-500{--tw-text-opacity:1;color:rgb(107 114 128 / var(--tw-text-opacity, 1))}.text-gray-600{--tw-text-opacity:1;color:rgb(75 85 99 / var(--tw-text-opacity, 1))}.text-white{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.text-gray-700{--tw-text-opacity:1;color:rgb(55 65 81 / var(--tw-text-opacity, 1))}.shadow-xl{--tw-shadow:0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 20px 25px -5px var(--tw-shadow-color), 0 8px 10px -6px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.hover\:bg-transparent:hover{background-color:transparent}.focus\:border-gray-300:focus{--tw-border-opacity:1;border-color:rgb(209 213 219 / var(--tw-border-opacity, 1))}.focus\:outline-none:focus{outline:2px solid transparent;outline-offset:2px}.focus\:ring-0:focus{--tw-ring-offset-shadow:var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);--tw-ring-shadow:var(--tw-ring-inset) 0 0 0 calc(0px + var(--tw-ring-offset-width)) var(--tw-ring-color);box-shadow:var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000)}</style></head>
+
+<body>
+    <div class="layout">
+        <aside class="sidebar" id="sidebar">
+            <button class="navbar-toggle" onclick="toggleSidebar()" id="toggleBtn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="align-justify" class="lucide lucide-align-justify w-6 h-6 stroke-[#205f72]"><path d="M3 12h18"></path><path d="M3 18h18"></path><path d="M3 6h18"></path></svg>
+            </button>
+            <nav class="menu">
+                <div class="sidebar-item cursor-default hover:bg-transparent select-none">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="building" class="lucide lucide-building sidebar-icon stroke-[#205f72]"><rect width="16" height="20" x="4" y="2" rx="2" ry="2"></rect><path d="M9 22v-4h6v4"></path><path d="M8 6h.01"></path><path d="M16 6h.01"></path><path d="M12 6h.01"></path><path d="M12 10h.01"></path><path d="M12 14h.01"></path><path d="M16 10h.01"></path><path d="M16 14h.01"></path><path d="M8 10h.01"></path><path d="M8 14h.01"></path></svg>
+                    <div class="flex flex-col leading-snug">
+                        <span class="text-xs text-gray-500">目前組織</span>
+                        <span id="org-name" class="text-[#205f72] text-sm font-semibold truncate max-w-[180px]">會議寶</span>
+                    </div>
+                </div>
+                <a href="http://127.0.0.1:57391/organization" class="sidebar-item flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="home" class="lucide lucide-home sidebar-icon"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
+                    <span>首頁</span>
+                </a>
+                <a href="http://127.0.0.1:57391/topics?org_id=55#" class="sidebar-item flex items-center gap-2" onclick="goToTopicPage()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="swatch-book" class="lucide lucide-swatch-book sidebar-icon"><path d="M11 17a4 4 0 0 1-8 0V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2Z"></path><path d="M16.7 13H19a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2H7"></path><path d="M 7 17h.01"></path><path d="m11 8 2.3-2.3a2.4 2.4 0 0 1 3.404.004L18.6 7.6a2.4 2.4 0 0 1 .026 3.434L9.9 19.8"></path></svg>
+                    <span>創建議題</span>
+                </a>
+                <a href="http://127.0.0.1:57391/topics?org_id=55#" class="sidebar-item flex items-center gap-2" onclick="openHelpModal()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="circle-question-mark" class="lucide lucide-circle-question-mark sidebar-icon"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><path d="M12 17h.01"></path></svg>
+                    <span>使用說明</span>
+                </a>
+                <a href="http://127.0.0.1:57391/signin" class="sidebar-item flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="log-out" class="lucide lucide-log-out sidebar-icon"><path d="m16 17 5-5-5-5"></path><path d="M21 12H9"></path><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path></svg>
+                    <span>登出</span>
+                </a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header class="header">
+                <div class="header-left">
+                    <a href="http://127.0.0.1:57391/organization">
+                        <img src="./會議寶｜創建議題_files/logo.png" alt="Logo" class="logo-img">
+                    </a>
+                </div>
+                <div class="header-right">
+                    <a id="avatarLink" href="http://127.0.0.1:57391/organization_member/55">
+                        <img src="./會議寶｜創建議題_files/head.png" alt="Head" class="avatar-img">
+                    </a>
+                    
+                </div>
+            </header>
+
+            <section class="workspace px-10 py-8">
+                <button onclick="openModal()" class="btn-primary text-white px-4 py-2 rounded-lg font-bold">＋
+                    創建議題</button>
+
+                <div class="mt-8 dashed-box text-center">
+                    <h2 class="text-2xl font-bold text-[#205f72] mb-2">我的議題</h2>
+                    <p id="meetingHint" class="text-gray-600" style="display: none;">在此顯示你發起或參與的議題</p>
+                    <div id="orgList" style="display: flex; flex-wrap: wrap; gap: 16px; justify-content: flex-start;"><div class="org-card cursor-pointer">
+                <div class="menu-wrapper">
+                    <button class="menu-button">
+                        <i class="fa-solid fa-ellipsis-vertical"></i>
+                    </button>
+                    <div class="menu-list">
+                        <button onclick="alert(&#39;尚未實作：編輯議題&#39;)">重新命名議題</button>
+                        <button onclick="alert(&#39;尚未實作：刪除議題&#39;)">刪除議題</button>
+                    </div>
+                </div>
+                <div class="text-center">
+                    <h3 class="text-lg font-bold text-[#205f72] mb-1">666666666666</h3>
+                    <p class="text-sm text-gray-700"></p>
+                </div>
+            </div><div class="org-card cursor-pointer">
+                <div class="menu-wrapper">
+                    <button class="menu-button">
+                        <i class="fa-solid fa-ellipsis-vertical"></i>
+                    </button>
+                    <div class="menu-list">
+                        <button onclick="alert(&#39;尚未實作：編輯議題&#39;)">重新命名議題</button>
+                        <button onclick="alert(&#39;尚未實作：刪除議題&#39;)">刪除議題</button>
+                    </div>
+                </div>
+                <div class="text-center">
+                    <h3 class="text-lg font-bold text-[#205f72] mb-1">4444444</h3>
+                    <p class="text-sm text-gray-700"></p>
+                </div>
+            </div></div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal -->
+    <div id="modal" class="fixed inset-0 hidden items-center justify-center bg-black bg-opacity-50 z-50">
+        <div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-md">
+            <h3 class="text-xl font-bold text-[#205f72] mb-4 text-center">創建新議題</h3>
+            <!-- 創建者 -->
+            <div class="mb-4">
+                <label class="block font-bold mb-1">創建者</label>
+                <input id="topicCreator" type="text" class="w-full p-3 rounded-lg border border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed pointer-events-none focus:outline-none focus:ring-0 focus:border-gray-300" readonly="">
+            </div>
+            <div class="mb-4">
+                <label class="block font-bold mb-1">議題標題</label>
+                <input id="topicTitle" type="text" placeholder="請輸入議題標題" class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none">
+            </div>
+            <div class="mb-4">
+                <label class="block font-bold mb-1">會議參與者</label>
+                <div id="memberList" class="space-y-2 max-h-48 overflow-y-auto border p-3 rounded-lg bg-white"><div class="flex items-center gap-3">
+    <input type="checkbox" class="member-checkbox" value="10">
+    <span class="flex-1">連湘琪 (11146067@ntub.edu.tw)</span>
+</div><div class="flex items-center gap-3">
+    <input type="checkbox" class="member-checkbox" value="12">
+    <span class="flex-1">范雅淇 (11146082@ntub.edu.tw)</span>
+</div><div class="flex items-center gap-3">
+    <input type="checkbox" class="member-checkbox" value="15">
+    <span class="flex-1">邵紫綺 (11146074@ntub.edu.tw)</span>
+</div><div class="flex items-center gap-3">
+    <input type="checkbox" class="member-checkbox" value="16">
+    <span class="flex-1">李曼鈺 (11146079@ntub.edu.tw)</span>
+</div></div>
+            </div>
+            <div class="flex justify-end gap-2 mt-2">
+                <button onclick="closeModal()" class="bg-gray-300 text-black px-4 py-2 rounded-lg">取消</button>
+                <button onclick="createTopic()" class="btn-primary text-white px-4 py-2 rounded-lg">創建</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('collapsed');
+        }
+
+        function openModal() {
+            document.getElementById("modal").classList.remove("hidden");
+            document.getElementById("modal").classList.add("flex");
+
+            // ✅ 把登入頁存的 userName 顯示在創建者欄位
+            const userName = localStorage.getItem("userName");
+            document.getElementById("topicCreator").value = userName || "未登入使用者";
+        }
+
+        function closeModal() {
+            document.getElementById("modal").classList.add("hidden");
+            document.getElementById("modal").classList.remove("flex");
+        }
+
+        function createTopic() {
+            const title = document.getElementById("topicTitle").value.trim();
+            const creatorId = localStorage.getItem("user_id");  // ✅ 修正這行！
+            const orgId = localStorage.getItem("currentOrgId");
+
+            if (!title) {
+                alert("請輸入議題標題！");
+                return;
+            }
+
+            const participants = [];
+            document.querySelectorAll(".member-checkbox").forEach(checkbox => {
+                if (checkbox.checked) {
+                    participants.push({
+                        user_id: parseInt(checkbox.value)
+                    });
+                }
+            });
+
+            fetch("/api/topic", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    title: title,
+                    creator_id: parseInt(creatorId),
+                    org_id: parseInt(orgId),
+                    participants: participants
+                })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        alert("議題創建成功！");
+                        closeModal();
+                        loadTopics();  // ✅ 重新讀取全部議題
+                    }
+
+                    else {
+                        alert("創建失敗：" + data.message);
+                    }
+                })
+                .catch(err => {
+                    alert("發生錯誤：" + err);
+                });
+        }
+
+        function openHelpModal() {
+            alert("這是議題創建頁面，目前尚未設定使用說明內容。");
+        }
+
+        function getQueryParam(key) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(key);
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            lucide.createIcons();
+            const avatar = document.getElementById("avatarLink");
+
+            // 🔄 先從網址取得 org_id
+            let orgId = getQueryParam("org_id");
+            if (!orgId) {
+                console.warn("❌ 找不到 org_id 參數！");
+                return;
+            }
+
+            // ✅ 儲存最新 org_id 到 localStorage
+            localStorage.setItem("currentOrgId", orgId);
+
+            // ✅ 確保 avatarLink 用的是最新 org_id
+            avatar.href = `/organization_member/${orgId}`;
+
+            // 載入組織成員
+            fetch(`/api/organization_members/${orgId}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success && Array.isArray(data.members)) {
+                        const memberList = document.getElementById("memberList");
+                        memberList.innerHTML = "";
+
+                        data.members.forEach(member => {
+                            console.log("🟡 member.user_id:", member.user_id, "🟢 localStorage user_id:", localStorage.getItem("user_id"));
+                            if (String(member.user_id) === localStorage.getItem("user_id")) return;
+
+
+                            const row = document.createElement("div");
+                            row.className = "flex items-center gap-3";
+
+                            row.innerHTML = `
+    <input type="checkbox" class="member-checkbox" value="${member.user_id}" />
+    <span class="flex-1">${member.name} (${member.email})</span>
+`;
+                            memberList.appendChild(row);
+
+                        });
+                    }
+                });
+
+            // ✅ 載入議題卡片
+            loadTopics();
+        });
+
+        function addTopicCard(title, description, topic_id) {
+            const orgList = document.getElementById("orgList");
+
+            const card = document.createElement("div");
+            card.className = "org-card cursor-pointer";
+            card.innerHTML = `
+                <div class="menu-wrapper">
+                    <button class="menu-button">
+                        <i class="fa-solid fa-ellipsis-vertical"></i>
+                    </button>
+                    <div class="menu-list">
+                        <button onclick="alert('尚未實作：編輯議題')">重新命名議題</button>
+                        <button onclick="alert('尚未實作：刪除議題')">刪除議題</button>
+                    </div>
+                </div>
+                <div class="text-center">
+                    <h3 class="text-lg font-bold text-[#205f72] mb-1">${title}</h3>
+                    <p class="text-sm text-gray-700">${description}</p>
+                </div>
+            `;
+
+            // ✅ 點擊整張卡片跳轉到 start_meeting 頁面，要帶 org_id
+            card.addEventListener("click", function (event) {
+                // 如果點的是三個點的 menu，就不要跳轉
+                if (event.target.closest(".menu-wrapper")) return;
+                const orgId = localStorage.getItem("currentOrgId"); // 抓 org_id
+                window.location.href = `/meeting?topic_id=${topic_id}&org_id=${orgId}`;
+            });
+            orgList.appendChild(card);
+        }
+        document.addEventListener("DOMContentLoaded", function () {
+            const orgName = localStorage.getItem("org_name");
+            if (orgName) {
+                const el = document.getElementById("org-name");
+                if (el) el.textContent = orgName;
+            }
+        });
+        function goToTopicPage() {
+            const orgId = localStorage.getItem("currentOrgId");
+            if (!orgId) {
+                alert("⚠️ 尚未選擇組織，請先建立或切換組織！");
+                return;
+            }
+            window.location.href = `/topics?org_id=${orgId}`;
+        }
+
+        function loadTopics() {
+            const orgId = localStorage.getItem("currentOrgId");
+            const orgList = document.getElementById("orgList");
+            const hintText = document.getElementById("meetingHint");  // 🔸這行必須放在函式內部
+
+            fetch(`/api/topic/by_org/${orgId}`)
+                .then(res => {
+                    if (!res.ok) {
+                        return res.text().then(text => {
+                            throw new Error("⚠️ 非 JSON 回應：" + text);
+                        });
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    orgList.innerHTML = ""; // 清空原本的卡片區
+
+                    // ✅ 顯示/隱藏提示文字
+                    if (data.topics.length > 0) {
+                        hintText.style.display = "none";
+                    } else {
+                        hintText.style.display = "block";
+                    }
+
+                    data.topics.forEach(topic => {
+                        addTopicCard(topic.title, topic.description || "", topic.id);
+                    });
+                })
+                .catch(err => {
+                    console.error("❌ 發生錯誤：", err);
+                });
+        }
+
+    </script>
+
+
+</body></html>
