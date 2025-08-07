@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>會議寶｜會議中｜檔案上傳</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/navbar_d.css') }}" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .sidebar-item[disabled] {
+      background-color: transparent !important;
+      color: #aaa !important;
+      cursor: not-allowed !important;
+    }
+
+    .primary[disabled] {
+      background-color: #edebeb !important;
+      color: #aaa !important;
+      cursor: not-allowed !important;
+    }
+
+    /* ...（原本 style 不變）... */
+    .upload-layout {
+      display: flex;
+      min-height: 0;
+      flex: 1;
+      padding: 16px;
+      gap: 16px;
+    }
+
+    .upload-left {
+      width: 320px;
+      background-color: #fff;
+      border-radius: 12px;
+      box-shadow: 0 0 6px rgba(0, 0, 0, 0.1);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .upload-right {
+      flex: 1;
+      background-color: #fff;
+      border-radius: 12px;
+      box-shadow: 0 0 6px rgba(0, 0, 0, 0.1);
+      display: flex;
+      min-height: 0;
+      flex-direction: column;
+      justify-content: space-between;
+
+    }
+
+    .upload-header {
+      padding: 16px;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .chat-footer {
+      position: relative;
+      padding: 16px;
+      display: flex;
+      align-items: flex-end;
+      border-top: 1px solid #ccc;
+    }
+
+    .chat-footer input {
+      flex: 1;
+      padding: 10px;
+      border-radius: 20px;
+      border: 1px solid #ccc;
+      outline: none;
+    }
+
+
+    .chat-footer textarea {
+      flex: 1;
+      padding: 10px;
+      border-radius: 20px;
+      border: 1px solid #ccc;
+      outline: none;
+      line-height: 1.6;
+      resize: none;
+      overflow: hidden;
+      min-height: 40px;
+      font-size: 16px;
+    }
+
+
+    .file-item {
+      display: flex;
+      align-items: center;
+      background-color: #e4e5e5;
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-size: 14px;
+      color: #205f72;
+      margin-bottom: 10px;
+      width: 100%;
+      box-sizing: border-box;
+      gap: 8px;
+      cursor: default;
+      /* 不可點 */
+    }
+
+    .file-link {
+      color: #205f72;
+      text-decoration: none;
+      flex: 1
+    }
+
+    .file-link:hover {
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
+    .file-item input[type="checkbox"] {
+      flex-shrink: 0;
+      margin: 0;
+    }
+
+    .primary {
+      background-color: #175c71;
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-bottom: 12px;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 999;
+      inset: 0;
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    .modal.show {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-content {
+      background-color: #fff;
+      padding: 24px;
+      border-radius: 12px;
+      width: 360px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .modal-content select,
+    .modal-content input[type="file"] {
+      padding: 6px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    .close {
+      align-self: flex-end;
+      font-size: 28px;
+      color: #888;
+      cursor: pointer;
+    }
+
+    .close:hover {
+      color: black;
+    }
+
+    .send-btn {
+      background-color: #175c71;
+      border: none;
+      border-radius: 50%;
+      padding: 10px;
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .chat-history {
+      flex: 1 1 0%;
+      min-height: 0;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      color: #205f72;
+      font-size: 16px;
+    }
+
+
+    .msg-row {
+      display: flex;
+      margin-bottom: 8px;
+    }
+
+    .msg-user {
+      justify-content: flex-end;
+    }
+
+    .msg-ai {
+      justify-content: flex-start;
+    }
+
+    .bubble {
+      max-width: 75%;
+      padding: 10px 16px;
+      border-radius: 16px;
+      font-size: 16px;
+      line-height: 1.6;
+      white-space: pre-line;
+      box-shadow: 0 2px 6px rgba(120, 120, 140, 0.04);
+      margin-left: 8px;
+      margin-right: 8px;
+    }
+
+    .bubble-user {
+      background: linear-gradient(90deg, #175c71 85%, #3387a7 100%);
+      color: #fff;
+      border-bottom-right-radius: 4px;
+      align-self: flex-end;
+    }
+
+    .bubble-ai {
+      background: #e4e5e5;
+      color: #205f72;
+      border-bottom-left-radius: 4px;
+      align-self: flex-start;
+    }
+  </style>
+</head>
+
+<body>
+
+  <body style="height:100vh;"></body>
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <button class="navbar-toggle" onclick="toggleSidebar()" id="toggleBtn">
+        <i data-lucide="align-justify" class="w-6 h-6 stroke-[#205f72]"></i>
+      </button>
+      <nav class="menu">
+        <div class="sidebar-item cursor-default hover:bg-transparent select-none">
+          <i data-lucide="building" class="sidebar-icon stroke-[#205f72]"></i>
+          <div class="flex flex-col leading-snug">
+            <span class="text-xs text-gray-500">目前會議</span>
+            <span id="meeting-date" class="text-[#205f72] text-sm font-semibold truncate max-w-[180px]"></span>
+            <span id="meeting-name" class="text-[#205f72] text-sm font-semibold truncate max-w-[180px]"></span>
+          </div>
+        </div>
+
+        <a href="{{ url_for('file.meeting_during_file_upload_page', meeting_id=meeting_id) }}" class="sidebar-item">
+          <i data-lucide="file-plus" class="sidebar-icon"></i><span>檔案上傳</span>
+        </a>
+        <a href="{{ url_for('meeting_during_transcript_now_page', meeting_id=meeting_id) }}" class="sidebar-item">
+          <i data-lucide="mic" class="sidebar-icon"></i><span>語音轉文字</span>
+        </a>
+        <a href="#" class="sidebar-item flex items-center gap-2" onclick="openHelpModal()">
+          <i data-lucide="circle-question-mark" class="sidebar-icon"></i>
+          <span>使用說明</span>
+        </a>
+        <a href="{{ url_for('auth.signin_page') }}" class="sidebar-item">
+          <i data-lucide="log-out" class="sidebar-icon"></i><span>登出</span>
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <header class="header">
+        <div class="header-left">
+          <a href="{{ url_for('organization.build_organization_page') }}">
+            <img src="{{ url_for('static', filename='image/logo.png') }}" alt="Logo" class="logo-img" />
+          </a>
+        </div>
+
+        <div class="progress-bar flex items-center">
+          <div class="step-group">
+            <div class="circle gray-completed"></div>
+            <div class="label label-gray">前</div>
+          </div>
+          <div class="line solid-gray"></div>
+
+          <div class="step-group">
+            <div class="circle completed"></div>
+            <div class="label">中</div>
+          </div>
+
+          <div class="line dashed relative flex-1 flex items-center justify-center">
+            <button onclick="goToNext()"
+              class="absolute z-10 bg-[#175c71] text-white text-sm px-3 py-1 rounded-full hover:bg-[#124654] transition-all">
+              下一步
+            </button>
+          </div>
+
+          <div class="step-group">
+            <div class="circle"></div>
+            <div class="label">後</div>
+          </div>
+        </div>
+
+        <div class="header-right">
+          <a href="{{ url_for('permission.meeting_member2_page', meeting_id=meeting_id) }}">
+            <img src="{{ url_for('static', filename='image/head.png') }}" alt="Head" class="avatar-img" />
+          </a>
+
+        </div>
+      </header>
+
+      <section class="upload-layout">
+        <div class="upload-left">
+          <button class="primary" onclick="openModal()">＋新增</button>
+          <div id="fileList">
+            <p id="no-files-msg" style="color:#666; margin-bottom: 10px;">目前尚無檔案</p>
+            <div id="section-audio" style="display:none">
+              <h3 style="color:#175c71; font-weight:bold;">🔊 語音</h3>
+              <div class="file-list-inner"></div>
+            </div>
+            <div id="section-transcript" style="display:none">
+              <h3 style="color:#175c71; font-weight:bold;">📄 逐字稿</h3>
+              <div class="file-list-inner"></div>
+            </div>
+            <div id="section-summary" style="display:none">
+              <h3 style="color:#175c71; font-weight:bold;">📝 會議紀錄整理</h3>
+              <div class="file-list-inner"></div>
+            </div>
+            <div id="section-final" style="display:none">
+              <h3 style="color:#175c71; font-weight:bold;">📑 會議正式文件</h3>
+              <div class="file-list-inner"></div>
+            </div>
+          </div>
+        </div>
+        <div class="upload-right">
+          <div class="upload-header">
+            <p>智能查詢（點選檔案後可進行提問）</p>
+          </div>
+          <div id="chatHistory" class="chat-history"></div>
+          <div class="chat-footer">
+            <textarea id="questionInput" rows="1" placeholder="請輸入問題"
+              style="resize: none; overflow: hidden; width: 100%; border-radius: 20px; padding: 10px; border: 1px solid #ccc; outline: none; min-height: 40px; line-height: 1.6;"></textarea>
+
+            <button class="send-btn border border-black hover:scale-105 transition-transform"
+              onclick="askLlamaFromFile()">
+              <i data-lucide="send-horizontal" class="w-[12px] h-[12px] scale-[1.8] text-white"></i>
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal" id="uploadModal">
+    <div class="modal-content relative">
+      <!-- 沒有叉叉，留空隱藏 -->
+      <h3 class="text-lg font-bold mb-4 text-center text-[#205f72]">檔案上傳</h3>
+
+      <label for="fileType" class="block text-sm font-semibold mb-1">選擇檔案類型</label>
+      <select id="fileType" class="w-full border border-gray-300 rounded px-2 py-2 mb-3">
+        <option value="語音">語音</option>
+        <option value="逐字稿">逐字稿</option>
+        <option value="會議紀錄整理">會議紀錄整理</option>
+        <option value="會議正式文件">會議正式文件</option>
+      </select>
+
+      <label for="fileInput" class="block text-sm font-semibold mb-1">選擇檔案</label>
+      <input type="file" id="fileInput" class="w-full border border-gray-300 rounded px-2 py-2 mb-4" />
+
+      <!-- 底部按鈕 -->
+      <div class="flex justify-end gap-4 mt-6">
+        <button onclick="closeModal()" class="text-gray-600 hover:text-gray-900 font-medium">取消</button>
+        <button onclick="submitUpload()"
+          class="bg-[#175c71] text-white px-4 py-2 rounded hover:bg-[#124654]">確認上傳</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    window.ROLE = "{{ role }}";
+    window.MEETING = {
+      id: "{{ meeting_id }}",
+      name: "{{ meeting_name }}",
+
+      date: "{{ meeting_date }}",
+      org_id: "{{ org_id }}",
+      org_name: "{{ organization_name }}"
+    };
+
+    function toggleSidebar() {
+      document.getElementById("sidebar").classList.toggle("collapsed");
+    }
+
+    function openModal() {
+      document.getElementById("uploadModal").classList.add("show");
+    }
+
+    function closeModal() {
+      document.getElementById("uploadModal").classList.remove("show");
+    }
+
+    let uploading = false;  // 全域變數，防止重複送出
+    function submitUpload() {
+      const meetingId = localStorage.getItem("currentMeetingId");
+      const fileInput = document.getElementById("fileInput");
+      const fileType = document.getElementById("fileType").value;
+
+      const formData = new FormData();
+      formData.append("meeting_id", meetingId);
+      formData.append("file_type", fileType);
+      formData.append("file", fileInput.files[0]);
+
+      console.log("📤 submitUpload() 觸發！");
+      fetch("/upload_file", {
+        method: "POST",
+        body: formData,
+      })
+        .then((res) => res.json())
+        .then((result) => {
+          console.log("🪵 原始回傳：", result);
+          if (result.success) {
+            alert("✅ 檔案成功上傳！");
+            fileInput.value = ""; // 清空
+            closeModal();  // 正確呼叫原本就有的 closeModal() 函式
+            // ⏳ 延遲 300ms 後再重新載入列表，避免太快撈資料庫還沒寫入完
+            setTimeout(() => {
+              renderFileList();
+            }, 300);
+          } else {
+            alert("❌ 上傳失敗：" + result.message);
+          }
+        })
+        .catch((err) => {
+          alert("❌ 上傳過程發生錯誤");
+          console.error("Upload error:", err);
+        })
+        .finally(() => {
+          uploading = false;
+        });
+    }
+
+    function renderFileList() {
+      const meetingId = "{{ meeting_id }}";
+      const role = window.ROLE;
+
+      const sections = {
+        "語音": document.querySelector("#section-audio"),
+        "逐字稿": document.querySelector("#section-transcript"),
+        "會議紀錄整理": document.querySelector("#section-summary"),
+        "會議正式文件": document.querySelector("#section-final")
+      };
+
+      // ✅ 清空所有 section 中的檔案內容，但不要清空整個 fileList
+      Object.values(sections).forEach(section => {
+        if (section) {
+          section.style.display = "none";
+          const inner = section.querySelector(".file-list-inner");
+          if (inner) inner.innerHTML = "";
+        }
+      });
+
+      // ✅ 呼叫 API 取得檔案
+      fetch(`/api/meeting_files/${meetingId}`)
+        .then(res => res.json())
+        .then(data => {
+          const files = data.files || [];
+          const deletableRoles = ["主持人", "edit", "可供編輯"];
+
+          const noFileMsg = document.getElementById("no-files-msg");
+
+          if (files.length === 0) {
+            // ✅ 顯示提示訊息
+            if (noFileMsg) noFileMsg.style.display = "block";
+            return;
+          } else {
+            // ✅ 有檔案就隱藏提示訊息
+            if (noFileMsg) noFileMsg.style.display = "none";
+          }
+
+
+          files.forEach((file) => {
+            const item = document.createElement("label");
+            item.className = "file-item";
+
+            const checkbox = document.createElement("input");
+            checkbox.type = "checkbox";
+            checkbox.setAttribute("data-file-path", file.file_path);
+            checkbox.className = "file-checkbox";
+
+            const link = document.createElement("a");
+            link.href = `/uploads/${file.file_path}`;
+            link.textContent = file.file_name;
+            link.target = "_blank";
+            link.className = "file-link";
+
+            const delBtn = document.createElement("button");
+            delBtn.innerHTML = "&#10006;";
+            delBtn.title = "刪除";
+            delBtn.style.border = "none";
+            delBtn.style.background = "transparent";
+            delBtn.style.color = "#d32f2f";
+            delBtn.style.cursor = "pointer";
+
+            if (!deletableRoles.includes(role)) {
+              delBtn.disabled = true;
+              delBtn.style.color = "#ccc";
+              delBtn.style.cursor = "not-allowed";
+              delBtn.title = "您沒有權限";
+            } else {
+              delBtn.onclick = (e) => {
+                e.preventDefault();
+                if (confirm(`確定要刪除 ${file.file_name} 嗎？`)) {
+                  fetch("/api/delete_file", {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                      meeting_id: meetingId,
+                      file_name: file.file_name
+                    })
+                  })
+                    .then(res => res.json())
+                    .then(result => {
+                      if (result.success) {
+                        alert("✅ 檔案已刪除");
+                        renderFileList();
+                      } else {
+                        alert("❌ 刪除失敗：" + result.message);
+                      }
+                    })
+                    .catch(err => {
+                      alert("❌ 刪除發生錯誤");
+                      console.error(err);
+                    });
+                }
+              };
+            }
+
+            item.appendChild(checkbox);
+            item.appendChild(link);
+            item.appendChild(delBtn);
+
+            const section = sections[file.file_type];
+            if (section) {
+              const inner = section.querySelector(".file-list-inner");
+              if (inner) {
+                inner.appendChild(item);
+                section.style.display = "block";
+              }
+            }
+          });
+        });
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const name = localStorage.getItem("currentMeetingName") || "未命名會議";
+      const date = localStorage.getItem("currentMeetingDate") || "未指定日期";
+      document.getElementById("meeting-name").textContent = name;
+      document.getElementById("meeting-date").textContent = date;
+      const role = window.ROLE;
+
+      // === 1. 禁用「+新增」與發送通知按鈕 ===
+      if (role === "view") {
+        // 禁用所有 primary 按鈕（新增檔案、發送通知內的按鈕）
+        document.querySelectorAll('.primary').forEach(btn => {
+          btn.disabled = true;
+          btn.style.backgroundColor = "#ccc";
+          btn.style.cursor = "not-allowed";
+          btn.onclick = null;
+          btn.title = "您沒有權限";
+        });
+
+        // 禁用左側側欄的通知按鈕
+        const notifyBtn = document.querySelector('button[onclick="openNotifyModal()"]');
+        if (notifyBtn) {
+          notifyBtn.disabled = true;
+          notifyBtn.style.color = "#aaa";
+          notifyBtn.style.cursor = "not-allowed";
+          notifyBtn.onclick = null;
+          notifyBtn.title = "您沒有權限";
+        }
+      }
+
+      renderFileList(); // 載入檔案清單（會自動依權限顯示刪除鍵）
+    });
+
+    function goToNext() {
+      window.location.href = "{{ url_for('meeting_during_transcript_now_page', meeting_id=meeting_id) }}";
+    }
+
+    function openNotifyModal() {
+      document.getElementById("notifyModal").classList.add("show");
+
+      const meeting = window.MEETING || {};
+      const name = localStorage.getItem("currentMeetingName") || meeting.name || "未命名會議";
+      const date = localStorage.getItem("currentMeetingDate") || meeting.date || "未指定日期";
+
+      const displayName = `${date.replace(/-/g, "/")} ${name}`;
+      document.getElementById("notifyMeetingName").value = displayName;
+      document.getElementById("notifyMeetingClock").value = meeting.date || "";
+
+      let org_id = localStorage.getItem("current_org_id");
+      if (!org_id && meeting.org_id) {
+        org_id = meeting.org_id;
+        localStorage.setItem("current_org_id", org_id);
+      }
+
+      if (!org_id) {
+        alert("⚠️ 無法取得組織 ID，請重新整理頁面");
+        return;
+      }
+
+      window.orgMembersEmails = [];
+
+      fetch(`/api/organization_members_emails/${org_id}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            const emails = data.members.map(m => m.email);
+            window.orgMembersEmails = emails;
+            console.log("✅ 成員 emails 已載入：", emails);
+          } else {
+            console.warn("❌ 無法載入組織成員 emails", data.message);
+            alert("無法載入組織成員 email");
+          }
+        })
+        .catch(err => {
+          console.error("❌ API 呼叫錯誤：", err);
+        });
+    }
+
+    function closeNotifyModal() {
+      document.getElementById("notifyModal").classList.remove("show");
+    }
+
+
+    function submitNotify() {
+      const title = document.getElementById("notifyMeetingName").value.trim();
+      const date = document.getElementById("notifyMeetingClock").value.trim();
+      const agenda = document.getElementById("notifyAgenda").value.trim();
+      const emails = window.orgMembersEmails || []; // 假設你在 JS 有撈出成員 email
+
+      console.log("📤 [DEBUG] title =", title);
+      console.log("📤 [DEBUG] date =", date);
+      console.log("📤 [DEBUG] emails =", emails);
+
+      if (!title || !date || emails.length === 0) {
+        alert("請輸入完整資料！");
+        return;
+      }
+      fetch("/api/email/meeting_notification", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          title: title,
+          date: date,
+          org_name: window.MEETING.org_name || "未命名組織",
+          emails: emails
+        })
+      })
+        .then(res => res.json())
+        .then(res => {
+          if (res.success) {
+            alert("✅ 通知已發送！");
+            closeNotifyModal();
+          } else {
+            alert("❌ 寄送失敗：" + res.message);
+          }
+        })
+        .catch(err => {
+          alert("⚠️ 系統錯誤：" + err);
+        });
+    }
+    // 智能查詢：送出問題按鈕處理
+    document.querySelector(".send-btn").addEventListener("click", async () => {
+      const selectedCheckbox = document.querySelector("input[type='checkbox']:checked");
+      if (!selectedCheckbox) {
+        alert("請先選擇一個檔案");
+        return;
+      }
+      const filePath = selectedCheckbox.getAttribute("data-file-path");
+
+      const questionInput = document.getElementById("questionInput");
+      const question = questionInput.value.trim();
+      if (!question) {
+        alert("請輸入問題");
+        return;
+      }
+
+
+      const chatHistory = document.getElementById("chatHistory");
+
+      // 使用者右邊藍色氣泡
+      chatHistory.innerHTML += `
+    <div class="msg-row msg-user">
+      <div class="bubble bubble-user">${escapeHtml(question)}</div>
+    </div>
+  `;
+      // AI 思考中（左側灰色氣泡）
+      chatHistory.innerHTML += `
+    <div class="msg-row msg-ai" id="ai-thinking-msg">
+      <div class="bubble bubble-ai">AI 思考中…</div>
+    </div>
+  `;
+      questionInput.value = "";
+
+      // 滾到底
+      chatHistory.scrollTop = chatHistory.scrollHeight;
+
+      try {
+        const userId = localStorage.getItem("user_id");
+        const meetingId = window.MEETING.id;
+        const response = await fetch("/qa/rag_qa", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            file_path: filePath,
+            question: question,
+            user_id: userId,
+            meeting_id: meetingId
+          }),
+        });
+        const result = await response.json();
+
+        // 找到思考中那個元素，改成 AI 回答
+        const thinkingDiv = document.getElementById("ai-thinking-msg");
+        if (thinkingDiv) {
+          thinkingDiv.outerHTML = `
+        <div class="msg-row msg-ai">
+          <div class="bubble bubble-ai">${escapeHtml(result.success ? result.answer : ("❌ " + (result.message || "AI 回答失敗")))}</div>
+        </div>
+      `;
+        }
+        chatHistory.scrollTop = chatHistory.scrollHeight;
+      } catch (err) {
+        const thinkingDiv = document.getElementById("ai-thinking-msg");
+        if (thinkingDiv) {
+          thinkingDiv.outerHTML = `
+        <div class="msg-row msg-ai">
+          <div class="bubble bubble-ai">⚠️ 系統錯誤，請稍後再試。</div>
+        </div>
+      `;
+        }
+        console.error("AI 連線失敗：", err);
+      }
+    });
+
+    // 防止 XSS (最基本)
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>"']/g, function (m) {
+        return ({
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#39;'
+        })[m];
+      });
+    }
+    document.addEventListener("change", function (e) {
+      if (e.target && e.target.classList.contains("file-checkbox")) {
+        document.querySelectorAll('.file-checkbox').forEach(cb => {
+          if (cb !== e.target) cb.checked = false;
+        });
+      }
+    });
+
+    let enterCount = 0;
+    let lastEnterTime = 0;
+
+    document.getElementById("questionInput").addEventListener("keydown", function (e) {
+      // 👉 Shift + Enter：換行
+      if (e.key === "Enter" && e.shiftKey) {
+        return; // 不阻止預設行為，讓它換行
+      }
+
+      // 👉 Command + Enter：立即送出（Mac 上是 metaKey，Windows 是 ctrlKey）
+      if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        document.querySelector(".send-btn").click();
+        return;
+      }
+
+      // 👉 單純 Enter（不含 Shift/Cmd）：做兩次按下的判斷
+      if (e.key === "Enter") {
+        e.preventDefault(); // 防止送出表單或換行
+
+        const now = Date.now();
+        if (now - lastEnterTime < 1000) {
+          // 如果在 1 秒內按兩次 Enter，才送出
+          document.querySelector(".send-btn").click();
+          enterCount = 0;
+        } else {
+          // 第一次 Enter，只記錄時間
+          enterCount = 1;
+          lastEnterTime = now;
+        }
+      }
+    });
+
+    const textarea = document.getElementById("questionInput");
+
+    textarea.addEventListener("input", () => {
+      textarea.style.height = "auto";
+      if (textarea.value.trim() === "") {
+        textarea.style.height = "40px"; // 強制恢復初始高度
+      } else {
+        textarea.style.height = Math.max(textarea.scrollHeight, 40) + "px";
+      }
+    });
+
+
+    // ✅ 保險用：Delete 後也重新檢查
+    textarea.addEventListener("keyup", () => {
+      textarea.style.height = "auto";
+      if (textarea.value.trim() === "") {
+        textarea.style.height = "40px";
+      } else {
+        textarea.style.height = Math.max(textarea.scrollHeight, 40) + "px";
+      }
+    });
+
+    function openNotifyModal() {
+      const modal = document.getElementById("notifyModal");
+      modal.style.display = "flex"; // 顯示為彈出視窗（flex 中央對齊
+      document.getElementById("notifyMeetingName").value = localStorage.getItem("currentMeetingName") || "未命名會議";
+    }
+
+    function closeNotifyModal() {
+      const modal = document.getElementById("notifyModal");
+      modal.style.display = "none"; // 隱藏
+    }
+  </script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    lucide.createIcons();
+  </script>
+</body>
+
+</html>

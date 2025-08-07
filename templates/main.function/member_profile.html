@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>會議寶｜會員資訊</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/navbar_b.css') }}" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<style>
+  .btn-primary {
+    background-color: #205f72;
+  }
+</style>
+
+<body>
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <button class="navbar-toggle" onclick="toggleSidebar()" id="toggleBtn">
+        <i data-lucide="menu" id="toggleIcon" class="w-6 h-6 text-[#205f72]"></i>
+      </button>
+      <nav class="menu">
+        <a href="{{ url_for('organization.build_organization_page') }}" class="sidebar-item flex items-center gap-2">
+          <i data-lucide="home" class="sidebar-icon"></i>
+          <span>首頁</span>
+        </a>
+        <a href="#" class="sidebar-item flex items-center gap-2" onclick="openHelpModal()">
+          <i data-lucide="circle-question-mark" class="sidebar-icon"></i>
+          <span>使用說明</span>
+        </a>
+        <a href="{{ url_for('auth.signin_page') }}" class="sidebar-item flex items-center gap-2">
+          <i data-lucide="log-out" class="sidebar-icon"></i>
+          <span>登出</span>
+        </a>
+      </nav>
+    </aside>
+
+    <main class="main-content">
+      <header class="header">
+        <div class="header-left">
+          <a href="{{ url_for('organization.build_organization_page') }}">
+            <img src="{{ url_for('static', filename='image/logo.png') }}" alt="Logo" class="logo-img" id="logoImg" />
+          </a>
+        </div>
+        <div class="header-right">
+          <a href="{{ url_for('member_profile_page') }}">
+            <img src="{{ url_for('static', filename='image/head.png') }}" alt="Head" class="avatar-img" />
+          </a>
+        </div>
+      </header>
+
+      <!-- 會員資訊卡片 -->
+      <div class="flex justify-center items-center py-10">
+        <div class="bg-[#cedfe4] w-full max-w-md p-6 rounded-2xl shadow-xl border border-dashed border-[#cedfe4]">
+          <!-- 標題 -->
+          <div class="text-center mb-6">
+            <h1 class="text-2xl font-bold text-[#205f72]">會員資訊</h1>
+          </div>
+
+          <!-- 表單 -->
+          <form method="POST" action="/update_profile" class="space-y-4"> <!--加上 POST & action -->
+
+            <!-- 姓名 -->
+            <div class="flex justify-center">
+              <div class="w-full max-w-sm">
+                <label class="block font-semibold text-[#205f72] mb-1">姓名</label>
+                <input type="text" name="name" placeholder="輸入新姓名" value="{{ user.name }}"
+                  class="w-full px-3 py-2 rounded-md border border-[#205f72] focus:outline-none focus:ring-2 focus:ring-[#205f72]">
+              </div>
+            </div>
+            <!-- 帳號 -->
+            <div class="flex justify-center">
+              <div class="w-full max-w-sm">
+                <label class="block font-semibold text-[#205f72] mb-1">帳號</label>
+                <input type="text" value="{{ user.email }}" disabled
+                  class="w-full px-3 py-2 rounded-md bg-[#f5f8fa] text-gray-500 border border-[#205f72]">
+              </div>
+            </div>
+            <!-- 密碼 -->
+            <div class="flex justify-center">
+              <div class="w-full max-w-sm">
+                <label class="block font-semibold text-[#205f72] mb-1">密碼</label>
+                <input type="password" name="password" placeholder="輸入新密碼"
+                  class="w-full px-3 py-2 rounded-md border border-[#205f72] focus:outline-none focus:ring-2 focus:ring-[#205f72]">
+              </div>
+            </div>
+
+            <!-- 送出 -->
+            <div class="text-center pt-4">
+              <button type="submit"
+                class="bg-[#205f72] text-white font-semibold px-6 py-2 rounded-full hover:bg-[#175c71]">
+                送出
+              </button>
+            </div>
+          </form>
+
+        </div>
+      </div>
+    </main>
+  </div>
+  <!-- 使用說明 Modal -->
+  <div id="helpModal" class="fixed inset-0 hidden flex items-center justify-center bg-black bg-opacity-50 z-50">
+    <div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-lg">
+      <h3 class="text-xl font-bold text-[#205f72] mb-4 text-center">使用說明</h3>
+      <ul class="list-disc pl-5 text-gray-700 leading-relaxed text-base">
+        <li>此頁面可查看並修改您的會員資訊。</li>
+        <li>「姓名」與「密碼」欄位可直接編輯。</li>
+        <li>「帳號」為註冊時使用的 Email，無法修改。</li>
+        <li>
+          修改完畢後請點選下方
+          <button class="bg-[#205f72] text-white text-xs font-bold px-3 py-1 rounded-full">送出</button>
+          按鈕，系統將立即更新資料。
+        </li>
+        <li>若未輸入新密碼，將保留原密碼不變。</li>
+      </ul>
+      <div class="flex justify-center mt-6">
+        <button onclick="closeHelpModal()" class="bg-gray-300 text-black px-6 py-2 rounded-lg hover:bg-gray-400">
+          關閉
+        </button>
+      </div>
+    </div>
+  </div>
+
+</body>
+
+</html>
+
+
+<script>
+  function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    sidebar.classList.toggle('collapsed');
+  }
+  function openHelpModal() {
+    const modal = document.getElementById('helpModal');
+    if (modal) {
+      modal.classList.remove('hidden');
+      lucide.createIcons();  // 確保圖示渲染
+    }
+  }
+
+  function closeHelpModal() {
+    const modal = document.getElementById('helpModal');
+    if (modal) {
+      modal.classList.add('hidden');
+    }
+  }
+
+  // 初始化 Lucide Icons
+  lucide.createIcons();
+</script>

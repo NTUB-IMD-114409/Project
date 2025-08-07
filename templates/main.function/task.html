@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>會議寶｜任務追蹤</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/navbar_b.css') }}" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .btn-primary {
+            background-color: #205f72;
+        }
+
+        .btn-primary:hover {
+            background-color: #175c71;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="layout">
+        <aside class="sidebar" id="sidebar">
+            <button class="navbar-toggle" onclick="toggleSidebar()" id="toggleBtn">
+                <i data-lucide="align-justify" class="w-6 h-6 stroke-[#205f72]"></i>
+            </button>
+            <nav class="menu">
+                <div class="sidebar-item cursor-default hover:bg-transparent select-none">
+                    <i data-lucide="building" class="sidebar-icon stroke-[#205f72]"></i>
+                    <div class="flex flex-col leading-snug">
+                        <span class="text-xs text-gray-500">目前組織</span>
+                        <span id="org-name" class="text-[#205f72] text-sm font-semibold truncate max-w-[180px]"></span>
+                    </div>
+                </div>
+                <a href="{{ url_for('organization.build_organization_page') }}"
+                    class="sidebar-item flex items-center gap-2">
+                    <i data-lucide="home" class="sidebar-icon"></i>
+                    <span>首頁</span>
+                </a>
+                <a id="startMeetingLink" href="#" class="sidebar-item flex items-center gap-2">
+                    <i data-lucide="user-plus" class="sidebar-icon"></i>
+                    <span>發起會議</span>
+                </a>
+                <a href="{{ url_for('task.task_page') }}" class="sidebar-item">
+                    <i data-lucide="list-todo" class="sidebar-icon"></i>
+                    <span>任務追蹤</span>
+                </a>
+                <a href="{{ url_for('auth.signin_page') }}" class="sidebar-item flex items-center gap-2">
+                    <i data-lucide="log-out" class="sidebar-icon"></i>
+                    <span>登出</span>
+                </a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header class="header">
+                <div class="header-left">
+                    <a href="{{ url_for('organization.build_organization_page') }}">
+                        <img src="{{ url_for('static', filename='image/logo.png') }}" alt="Logo" class="logo-img" />
+                    </a>
+                </div>
+                <div class="header-right">
+                    <a id="memberLink" href="#">
+                        <img src="{{ url_for('static', filename='image/head.png') }}" alt="Head" class="avatar-img" />
+                    </a>
+                </div>
+            </header>
+
+            <!-- Main -->
+            <div class="flex-1 p-10">
+                <div class="flex justify-between items-center mb-6">
+                    <div class="flex items-center gap-2 text-[#205f72] text-2xl font-bold">
+                        <img src="https://cdn-icons-png.flaticon.com/512/2972/2972536.png" class="w-8 h-8" /> 任務列表
+                    </div>
+                    <button class="btn-primary text-white px-4 py-2 rounded-lg font-bold">＋ 新增任務</button>
+                </div>
+
+                <div class="overflow-x-auto rounded-lg shadow bg-white">
+                    <table class="min-w-full divide-y divide-gray-200 text-sm">
+                        <thead class="bg-[#cedfe4] text-[#205f72] text-base">
+                            <tr>
+                                <th class="px-4 py-2 text-center">負責人</th>
+                                <th class="px-4 py-2 text-center">任務名稱</th>
+                                <th class="px-4 py-2 text-center">所屬會議</th>
+                                <th class="px-4 py-2 text-center">截止日</th>
+                                <th class="px-4 py-2 text-center">狀態</th>
+                                <th class="px-4 py-2 text-center">建立日期</th>
+                                <th class="px-4 py-2 text-center">指派者</th>
+                                <th class="px-4 py-2 text-center">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="taskTableBody" class="divide-y divide-gray-100">
+                            <tr class="text-center text-gray-400" id="emptyRow">
+                                <td colspan="8" class="py-6">目前尚無任務</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div> <!-- ✅ 這是 <div class="overflow-x-auto"> 的結尾 -->
+            </div> <!-- ✅ 這是你漏掉的關鍵，對應 <div class="flex-1 p-10"> -->
+        </main>
+    </div>
+
+    <!-- ✅ 修正版本 -->
+    <!-- 新增任務 Modal -->
+    <div id="taskModal" class="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center hidden z-50">
+        <div class="bg-white p-6 rounded-lg w-full max-w-md shadow-lg">
+            <h2 class="text-xl font-bold text-[#205f72] mb-4 text-center">新增任務</h2>
+            <form id="taskForm" class="space-y-4">
+                <div>
+                    <label class="block font-semibold mb-1">負責人</label>
+                    <select id="memberSelect" class="w-full border rounded px-3 py-2"></select>
+                </div>
+                <div>
+                    <label class="block font-semibold mb-1">任務名稱</label>
+                    <input type="text" id="taskTitle" class="w-full border rounded px-3 py-2" required />
+                </div>
+                <div>
+                    <label class="block font-semibold mb-1">所屬會議</label>
+                    <select id="meetingSelect" class="w-full border rounded px-3 py-2"></select>
+                </div>
+                <div>
+                    <label class="block font-semibold mb-1">截止日</label>
+                    <input type="date" id="dueDate" class="w-full border rounded px-3 py-2" required min="" />
+                </div>
+                <!-- ✅ 移到 form 裡面 -->
+                <div class="flex justify-end gap-2 mt-4">
+                    <button type="button" onclick="closeModal()"
+                        class="px-4 py-2 text-gray-600 hover:underline">取消</button>
+                    <button type="submit" class="btn-primary text-white px-4 py-2 rounded-lg">新增</button>
+                </div>
+            </form> <!-- ✅ 這行要在 form 結束後補上 -->
+        </div>
+    </div>
+
+    <!-- 編輯任務 Modal -->
+    <div id="editTaskModal" class="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center hidden z-50">
+        <div class="bg-white p-6 rounded-lg w-full max-w-md shadow-lg">
+            <h2 class="text-xl font-bold text-[#205f72] mb-4 text-center">編輯任務</h2>
+            <form id="editTaskForm" class="space-y-4">
+                <input type="hidden" id="editTaskId" />
+
+                <div>
+                    <label class="block font-semibold mb-1">負責人</label>
+                    <select id="editMemberSelect" class="w-full border rounded px-3 py-2"></select>
+                </div>
+
+                <div>
+                    <label class="block font-semibold mb-1">任務名稱</label>
+                    <input type="text" id="editTaskTitle" class="w-full border rounded px-3 py-2" required />
+                </div>
+
+                <div>
+                    <label class="block font-semibold mb-1">所屬會議</label>
+                    <select id="editMeetingSelect" class="w-full border rounded px-3 py-2"></select>
+                </div>
+
+                <div>
+                    <label class="block font-semibold mb-1">截止日</label>
+                    <input type="date" id="editDueDate" class="w-full border rounded px-3 py-2" required />
+                </div>
+
+                <div class="flex justify-end gap-2 mt-4">
+                    <button type="button" onclick="closeEditModal()"
+                        class="px-4 py-2 text-gray-600 hover:underline">取消</button>
+                    <button type="submit" class="btn-primary text-white px-4 py-2 rounded-lg">修改</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Script -->
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('collapsed');
+        }
+        document.addEventListener("DOMContentLoaded", () => {
+            const orgId = localStorage.getItem("currentOrgId");
+            const userId = localStorage.getItem("user_id");
+
+            // ✅ 限制截止日不能選擇今天以前
+            const dueDateInput = document.getElementById("dueDate");
+            const today = new Date().toISOString().split("T")[0];
+            dueDateInput.setAttribute("min", today);
+
+            if (orgId) {
+                document.getElementById("startMeetingLink").href = `/start_meeting?org_id=${orgId}`;
+                document.getElementById("org-name").textContent = localStorage.getItem("org_name") || "未命名組織";
+                document.getElementById("memberLink").href = `/organization_member/${orgId}`;
+            }
+
+            lucide.createIcons();
+            loadTasks();
+            document.getElementById("editTaskForm").addEventListener("submit", async (e) => {
+                e.preventDefault();
+                const id = document.getElementById("editTaskId").value;
+                const title = document.getElementById("editTaskTitle").value;
+                const due_date = document.getElementById("editDueDate").value;
+                const user_id = document.getElementById("editMemberSelect").value;
+                const meeting_id = document.getElementById("editMeetingSelect").value;
+
+                const res = await fetch("/api/update_task", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        id,
+                        title,
+                        due_date,
+                        user_id,
+                        meeting_id
+                    }),
+                });
+
+                const result = await res.json();
+                if (result.success) {
+                    alert("✅ 任務已更新");
+                    closeEditModal();
+                    loadTasks();
+                } else {
+                    alert("❌ 更新失敗：" + result.message);
+                }
+            });
+            document.getElementById("taskTableBody").addEventListener("click", (e) => {
+                const btn = e.target.closest(".edit-task-btn-data");
+                if (btn) {
+                    const task = JSON.parse(decodeURIComponent(btn.dataset.task));
+                    openEditModal(task);
+                }
+            });
+
+
+        });
+
+        async function loadTasks() {
+            const tbody = document.getElementById("taskTableBody");
+            tbody.innerHTML = `<tr class="text-center text-gray-400"><td colspan="8" class="py-6">載入中...</td></tr>`;
+
+            const orgId = localStorage.getItem("currentOrgId");
+            if (!orgId) {
+                tbody.innerHTML = `<tr><td colspan="8" class="text-center text-red-500 py-4">請先選擇組織</td></tr>`;
+                return;
+            }
+
+            try {
+                const res = await fetch(`/api/tasks?org_id=${orgId}`);
+
+                const data = await res.json();
+                console.log("✅ 任務資料：", data);
+
+                if (!data.success || data.tasks.length === 0) {
+                    tbody.innerHTML = `<tr class="text-center text-gray-400"><td colspan="8" class="py-6">目前尚無任務</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = "";
+                data.tasks.forEach(task => {
+                    const tr = document.createElement("tr");
+
+                    const currentUserId = localStorage.getItem("user_id");
+                    const isResponsible = currentUserId == task.user_id;
+                    const isAssigner = currentUserId == task.assigner_id; // 👈 加這行
+
+                    const statusSelect = `
+                        <select class="border rounded px-2 py-1 text-sm ${!isResponsible ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : ''}"
+                                ${!isResponsible ? 'disabled' : ''}
+                                onchange="updateStatus(${task.id}, this.value)">
+                            <option value="pending" ${task.status === "pending" ? "selected" : ""}>待處理</option>
+                            <option value="completed" ${task.status === "completed" ? "selected" : ""}>已完成</option>
+                        </select>
+                    `;
+
+                    tr.innerHTML = `
+                        <td class="px-4 py-2 text-center">${task.responsible_name || "未知"}</td>
+                        <td class="px-4 py-2 text-center">${task.title}</td>
+                        <td class="px-4 py-2 text-center">${task.meeting_title || "未指定"}</td>
+                        <td class="px-4 py-2 text-center">${formatDate(task.due_date)}</td>
+                        <td class="px-4 py-2 text-center">${statusSelect}</td>
+                        <td class="px-4 py-2 text-center">${formatDate(task.created_at)}</td>
+                        <td class="px-4 py-2 text-center">${task.assigner_name || "系統"}</td>
+                        <td class="px-4 py-2 text-center">
+                            <div class="flex justify-center items-center gap-2">
+                                ${isAssigner ? `
+                                    <span class="edit-task-btn-data cursor-pointer" data-task='${encodeURIComponent(JSON.stringify(task))}'>
+                                        <i data-lucide="pencil" class="lucide-pencil w-5 h-5 text-[#205f72]"></i>
+                                    </span>
+                                    <i data-lucide="trash-2" class="w-5 h-5 cursor-pointer text-red-500" onclick="deleteTask(${task.id})"></i>
+                                ` : `<span class="text-gray-300 italic">無權限</span>`}
+                            </div>
+                        </td>
+                    `;
+
+                    tbody.appendChild(tr);
+                });
+
+                lucide.createIcons();
+
+            } catch (err) {
+                console.error("讀取失敗", err);
+                tbody.innerHTML = `<tr><td colspan="8" class="text-center text-red-500 py-4">任務載入失敗</td></tr>`;
+            }
+        }
+
+        // 開啟 Modal
+        document.querySelector(".btn-primary").addEventListener("click", async () => {
+            const orgId = localStorage.getItem("currentOrgId");
+            if (!orgId) return alert("尚未選擇組織");
+
+            const res = await fetch(`/api/organization_members/${orgId}`);
+            const data = await res.json();
+            const memberSelect = document.getElementById("memberSelect");
+            memberSelect.innerHTML = "";
+
+            data.members.forEach(member => {
+                const opt = document.createElement("option");
+                opt.value = member.user_id;
+                opt.textContent = member.name;
+                memberSelect.appendChild(opt);
+            });
+
+            await loadMeetingsForMember(memberSelect.value);
+
+            memberSelect.addEventListener("change", async () => {
+                await loadMeetingsForMember(memberSelect.value);
+            });
+
+            // ✅ 在這裡綁定表單送出事件
+            const taskForm = document.getElementById("taskForm");
+            taskForm.onsubmit = null; // ← 加這行先清除前一個綁定
+            taskForm.onsubmit = async (e) => {
+                e.preventDefault();
+
+                const title = document.getElementById("taskTitle").value;
+                const due_date = document.getElementById("dueDate").value;
+                const user_id = document.getElementById("memberSelect").value;
+                const meeting_id = document.getElementById("meetingSelect").value;
+                const assigner_id = localStorage.getItem("user_id");
+
+                const res = await fetch('/api/add_task', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        title,
+                        due_date,
+                        user_id,
+                        meeting_id,
+                        assigner_id
+                    })
+                });
+
+                const result = await res.json();
+                if (result.success) {
+                    closeModal();
+                    taskForm.reset(); // ✅ 清空表單
+                    loadTasks();
+                } else {
+                    alert("❌ 新增任務失敗：" + result.message);
+                }
+            };
+
+            document.getElementById("taskModal").classList.remove("hidden");
+        });
+
+
+        function closeModal() {
+            document.getElementById("taskModal").classList.add("hidden");
+        }
+
+        // 依成員載入會議選單
+        async function loadMeetingsForMember(userId) {
+            const res = await fetch(`/api/member_meetings/${userId}`);
+            const data = await res.json();
+            const meetingSelect = document.getElementById("meetingSelect");
+            meetingSelect.innerHTML = "";
+            data.meetings.forEach(m => {
+                const opt = document.createElement("option");
+                opt.value = m.id;
+                opt.textContent = m.title;
+                meetingSelect.appendChild(opt);
+            });
+        }
+        async function updateStatus(taskId, newStatus) {
+            const res = await fetch('/api/update_task_status', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    task_id: taskId,
+                    status: newStatus
+                })
+            });
+
+            const result = await res.json();
+            if (!result.success) {
+                alert("❌ 狀態更新失敗：" + result.message);
+            }
+        }
+
+        function formatDate(input) {
+            if (!input) return "";
+            const d = new Date(input);
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, "0");
+            const day = String(d.getDate()).padStart(2, "0");
+            return `${year}/${month}/${day}`;
+        }
+
+        async function deleteTask(taskId) {
+            if (!confirm("❗確定要刪除這個任務嗎？")) return;
+
+            try {
+                const res = await fetch(`/api/delete_task/${taskId}`, {
+                    method: "DELETE",
+                });
+
+                const result = await res.json();
+                if (result.success) {
+                    alert("✅ 任務已刪除");
+                    loadTasks();
+                } else {
+                    alert("❌ 刪除失敗：" + result.message);
+                }
+            } catch (err) {
+                console.error("❌ 錯誤：", err);
+                alert("❌ 刪除任務時發生錯誤");
+            }
+        }
+
+        function closeEditModal() {
+            document.getElementById("editTaskModal").classList.add("hidden");
+        }
+
+        async function openEditModal(task) {
+            console.log("🎯 找到 editTaskModal?", document.getElementById("editTaskModal"));
+            console.log("📝 開啟編輯 Modal：", task);
+            const orgId = localStorage.getItem("currentOrgId");
+
+            // 填入欄位值
+            document.getElementById("editTaskId").value = task.id;
+            document.getElementById("editTaskTitle").value = task.title;
+            document.getElementById("editDueDate").value = task.due_date.split("T")[0];
+
+            // 載入成員選單
+            const memberSelect = document.getElementById("editMemberSelect");
+            const res1 = await fetch(`/api/organization_members/${orgId}`);
+            const data1 = await res1.json();
+            memberSelect.innerHTML = "";
+            data1.members.forEach(m => {
+                const opt = document.createElement("option");
+                opt.value = m.user_id;
+                opt.textContent = m.name;
+                if (m.name === task.responsible_name) opt.selected = true;
+                memberSelect.appendChild(opt);
+            });
+
+            // 載入該成員的可參與會議
+            await loadEditMeetingsForMember(memberSelect.value, task.meeting_title);
+
+            // 動態切換會議
+            memberSelect.addEventListener("change", async () => {
+                await loadEditMeetingsForMember(memberSelect.value);
+            });
+
+            document.getElementById("editTaskModal").classList.remove("hidden");
+        }
+
+        async function loadEditMeetingsForMember(userId, defaultTitle = "") {
+            const res = await fetch(`/api/member_meetings/${userId}`);
+            const data = await res.json();
+            const meetingSelect = document.getElementById("editMeetingSelect");
+            meetingSelect.innerHTML = "";
+            data.meetings.forEach(m => {
+                const opt = document.createElement("option");
+                opt.value = m.id;
+                opt.textContent = m.title;
+                if (m.title === defaultTitle) opt.selected = true;
+                meetingSelect.appendChild(opt);
+            });
+        }
+
+        function decodeTask(encoded) {
+            return JSON.parse(decodeURIComponent(encoded));
+        }
+    </script>
+</body>
+
+</html>
