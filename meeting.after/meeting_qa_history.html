@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>會議寶｜QA 歷史查詢</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/navbar_a.css') }}" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .qa-history-layout {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 0 6px rgba(0, 0, 0, 0.08);
+            max-width: 800px;
+            margin: 32px auto;
+            padding: 32px 24px;
+        }
+
+        .qa-history-outer {
+            background: #f7f9fa;
+            border: 4px dashed #c9dfe7;
+            border-radius: 2.5rem;
+            padding: 2.5rem 2rem;
+            margin: 2rem 0;
+        }
+
+        .qa-item {
+            margin-bottom: 32px;
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 16px;
+        }
+
+        .qa-q {
+            font-weight: bold;
+            color: #175c71;
+            font-size: 1.12em;
+        }
+
+        .qa-a {
+            margin: 8px 0 0 2em;
+            color: #205f72;
+            font-size: 1em;
+            white-space: pre-line;
+        }
+
+        .qa-meta {
+            font-size: 13px;
+            color: #888;
+            margin-top: 4px;
+            margin-left: 2em;
+        }
+
+        .qa-history-layout h2 {
+            color: #175c71;
+            font-size: 1.3em;
+            margin-bottom: 24px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .search-row label {
+            font-size: 0.96em;
+            color: #205f72;
+            margin-right: 4px;
+        }
+    </style>
+</head>
+
+<body style="height:100vh;"></body>
+<script>
+    window.MEETING_ID = "{{ meeting_id }}";
+    window.TOPIC_ID = "{{ topic_id or '' }}";
+</script>
+<div class="layout">
+    <aside class="sidebar" id="sidebar">
+        <button class="navbar-toggle" onclick="toggleSidebar()" id="toggleBtn">
+            <i data-lucide="align-justify" class="w-6 h-6 stroke-[#205f72]"></i>
+        </button>
+        <nav class="menu">
+            <div class="sidebar-item cursor-default hover:bg-transparent select-none">
+                <i data-lucide="building" class="sidebar-icon stroke-[#205f72]"></i>
+                <div class="flex flex-col leading-snug">
+                    <span class="text-xs text-gray-500">目前會議</span>
+                    <span id="meeting-date" class="text-[#205f72] text-sm font-semibold truncate max-w-[180px]"></span>
+                    <span id="meeting-name" class="text-[#205f72] text-sm font-semibold truncate max-w-[180px]"></span>
+                </div>
+            </div>
+
+            <a href="{{ url_for('file.meeting_after_file_upload_page', meeting_id=meeting_id) }}" class="sidebar-item">
+                <i data-lucide="file-plus" class="sidebar-icon"></i>
+                <span>檔案上傳</span>
+            </a>
+            <a href="{{ url_for('transcript_file_page', meeting_id=meeting_id) }}" class="sidebar-item">
+                <i data-lucide="mic" class="sidebar-icon"></i>
+                <span>語音轉文字</span>
+            </a>
+            <a href="{{ url_for('permission.meeting_review_page', meeting_id=meeting_id) }}" class="sidebar-item">
+                <i data-lucide="folder-search-2" class="sidebar-icon"></i>
+                <span>會議回顧</span>
+            </a>
+            <a href="{{ url_for('qa.meeting_qa_history', meeting_id=meeting_id) }}" class="sidebar-item">
+                <i data-lucide="search" class="sidebar-icon"></i>
+                <span>查詢紀錄</span>
+            </a>
+            <a href="{{ url_for('meeting_formal_doc_page', meeting_id=meeting_id) }}" class="sidebar-item">
+                <i data-lucide="file-text" class="sidebar-icon"></i>
+                <span>正式文件</span>
+                <a href="#" class="sidebar-item flex items-center gap-2" onclick="openHelpModal()">
+                    <i data-lucide="list-todo" class="sidebar-icon"></i>
+                    <span>任務追蹤</span>
+                </a>
+            </a>
+            <a href="#" class="sidebar-item flex items-center gap-2" onclick="openHelpModal()">
+                <i data-lucide="circle-question-mark" class="sidebar-icon"></i>
+                <span>使用說明</span>
+            </a>
+            <a href="#" onclick="endMeeting()" class="sidebar-item flex items-center gap-2 
+          hover:bg-red-200 
+          text-red-600 hover:text-red-600 
+          font-semibold rounded-md">
+                <i data-lucide="power" class="sidebar-icon stroke-red-600"></i>
+                <span>結束會議</span>
+            </a>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <header class="header">
+            <div class="header-left">
+                <a href="{{ url_for('organization.build_organization_page') }}">
+                    <img src="{{ url_for('static', filename='image/logo.png') }}" alt="Logo" class="logo-img" />
+                </a>
+            </div>
+
+            <div class="progress-bar">
+                <div class="step-group">
+                    <div class="circle gray-completed"></div>
+                    <div class="label label-gray">前</div>
+                </div>
+                <div class="line solid-gray"></div>
+                <div class="step-group">
+                    <div class="circle gray-completed"></div>
+                    <div class="label label-gray">中</div>
+                </div>
+                <div class="line solid-gray"></div>
+                <div class="step-group">
+                    <div class="circle green-completed"></div>
+                    <div class="label label-green">後</div>
+                </div>
+            </div>
+
+            <div class="header-right">
+                <a href="{{ url_for('permission.meeting_member3_page', meeting_id=meeting_id) }}">
+                    <img src="{{ url_for('static', filename='image/head.png') }}" alt="Head" class="avatar-img" />
+                </a>
+            </div>
+        </header>
+        <main class="main-content">
+            <div
+                class="rounded-3xl border-2 border-dashed border-[#cedfe4] bg-white shadow-md p-8 max-w-5xl mx-auto mt-10 mb-10">
+                <h2 class="text-2xl font-bold text-[#205f72] text-center mb-8 tracking-wider">QA 歷史查詢</h2>
+                <!-- 2. 查詢列樣式統一 -->
+                <div class="flex flex-wrap items-end gap-8 mb-8">
+                    <div>
+                        <label class="font-bold text-[#205f72] text-lg mb-1 block">會議</label>
+                        <select id="meetingSelect"
+                            class="border-2 border-dashed border-[#cedfe4] rounded-xl px-4 py-2 bg-white w-50 appearance-none">
+                        </select>
+                    </div>
+                    <div>
+                        <label class="font-bold text-[#205f72] text-lg mb-1 block">關鍵字</label>
+                        <input type="text" id="keywordInput"
+                            class="border-2 border-dashed border-[#cedfe4] rounded-xl px-4 py-2 bg-white w-48"
+                            placeholder="問題/答案">
+                    </div>
+                    <div>
+                        <label class="font-bold text-[#205f72] text-lg mb-1 block">日期區間</label>
+                        <input type="date" id="startDate"
+                            class="border-2 border-dashed border-[#cedfe4] rounded-xl px-4 py-2 bg-white">
+                        <span class="mx-1">~</span>
+                        <input type="date" id="endDate"
+                            class="border-2 border-dashed border-[#cedfe4] rounded-xl px-4 py-2 bg-white">
+                    </div>
+                    <button id="searchBtn"
+                        class="bg-[#175c71] text-white rounded-xl px-8 py-2 font-bold hover:bg-[#205f72]"
+                        disabled>查詢</button>
+                </div>
+                <!-- 3. QA 列表區 -->
+                <div id="qaHistoryList" class="space-y-4 mt-8"></div>
+            </div>
+        </main>
+
+        <script>
+            function toggleSidebar() {
+                document.getElementById("sidebar").classList.toggle("collapsed");
+            }
+            window.toggleAnswer = function (idx) {
+                // 收合全部
+                document.querySelectorAll('.qa-a-block').forEach(b => b.classList.add('hidden'));
+                document.querySelectorAll('svg[id^=arrow-]').forEach(a => a.style.transform = "rotate(-90deg)");
+                // 展開這一題
+                const block = document.getElementById('answer-block-' + idx);
+                const arrow = document.getElementById('arrow-' + idx);
+                if (block.classList.contains('hidden')) {
+                    block.classList.remove('hidden');
+                    arrow.style.transform = "rotate(0deg)";
+                } else {
+                    block.classList.add('hidden');
+                    arrow.style.transform = "rotate(-90deg)";
+                }
+            }
+
+            const API_PREFIX = '/qa';
+            // escapeHtml 防止 XSS
+            function escapeHtml(str) {
+                return String(str || '').replace(/[&<>"']/g, m =>
+                    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m])
+                );
+            }
+
+            // 會議選單
+            async function loadMeetings() {
+                const topicId = String(window.TOPIC_ID || "");
+                const sel = document.getElementById('meetingSelect');
+
+                if (!topicId || topicId === "None" || topicId === "null" || topicId === "undefined") {
+                    // 沒 topic_id 就只顯示當前會議
+                    sel.innerHTML = `<option value="${window.MEETING_ID}">目前會議</option>`;
+                    document.getElementById('searchBtn').disabled = false;
+                    return;
+                }
+
+                try {
+                    const res = await fetch(`/qa/api/meetings_by_topic/${encodeURIComponent(topicId)}`);
+                    if (!res.ok) throw new Error(res.status);
+                    const data = await res.json();
+                    const meetings = data.meetings || [];
+
+                    // 轉成選單
+                    sel.innerHTML = `<option value="">請選擇會議</option>` +
+                        meetings.map(m => {
+                            const d = m.date ? `（${new Date(m.date).toLocaleDateString()}）` : "";
+                            const selected = String(m.id) === String(window.MEETING_ID) ? "selected" : "";
+                            return `<option value="${m.id}" ${selected}>${(m.title || "會議" + m.id)}${d}</option>`;
+                        }).join("");
+
+                    // 如果預設有選到目前會議，就啟用查詢並自動查
+                    if (sel.value) {
+                        document.getElementById('searchBtn').disabled = false;
+                        loadQA();
+                    }
+                } catch (e) {
+                    console.error("loadMeetings failed:", e);
+                    sel.innerHTML = '<option>載入失敗</option>';
+                }
+            }
+
+            // 查詢 QA logs
+            async function loadQA() {
+                let meeting_id = document.getElementById('meetingSelect').value;
+                let keyword = document.getElementById('keywordInput').value;
+                let start = document.getElementById('startDate').value;
+                let end = document.getElementById('endDate').value;
+                const container = document.getElementById("qaHistoryList");
+                if (!meeting_id) {
+                    container.innerHTML = `<p style="color:#888;text-align:center">請先選擇會議</p>`;
+                    return;
+                }
+                let params = [`meeting_id=${meeting_id}`];
+                if (keyword) params.push(`keyword=${encodeURIComponent(keyword)}`);
+                if (start) params.push(`start_date=${start}`);
+                if (end) params.push(`end_date=${end}`);
+                const url = API_PREFIX + '/api/qa_logs?' + params.join('&');
+                container.innerHTML = '查詢中...';
+                try {
+                    let res = await fetch(url);
+                    let data = await res.json();
+                    let logs = data.logs || data;
+                    if (!logs || logs.length === 0) {
+                        container.innerHTML = `<p style="color:#888;text-align:center">目前查無資料。</p>`;
+                        return;
+                    }
+                    container.innerHTML = logs.map((log, idx) => `
+            <div class="border-2 border-dashed border-[#cedfe4] rounded-xl bg-white p-6 mb-6">
+                <div class="flex items-center cursor-pointer select-none group" onclick="toggleAnswer(${idx})">
+                    <span class="qa-label font-bold text-[#175c71] mr-2 w-8 flex-shrink-0 text-right" text-base">Q：</span>
+                    <span class="qa-qtext text-black flex-1 .text-lg">${escapeHtml(log.question)}</span>
+                    <svg class="ml-2 w-6 h-6 inline-block transition-transform group-hover:scale-125"
+                        style="transform:rotate(-90deg);" id="arrow-${idx}" fill="none" stroke="#205f72"
+                        stroke-width="2" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+                </div>
+                <div class="qa-a-block hidden mt-4" id="answer-block-${idx}">
+                    <div class="flex items-start">
+                        <span class="qa-label font-bold text-[#205f72] mr-2 w-8 flex-shrink-0 text-right text-base">A：</span>
+                        <span class="qa-atext flex-1 text-sm">${escapeHtml(log.answer)}</span>
+                        <button class="edit-btn ml-2 mt-1" data-id="${log.id}" title="編輯答案">
+                            <i data-lucide="pen-line" class="w-5 h-5 text-blue-600 hover:text-blue-800"></i>
+                        </button>
+                    </div>
+                    <div class="qa-meta text-sm text-gray-500 mt-2 ml-10">
+                        ${(log.user_name ? "提問者：" + escapeHtml(log.user_name) + "，" : "")}
+                        會議：${escapeHtml(log.meeting_title || log.meeting_id || "")}，
+                        時間：${new Date(log.created_at).toLocaleString()}
+                    </div>
+                </div>
+            </div>
+        `).join("");
+                    lucide.createIcons();
+                    bindEditBtns();
+                } catch {
+                    container.innerHTML = `<p style="color:#888;text-align:center">查詢失敗</p>`;
+                }
+            }
+
+            // 編輯功能
+            function bindEditBtns() {
+                document.querySelectorAll('.edit-btn').forEach(btn => {
+                    btn.onclick = function (e) {
+                        e.stopPropagation(); // 不要觸發展開/收合
+                        const id = this.getAttribute('data-id');
+                        const aSpan = this.closest('.qa-a-block').querySelector('.qa-atext');
+                        editInline(aSpan, id, 'answer');
+                    };
+                });
+            }
+
+            // 內聯編輯
+            function editInline(span, qaId, field) {
+                const oldVal = span.textContent;
+                const input = document.createElement('input');
+                input.type = "text";
+                input.value = oldVal;
+                input.className = "border px-2 py-1 rounded w-2/3";
+                span.replaceWith(input);
+                input.focus();
+                input.onblur = async function () {
+                    const newVal = input.value;
+                    if (newVal !== oldVal && newVal.trim() !== "") {
+                        await updateQA(qaId, field, newVal);
+                        span.textContent = newVal;
+                    }
+                    input.replaceWith(span);
+                };
+                input.onkeydown = function (e) {
+                    if (e.key === "Enter") input.blur();
+                    if (e.key === "Escape") { input.replaceWith(span); }
+                };
+            }
+
+            // 發送 API 更新內容
+            async function updateQA(id, field, value) {
+                await fetch(API_PREFIX + '/api/qa_logs/' + id, {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ field, value })
+                });
+            }
+
+            // 控制查詢按鈕啟用
+            document.getElementById('meetingSelect').addEventListener('change', function () {
+                document.getElementById('searchBtn').disabled = !this.value;
+                // 預設自動查詢
+                if (this.value) loadQA();
+                else document.getElementById("qaHistoryList").innerHTML = `<p style="color:#888;text-align:center">請先選擇會議</p>`;
+            });
+            document.getElementById('searchBtn').onclick = loadQA;
+            document.addEventListener("DOMContentLoaded", loadMeetings);
+
+            // 顯示會議名稱與日期
+            const name = localStorage.getItem("currentMeetingName") || "未命名會議";
+            const date = localStorage.getItem("currentMeetingDate") || "未指定日期";
+            document.getElementById("meeting-date").textContent = date;
+            document.getElementById("meeting-name").textContent = name;
+            lucide.createIcons();
+
+            function endMeeting() {
+                const meetingId = "{{ meeting_id }}";
+                if (!confirm("確定要結束會議嗎？")) return;
+
+                // 先蒐集現有值（網址 / localStorage / window.MEETING / Jinja）
+                const qs = new URLSearchParams(location.search);
+                let orgId =
+                    qs.get("org_id") ||
+                    localStorage.getItem("current_org_id") ||
+                    (window.MEETING && window.MEETING.org_id) ||
+                    "{{ org_id }}" || "";
+
+                let topicId =
+                    qs.get("topic_id") ||
+                    localStorage.getItem("current_topic_id") ||
+                    (window.MEETING && window.MEETING.topic_id) ||
+                    "{{ topic_id }}" || "";
+
+                fetch(`/api/meeting/${meetingId}/end`, { method: "POST" })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (!data.success) {
+                            alert("❌ " + (data.message || "結束會議失敗"));
+                            return;
+                        }
+
+                        // ✅ 優先使用後端回傳
+                        if (data.org_id) orgId = String(data.org_id);
+                        if (data.topic_id) topicId = String(data.topic_id);
+
+                        // 存起來以便其他頁使用
+                        if (orgId) localStorage.setItem("current_org_id", orgId);
+                        if (topicId) localStorage.setItem("current_topic_id", topicId);
+
+                        alert("✅ 會議已結束");
+
+                        // 有什麼帶什麼
+                        if (orgId && topicId) {
+                            location.href = `/meeting?org_id=${encodeURIComponent(orgId)}&topic_id=${encodeURIComponent(topicId)}`;
+                        } else if (orgId) {
+                            location.href = `/meeting?org_id=${encodeURIComponent(orgId)}`;
+                        } else {
+                            location.href = `/meeting`;
+                        }
+                    })
+                    .catch(err => {
+                        console.error("結束會議 API 錯誤", err);
+                        alert("⚠️ 系統錯誤");
+                    });
+            }
+
+        </script>
+
+        <script src="https://unpkg.com/lucide@latest"></script>
+        <script>lucide.createIcons();</script>
+
+        </body>
+
+</html>

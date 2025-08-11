@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>會議寶｜會議後｜檔案轉錄</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/navbar_a.css') }}" />
   <script src="https://cdn.tailwindcss.com"></script>
@@ -15,8 +16,13 @@
       overflow: hidden;
     }
 
-    .btn-primary { background-color: #205f72; }
-    .btn-primary:hover { background-color: #175c71; }
+    .btn-primary {
+      background-color: #205f72;
+    }
+
+    .btn-primary:hover {
+      background-color: #175c71;
+    }
 
     .dashed-box {
       border: 2px dashed #cedfe4;
@@ -42,8 +48,9 @@
     }
   </style>
 </head>
+
 <body>
-    <div class="layout">
+  <div class="layout">
     <aside class="sidebar" id="sidebar">
       <button class="navbar-toggle" onclick="toggleSidebar()" id="toggleBtn">
         <i data-lucide="align-justify" class="w-6 h-6 stroke-[#205f72]"></i>
@@ -57,12 +64,8 @@
             <span id="meeting-name" class="text-[#205f72] text-sm font-semibold truncate max-w-[180px]"></span>
           </div>
         </div>
-        
-        <a href="{{ url_for('build_organization_page') }}" class="sidebar-item">
-          <i data-lucide="home" class="sidebar-icon"></i>
-          <span>首頁</span>
-        </a>
-        <a href="{{ url_for('meeting_after_file_upload_page', meeting_id=meeting_id) }}" class="sidebar-item">
+
+        <a href="{{ url_for('file.meeting_after_file_upload_page', meeting_id=meeting_id) }}" class="sidebar-item">
           <i data-lucide="file-plus" class="sidebar-icon"></i>
           <span>檔案上傳</span>
         </a>
@@ -70,17 +73,30 @@
           <i data-lucide="mic" class="sidebar-icon"></i>
           <span>語音轉文字</span>
         </a>
-        <a href="{{ url_for('meeting_review_page', meeting_id=meeting_id) }}" class="sidebar-item">
-          <i data-lucide="folder-search-2" class="sidebar-icon"></i>
-          <span>會議回顧</span>
+        <a href="{{ url_for('permission.meeting_review_page', meeting_id=meeting_id) }}" class="sidebar-item"><i
+            data-lucide="folder-search-2" class="sidebar-icon"></i><span>會議回顧</span></a>
+        <a href="{{ url_for('qa.meeting_qa_history', meeting_id=meeting_id) }}" class="sidebar-item">
+          <i data-lucide="search" class="sidebar-icon"></i>
+          <span>查詢紀錄</span>
         </a>
         <a href="{{ url_for('meeting_formal_doc_page', meeting_id=meeting_id) }}" class="sidebar-item">
           <i data-lucide="file-text" class="sidebar-icon"></i>
           <span>正式文件</span>
         </a>
-        <a href="{{ url_for('signin_page') }}" class="sidebar-item">
-          <i data-lucide="log-out" class="sidebar-icon"></i>
-          <span>登出</span>
+        <a href="#" class="sidebar-item flex items-center gap-2" onclick="openHelpModal()">
+          <i data-lucide="list-todo" class="sidebar-icon"></i>
+          <span>任務追蹤</span>
+        </a>
+        <a href="#" class="sidebar-item flex items-center gap-2" onclick="openHelpModal()">
+          <i data-lucide="circle-question-mark" class="sidebar-icon"></i>
+          <span>使用說明</span>
+        </a>
+        <a href="#" onclick="endMeeting()" class="sidebar-item flex items-center gap-2 
+          hover:bg-red-200 
+          text-red-600 hover:text-red-600 
+          font-semibold rounded-md">
+          <i data-lucide="power" class="sidebar-icon stroke-red-600"></i>
+          <span>結束會議</span>
         </a>
       </nav>
     </aside>
@@ -88,7 +104,7 @@
     <main class="main-content">
       <header class="header">
         <div class="header-left">
-          <a href="{{ url_for('build_organization_page') }}">
+          <a href="{{ url_for('organization.build_organization_page') }}">
             <img src="{{ url_for('static', filename='image/logo.png') }}" alt="Logo" class="logo-img" />
           </a>
         </div>
@@ -111,159 +127,224 @@
         </div>
 
         <div class="header-right">
-          <a href="{{ url_for('meeting_member3_page', meeting_id=meeting_id) }}">
+          <a href="{{ url_for('permission.meeting_member3_page', meeting_id=meeting_id) }}">
             <img src="{{ url_for('static', filename='image/head.png') }}" alt="Head" class="avatar-img" />
           </a>
         </div>
       </header>
-        <section class="main-wrapper">
-          <div class="w-full max-w-4xl mx-auto">
-            <div class="bg-white border-2 border-dashed border-[#cedfe4] rounded-2xl p-6 min-h-[400px] shadow-md" id="generateContainer">
-              <p class="text-gray-500">尚未上傳任何音訊或影片檔...</p>
-            </div>
+      <section class="main-wrapper">
+        <div class="w-full max-w-4xl mx-auto">
+          <div class="bg-white border-2 border-dashed border-[#cedfe4] rounded-2xl p-6 min-h-[400px] shadow-md"
+            id="generateContainer">
+            <p class="text-gray-500">尚未上傳任何音訊或影片檔...</p>
+          </div>
 
-            <div class="mt-6 flex items-center justify-center gap-4">
-              <input type="file" id="fileInput" accept="audio/*,video/*" class="hidden" />
-              <button id="fileBtn" class="btn-primary text-white py-2 px-4 rounded-lg flex items-center gap-2">
-                <i data-lucide="upload" class="w-5 h-5"></i> 上傳音檔或影片
-              </button>
-              <button id="generateBtn" class="btn-primary text-white py-2 px-4 rounded-lg flex items-center gap-2 hidden">
-                <i data-lucide="file-text" class="w-5 h-5"></i> 下載逐字稿
-              </button>
-            </div>
+          <div class="mt-6 flex items-center justify-center gap-4">
+            <input type="file" id="fileInput" accept="audio/*,video/*" class="hidden" />
+            <button id="fileBtn" class="btn-primary text-white py-2 px-4 rounded-lg flex items-center gap-2">
+              <i data-lucide="upload" class="w-5 h-5"></i> 上傳音檔或影片
+            </button>
+            <button id="generateBtn" class="btn-primary text-white py-2 px-4 rounded-lg flex items-center gap-2 hidden">
+              <i data-lucide="file-text" class="w-5 h-5"></i> 下載逐字稿
+            </button>
+          </div>
 
-            <div class="text-sm mt-2 text-center">
-              <div id="loadingText" class="text-[#205f72] hidden">上傳中，請稍候...</div>
-              <div id="successText" class="text-green-600 font-medium hidden">✅ 檔案上傳成功！</div>
-              <div id="generateText" class="text-[#205f72] hidden">📄 已成功下載逐字稿</div>
-              <div id="progressContainer" class="hidden mt-2">
-                <div id="progressBar" style="width:0%; height:20px; background:#4CAF50; transition: width 0.3s;"></div>
-              </div>
-              <div id="spinner" class="flex justify-center my-4 hidden">
-                <svg class="animate-spin h-6 w-6 text-[#205f72]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
-                </svg>
-              </div>
+          <div class="text-sm mt-2 text-center">
+            <div id="loadingText" class="text-[#205f72] hidden">上傳中，請稍候...</div>
+            <div id="successText" class="text-green-600 font-medium hidden">✅ 檔案上傳成功！</div>
+            <div id="generateText" class="text-[#205f72] hidden">📄 已成功下載逐字稿</div>
+            <div id="progressContainer" class="hidden mt-2">
+              <div id="progressBar" style="width:0%; height:20px; background:#4CAF50; transition: width 0.3s;"></div>
+            </div>
+            <div id="spinner" class="flex justify-center my-4 hidden">
+              <svg class="animate-spin h-6 w-6 text-[#205f72]" xmlns="http://www.w3.org/2000/svg" fill="none"
+                viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+              </svg>
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        <script>
-          function updateProgress(percent) {
-            const bar = document.getElementById('progressBar');
-            bar.style.width = `${Math.min(percent, 100)}%`;
-          }
+      <script>
+        function updateProgress(percent) {
+          const bar = document.getElementById('progressBar');
+          bar.style.width = `${Math.min(percent, 100)}%`;
+        }
 
-          function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('collapsed');
-          }
+        function toggleSidebar() {
+          document.getElementById('sidebar').classList.toggle('collapsed');
+        }
 
-          const fileBtn = document.getElementById('fileBtn');
-          const fileInput = document.getElementById('fileInput');
-          const generateContainer = document.getElementById('generateContainer');
-          const generateBtn = document.getElementById('generateBtn');
-          const loadingText = document.getElementById('loadingText');
-          const successText = document.getElementById('successText');
-          const generateText = document.getElementById('generateText');
-          const progressContainer = document.getElementById('progressContainer');
+        const fileBtn = document.getElementById('fileBtn');
+        const fileInput = document.getElementById('fileInput');
+        const generateContainer = document.getElementById('generateContainer');
+        const generateBtn = document.getElementById('generateBtn');
+        const loadingText = document.getElementById('loadingText');
+        const successText = document.getElementById('successText');
+        const generateText = document.getElementById('generateText');
+        const progressContainer = document.getElementById('progressContainer');
+        const meetingId = "{{ meeting_id }}";
+        console.log("會議 ID:", meetingId);
 
-          let finalTranscript = '';
-          let downloadUrl = '';
+        let finalTranscript = '';
+        let downloadUrl = '';
 
-          function appendText(text) {
-            const p = document.createElement('p');
-            p.textContent = text;
-            generateContainer.appendChild(p);
-          }
+        function appendText(text) {
+          const p = document.createElement('p');
+          p.textContent = text;
+          generateContainer.appendChild(p);
+        }
 
-          fileBtn.addEventListener('click', () => fileInput.click());
+        fileBtn.addEventListener('click', () => fileInput.click());
 
-          fileInput.addEventListener('change', async e => {
-            const file = e.target.files[0];
-            if (!file) return;
+        fileInput.addEventListener('change', async e => {
+          const file = e.target.files[0];
+          if (!file) return;
 
-            // Reset 狀態
+          // Reset 狀態
+          generateContainer.innerHTML = '';
+          [loadingText, successText, generateText, generateBtn, progressContainer].forEach(el => el.classList.add('hidden'));
+          updateProgress(0);
+          generateBtn.disabled = true;
+
+          try {
+            loadingText.classList.remove('hidden');
+            progressContainer.classList.remove('hidden');
+            appendText('🔁 上傳中...');
+            updateProgress(10);
+
+            // Step 1: 上傳音檔
+            const form = new FormData();
+            form.append('file', file);
+            const uploadRes = await fetch('/upload_audio', {
+              method: 'POST',
+              body: form
+            });
+            if (!uploadRes.ok) throw new Error('檔案上傳失敗');
+            const { filename } = await uploadRes.json();
+
+            updateProgress(30);
+            appendText('🧠 語音轉文字處理中...');
+
+            // 模擬進度條動畫
+            let simulatedProgress = 30;
+            const interval = setInterval(() => {
+              simulatedProgress += Math.random() * 5;
+              if (simulatedProgress < 95) updateProgress(simulatedProgress);
+            }, 400);
+
+            // Step 2: Whisper 轉錄
+            const whisperRes = await fetch("/whisper", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify({
+                filename: filename,
+                meeting_id: meetingId
+              })
+            });
+
+            clearInterval(interval);
+            updateProgress(100);
+
+            if (!whisperRes.ok) throw new Error('Whisper 模型轉錄失敗');
+            const json = await whisperRes.json();
+            const result = json.result || json.text || '';
+            downloadUrl = json.download_txt || '';
+
+
+            finalTranscript = result;
             generateContainer.innerHTML = '';
-            [loadingText, successText, generateText, generateBtn, progressContainer].forEach(el => el.classList.add('hidden'));
-            updateProgress(0);
 
-            try {
-              loadingText.classList.remove('hidden');
-              progressContainer.classList.remove('hidden');
-              appendText('🔁 上傳中...');
-              updateProgress(10);
-
-              // Step 1: 上傳音檔
-              const form = new FormData();
-              form.append('file', file);
-              const uploadRes = await fetch('/upload_audio', {
-                method: 'POST',
-                body: form
-              });
-              if (!uploadRes.ok) throw new Error('檔案上傳失敗');
-              const { filename } = await uploadRes.json();
-
-              updateProgress(30);
-              appendText('🎤 處理中...');
-
-              // 模擬進度條動畫
-              let simulatedProgress = 30;
-              const interval = setInterval(() => {
-                simulatedProgress += Math.random() * 5;
-                if (simulatedProgress < 95) updateProgress(simulatedProgress);
-              }, 500);
-
-              // Step 2: Whisper 轉錄
-              const whisperRes = await fetch('/whisper', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  filename: filename,
-                  language: 'Chinese',
-                  model: 'base'
-                })
-              });
-
-              clearInterval(interval);
-              updateProgress(100);
-
-              if (!whisperRes.ok) throw new Error('Whisper 模型轉錄失敗');
-              const { result, download_url } = await whisperRes.json();
-
-              finalTranscript = result;
-              downloadUrl = download_url;
-              generateContainer.innerHTML = '';
+            if (!result.trim()) {
+              appendText('⚠️ 無辨識到語音內容，請確認音檔是否正常');
+            } else {
               result.split('\n').forEach(line => appendText(line));
-
               successText.classList.remove('hidden');
               generateBtn.classList.remove('hidden');
-
-            } catch (err) {
-              appendText(`❌ 錯誤：${err.message}`);
-              updateProgress(0);
-              progressContainer.classList.add('hidden');
-            } finally {
-              fileInput.value = '';
-              loadingText.classList.add('hidden');
             }
-          });
 
-          generateBtn.addEventListener('click', () => {
-            if (!finalTranscript.trim() || !downloadUrl) return alert("尚無逐字稿可下載");
-            window.location.href = downloadUrl;
-            generateText.classList.remove('hidden');
-            setTimeout(() => generateText.classList.add('hidden'), 2000);
-          });
+          } catch (err) {
+            appendText(`❌ 錯誤：${err.message}`);
+            updateProgress(0);
+            progressContainer.classList.add('hidden');
+          } finally {
+            fileInput.value = '';
+            loadingText.classList.add('hidden');
+            generateBtn.disabled = false;
+          }
+        });
 
-          document.addEventListener("DOMContentLoaded", () => {
-            const name = localStorage.getItem("currentMeetingName") || "未命名會議";
-            const date = localStorage.getItem("currentMeetingDate") || "未指定日期";
-            document.getElementById("meeting-date").textContent = date;
-            document.getElementById("meeting-name").textContent = name;
-            lucide.createIcons();  // 僅初始化一次
-          });
-</script>
+        generateBtn.addEventListener('click', () => {
+          if (!finalTranscript.trim() || !downloadUrl) return alert("尚無逐字稿可下載");
+          window.location.href = downloadUrl;
+          generateText.classList.remove('hidden');
+          setTimeout(() => generateText.classList.add('hidden'), 2000);
+        });
+
+        document.addEventListener("DOMContentLoaded", () => {
+          const name = localStorage.getItem("currentMeetingName") || "未命名會議";
+          const date = localStorage.getItem("currentMeetingDate") || "未指定日期";
+          document.getElementById("meeting-date").textContent = date;
+          document.getElementById("meeting-name").textContent = name;
+          lucide.createIcons();  // 僅初始化一次
+        });
+        function endMeeting() {
+          const meetingId = "{{ meeting_id }}";
+          if (!confirm("確定要結束會議嗎？")) return;
+
+          // 先蒐集現有值（網址 / localStorage / window.MEETING / Jinja）
+          const qs = new URLSearchParams(location.search);
+          let orgId =
+            qs.get("org_id") ||
+            localStorage.getItem("current_org_id") ||
+            (window.MEETING && window.MEETING.org_id) ||
+            "{{ org_id }}" || "";
+
+          let topicId =
+            qs.get("topic_id") ||
+            localStorage.getItem("current_topic_id") ||
+            (window.MEETING && window.MEETING.topic_id) ||
+            "{{ topic_id }}" || "";
+
+          fetch(`/api/meeting/${meetingId}/end`, { method: "POST" })
+            .then(res => res.json())
+            .then(data => {
+              if (!data.success) {
+                alert("❌ " + (data.message || "結束會議失敗"));
+                return;
+              }
+
+              // ✅ 優先使用後端回傳
+              if (data.org_id) orgId = String(data.org_id);
+              if (data.topic_id) topicId = String(data.topic_id);
+
+              // 存起來以便其他頁使用
+              if (orgId) localStorage.setItem("current_org_id", orgId);
+              if (topicId) localStorage.setItem("current_topic_id", topicId);
+
+              alert("✅ 會議已結束");
+
+              // 有什麼帶什麼
+              if (orgId && topicId) {
+                location.href = `/meeting?org_id=${encodeURIComponent(orgId)}&topic_id=${encodeURIComponent(topicId)}`;
+              } else if (orgId) {
+                location.href = `/meeting?org_id=${encodeURIComponent(orgId)}`;
+              } else {
+                location.href = `/meeting`;
+              }
+            })
+            .catch(err => {
+              console.error("結束會議 API 錯誤", err);
+              alert("⚠️ 系統錯誤");
+            });
+        }
+
+      </script>
 
 </body>
+
 </html>
