@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>會議寶｜議題成員</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/navbar_b.css') }}">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    .btn-primary {
+      background-color: #205f72;
+    }
+
+    .btn-primary:hover {
+      background-color: #175c71;
+    }
+
+    .card {
+      background-color: #cedfe4;
+      border-radius: 16px;
+      padding: 16px 20px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+  </style>
+</head>
+
+<body>
+  <script>
+    window.CURRENT_USER_ROLE = "{{ current_user_role }}";
+    window.CURRENT_USER_EMAIL = "{{ current_user_email }}";
+    window.ORG_ID = {{ org_id }};
+    window.TOPIC_ID = {{ topic_id | tojson }};
+  </script>
+
+  <div class="layout">
+    <!-- 側邊欄 -->
+    <aside class="sidebar" id="sidebar">
+      <button class="navbar-toggle" onclick="toggleSidebar()" id="toggleBtn">
+        <i data-lucide="align-justify" class="w-6 h-6 stroke-[#205f72]"></i>
+      </button>
+      <nav class="menu">
+        <div class="sidebar-item cursor-default hover:bg-transparent select-none">
+          <i data-lucide="building" class="sidebar-icon stroke-[#205f72]"></i>
+          <div class="flex flex-col leading-snug">
+            <span class="text-xs text-gray-500">目前議題</span>
+            <span id="topic-title" class="text-[#205f72] text-sm font-semibold truncate max-w-[180px]"></span>
+          </div>
+        </div>
+        <a href="{{ url_for('organization.build_organization_page') }}" class="sidebar-item flex items-center gap-2">
+          <i data-lucide="home" class="sidebar-icon"></i>
+          <span>首頁</span>
+        </a>
+        <a href="#" class="sidebar-item flex items-center gap-2" onclick="goToTopicPage()">
+          <i data-lucide="newspaper" class="sidebar-icon"></i>
+          <span>創建議題</span>
+        </a>
+        <a href="#" class="sidebar-item flex items-center gap-2" onclick="goToStartMeetingPage()">
+          <i data-lucide="presentation" class="sidebar-icon"></i>
+          <span>創建會議</span>
+        </a>
+        <a href="#" class="sidebar-item flex items-center gap-2" onclick="openHelpModal()">
+          <i data-lucide="circle-question-mark" class="sidebar-icon"></i>
+          <span>使用說明</span>
+        </a>
+        <a href="{{ url_for('auth.signin_page') }}" class="sidebar-item flex items-center gap-2">
+          <i data-lucide="log-out" class="sidebar-icon"></i>
+          <span>登出</span>
+        </a>
+      </nav>
+    </aside>
+
+    <!-- 主要內容 -->
+    <main class="main-content">
+      <header class="header">
+        <div class="header-left">
+          <a href="{{ url_for('organization.build_organization_page') }}">
+            <img src="{{ url_for('static', filename='image/logo.png') }}" alt="Logo" class="logo-img" />
+          </a>
+        </div>
+        <div class="header-right">
+          <a href="{{ url_for('organization.organization_member_page', org_id=org_id) }}">
+            <img src="{{ url_for('static', filename='image/head.png') }}" alt="Head" class="avatar-img" />
+          </a>
+        </div>
+      </header>
+
+      <div class="w-full max-w-4xl mx-auto px-4 mt-6">
+        <h2 class="text-center text-[#205f72] text-2xl font-bold mb-4">議題成員列表</h2>
+
+        <div class="flex flex-col gap-3 mb-8" id="memberList">
+          {% for m in members %}
+          <div id="member-{{ m.user_id }}"
+            class="bg-white border border-gray-300 rounded px-4 py-3 flex justify-between items-center">
+            <div class="text-sm text-gray-800">{{ m.email }}</div>
+            <div class="flex items-center gap-3 min-w-[120px] justify-end">
+              <span class="text-xs text-gray-500 whitespace-nowrap">{{ m.role_display }}</span>
+
+              {% if current_user_email == m.email and m.role == "creator" %}
+              <i class="w-5 h-5 stroke-gray-300 cursor-not-allowed" data-lucide="x" title="無法刪除自己"></i>
+              {% elif current_user_role == "creator" and m.role != "creator" %}
+              <button class="ml-2" title="移除成員" data-user-id="{{ m.user_id }}"
+                onclick='deleteTopicMember(window.TOPIC_ID, {{ m.user_id }}, "{{ m.email }}")'>
+                <i class="w-5 h-5 stroke-red-600 hover:stroke-red-800" data-lucide="x"></i>
+              </button>
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+
+          <!-- 只有創建者才顯示的新增成員區ascdcascdc塊 -->
+          {% if current_user_role == "creator" %}
+          <div id="invite-section">
+            <div class="card">
+              <h3 class="text-lg font-bold text-[#205f72] mb-3">新增議題成員</h3>
+              <div class="flex flex-col md:flex-row md:items-center gap-2">
+                <select id="newTopicMemberSelect"
+                  class="flex-1 p-3 rounded-lg border border-gray-300 focus:outline-none">
+                  <option value="">請選擇成員</option>
+                </select>
+                <button onclick="addTopicMember()" class="btn-primary text-white px-4 py-2 rounded-lg">
+                  新增
+                </button>
+              </div>
+            </div>
+          </div>
+          {% endif %}
+    </main>
+  </div>
+
+  <!-- Script -->
+  <script>
+    function openHelpModal() {
+      document.getElementById("helpModal").classList.remove("hidden");
+      document.getElementById("helpModal").classList.add("flex");
+    }
+
+    function closeHelpModal() {
+      document.getElementById("helpModal").classList.add("hidden");
+      document.getElementById("helpModal").classList.remove("flex");
+    }
+    function goToTopicPage() {
+      const orgId = localStorage.getItem("currentOrgId");
+      if (!orgId) {
+        alert("⚠️ 尚未選擇組織，請先建立或切換組織！");
+        return;
+      }
+      window.location.href = `/topics?org_id=${orgId}`;
+    }
+
+    function goToStartMeetingPage(e) {
+      e?.preventDefault();
+      const orgId = localStorage.getItem("currentOrgId");
+      const topicId = localStorage.getItem("currentTopicId");
+
+      if (!orgId) {
+        alert("⚠️ 請先選擇一個組織再前往創建會議！");
+        return;
+      }
+      if (!topicId) {
+        alert("⚠️ 請先選擇一個議題再前往創建會議！");
+        return;
+      }
+
+      // ⬇⬇ 根據你的實際路由調整這一行
+      // 若你的頁面是 /meeting?org_id=... 就改成那個
+      // ✅ 修正這一行：確保網址會帶上 topic_id
+      window.location.href = `/meeting?org_id=${orgId}&topic_id=${topicId}`;
+    }
+
+    function deleteTopicMember(topicId, userId, email) {
+      if (!confirm(`確定要移除 ${email} 嗎？`)) return;
+
+      fetch(`/api/topic_members/${topicId}/${userId}`, {
+        method: "DELETE"
+      })
+        .then(res => res.json())
+        .then(result => {
+          if (result.success) {
+            const row = document.getElementById(`member-${userId}`);
+            if (row) row.remove();
+            alert(`已移除：${email}`);
+          } else {
+            alert("刪除失敗：" + (result.message || "未知錯誤"));
+          }
+        })
+        .catch(err => {
+          console.error(err);
+          alert("發生錯誤：" + err);
+        });
+    }
+
+    function addTopicMember() {
+      const select = document.getElementById("newTopicMemberSelect");
+      const userId = select.value;
+      const topicId = window.TOPIC_ID;
+
+      if (!userId) {
+        alert("請選擇要新增的成員！");
+        return;
+      }
+
+      fetch(`/api/topic_members`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_id: parseInt(userId, 10),
+          role: "edit",
+          topic_id: topicId
+        })
+      })
+        .then(res => res.json())
+        .then(result => {
+          if (result.success) {
+            alert("✅ 成員已新增！");
+            location.reload();
+          } else {
+            alert("❌ 新增失敗：" + result.message);
+          }
+        })
+        .catch(err => {
+          console.error(err);
+          alert("⚠️ 發生錯誤：" + err);
+        });
+    }
+
+
+    document.addEventListener("DOMContentLoaded", () => {
+      lucide.createIcons();
+
+      const orgName = localStorage.getItem("org_name");
+      if (orgName) {
+        const el = document.getElementById("org-name");
+        if (el) el.textContent = orgName;
+      }
+
+      // ✅ 載入尚未加入此議題的成員
+      loadAvailableTopicMembers();
+
+      // ✅ 顯示新增區塊（如果需要的話，實際你有用 Jinja 判斷 creator 就不用再檢查一次）
+      if (window.CURRENT_USER_ROLE === "creator") {
+        document.getElementById("invite-section").style.display = "block";
+      }
+    });
+
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('collapsed');
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      lucide.createIcons();
+
+      const orgName = localStorage.getItem("org_name");
+      if (orgName) {
+        const el = document.getElementById("org-name");
+        if (el) el.textContent = orgName;
+      }
+
+      // 根據角色控制新增成員區塊顯示
+      if (window.CURRENT_USER_ROLE === "創建者") {
+        document.getElementById("invite-section").style.display = "block";
+      }
+    });
+
+    function loadAvailableTopicMembers() {
+      const topicId = window.TOPIC_ID;
+      if (!topicId) {
+        alert("⚠️ 尚未指定議題，請先選擇一個議題！");
+        return;
+      }
+
+      const select = document.getElementById("newTopicMemberSelect");
+      if (!select) {
+        // 沒有新增成員的 select，通常代表不是主持人，跳過不載入
+        return;
+      }
+
+      fetch(`/api/available_topic_members/${topicId}`)
+        .then(res => {
+          if (!res.ok) throw new Error("伺服器錯誤，狀態碼：" + res.status);
+          return res.json();
+        })
+        .then(result => {
+          if (!result.success) {
+            alert("無法載入可選成員：" + result.message);
+            return;
+          }
+          result.members.forEach(m => {
+            const option = document.createElement("option");
+            option.value = m.user_id;
+            option.textContent = m.email;
+            select.appendChild(option);
+          });
+        })
+        .catch(err => {
+          console.error(err);
+          alert("❌ 載入成員發生錯誤：" + err.message);
+        });
+    }
+    document.addEventListener("DOMContentLoaded", function () {
+      const topicTitle = localStorage.getItem("currentTopicTitle");
+      if (topicTitle) {
+        const el = document.getElementById("topic-title");
+        if (el) el.textContent = topicTitle;
+      }
+    });
+
+  </script>
+  <!-- 使用說明 Modal -->
+  <div id="helpModal" class="fixed inset-0 hidden items-center justify-center bg-black bg-opacity-50 z-50">
+    <div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-lg">
+      <h3 class="text-xl font-bold text-[#205f72] mb-4 text-center">使用說明</h3>
+      <ul class="list-disc pl-5 text-gray-700 leading-relaxed text-base">
+        <li>
+          僅「創建者」具有新增或移除成員的權限。
+        </li>
+        <li>
+          若您為創建者，畫面下方會顯示「新增成員」區塊，可輸入 Email 並點擊
+          <button class="bg-[#205f72] text-white text-xs font-bold px-2.5 py-0.5 rounded-full">發送邀請</button>
+          來新增成員。
+        </li>
+        <li>
+          除了自己（創建者）無法被刪除，其餘成員旁會顯示
+          <i class="w-4 h-4 stroke-red-600 inline-block" data-lucide="x"></i>
+          刪除按鈕可移除該成員。
+        </li>
+      </ul>
+      <div class="flex justify-center mt-6">
+        <button onclick="closeHelpModal()" class="bg-gray-300 text-black px-6 py-2 rounded-lg">關閉</button>
+      </div>
+    </div>
+  </div>
+
+</body>
+
+</html>
