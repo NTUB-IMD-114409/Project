@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>會議寶｜會議中｜即時轉錄</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/navbar_d.css') }}" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .main-wrapper {
+            height: calc(100vh - 100px);
+            overflow-y: auto;
+            padding: 20px 16px;
+        }
+
+        .btn-primary {
+            background-color: #205f72;
+        }
+
+        .btn-primary:hover {
+            background-color: #175c71;
+        }
+
+        .status-start,
+        .status-stop {
+            font-size: 20px;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 12px;
+        }
+
+        .status-start {
+            color: #205f72;
+        }
+
+        .status-stop {
+            color: #d8392b;
+        }
+
+        .dashed-box {
+            border: 2px dashed #cedfe4;
+            border-radius: 20px;
+            background: #fff;
+            padding: 24px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, .08);
+            min-height: 420px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 編輯模式下的可編輯樣式 */
+        .editable[contenteditable="true"] {
+            outline: 2px dashed #cedfe4;
+            border-radius: .5rem;
+            padding: .25rem .5rem;
+            background: #fcfeff;
+        }
+
+        .editable[contenteditable="true"]:focus {
+            outline-color: #205f72;
+            background: #f3fafc;
+        }
+
+        /* 美化捲動條 */
+        #liveText::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        #liveText::-webkit-scrollbar-thumb {
+            background: #cedfe4;
+            border-radius: 8px;
+        }
+
+        #liveText {
+            scrollbar-width: thin;
+            scrollbar-color: #cedfe4 transparent;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="layout">
+        <aside class="sidebar" id="sidebar">
+            <button class="navbar-toggle" onclick="toggleSidebar()" id="toggleBtn">
+                <i data-lucide="align-justify" class="w-6 h-6 stroke-[#205f72]"></i>
+            </button>
+            <nav class="menu">
+                <div class="sidebar-item cursor-default hover:bg-transparent select-none">
+                    <i data-lucide="building" class="sidebar-icon stroke-[#205f72]"></i>
+                    <div class="flex flex-col leading-snug">
+                        <span class="text-xs text-gray-500">目前會議</span>
+                        <span id="meeting-date"
+                            class="text-[#205f72] text-sm font-semibold truncate max-w-[180px]"></span>
+                        <span id="meeting-name"
+                            class="text-[#205f72] text-sm font-semibold truncate max-w-[180px]"></span>
+                    </div>
+                </div>
+                <a href="{{ url_for('file.meeting_during_file_upload_page', meeting_id=meeting_id) }}"
+                    class="sidebar-item">
+                    <i data-lucide="file-plus" class="sidebar-icon"></i><span>檔案上傳</span>
+                </a>
+                <a href="{{ url_for('meeting_during_transcript_now_page', meeting_id=meeting_id) }}"
+                    class="sidebar-item">
+                    <i data-lucide="mic" class="sidebar-icon"></i><span>語音轉文字</span>
+                </a>
+                <a href="#" class="sidebar-item flex items-center gap-2" onclick="openHelpModal()">
+                    <i data-lucide="circle-question-mark" class="sidebar-icon"></i>
+                    <span>使用說明</span>
+                </a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header class="header">
+                <div class="header-left">
+                    <a href="{{ url_for('organization.build_organization_page') }}">
+                        <img src="{{ url_for('static', filename='image/logo.png') }}" alt="Logo" class="logo-img" />
+                    </a>
+                </div>
+                <div class="progress-bar flex items-center">
+                    <div class="step-group">
+                        <div class="circle gray-completed"></div>
+                        <div class="label label-gray">前</div>
+                    </div>
+                    <div class="line solid-gray"></div>
+                    <div class="step-group">
+                        <div class="circle completed"></div>
+                        <div class="label">中</div>
+                    </div>
+                    <div class="line dashed relative flex-1 flex items-center justify-center">
+                        <button onclick="goToNext()"
+                            class="absolute z-10 bg-[#175c71] text-white text-sm px-3 py-1 rounded-full hover:bg-[#124654] transition-all">下一步</button>
+                    </div>
+                    <div class="step-group">
+                        <div class="circle"></div>
+                        <div class="label">後</div>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <a href="{{ url_for('permission.meeting_member2_page', meeting_id=meeting_id) }}">
+                        <img src="{{ url_for('static', filename='image/head.png') }}" alt="Head" class="avatar-img" />
+                    </a>
+                </div>
+            </header>
+
+            <div class="main-wrapper">
+                <section class="flex justify-center px-4">
+                    <div class="w-full max-w-4xl dashed-box relative">
+                        <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+                            <div id="statusContainer" class="text-xl font-bold">閒置</div>
+                            <div class="flex flex-wrap items-center gap-3 text-sm">
+                                <label class="text-gray-600">切片秒數：</label>
+                                <select id="slice" class="border rounded-md px-2 py-1">
+                                    <option>1</option>
+                                    <option selected>2</option>
+                                    <option>3</option>
+                                    <option>5</option>
+                                </select>
+
+                                <!-- 編輯工具 -->
+                                <label class="inline-flex items-center gap-1">
+                                    <input id="editModeChk" type="checkbox" class="accent-[#205f72]">
+                                    <span>編輯模式</span>
+                                </label>
+                                <button id="addSpeakerBtn"
+                                    class="px-2 py-1 rounded border border-gray-300 hover:bg-gray-50 text-gray-700"
+                                    disabled>新增發言者</button>
+
+                                <label class="inline-flex items-center gap-1">
+                                    <input id="autoScrollChk" type="checkbox" checked class="accent-[#205f72]">
+                                    <span>自動捲動</span>
+                                </label>
+
+                                <span id="wsState" class="text-gray-500">WebSocket：未連線</span>
+                            </div>
+                        </div>
+
+                        <!-- 逐字區：固定高度、可捲動 -->
+                        <div id="liveText"
+                            class="h-[58vh] text-base text-gray-800 space-y-2 overflow-y-auto flex-1 border border-gray-200 rounded-lg p-3 overscroll-contain scroll-smooth">
+                        </div>
+                        <!-- 跳到最新 -->
+                        <button id="jumpLatestBtn"
+                            class="hidden absolute bottom-4 right-4 bg-[#205f72] hover:bg-[#124654] text-white text-sm px-3 py-2 rounded-lg shadow">
+                            跳到最新
+                        </button>
+                    </div>
+                </section>
+
+                <div class="flex flex-col items-center gap-4 mt-6 pb-6">
+                    <div class="flex flex-wrap justify-center items-center gap-3">
+                        <button id="startBtn"
+                            class="btn-primary text-white px-4 py-2 rounded-lg font-semibold flex items-center gap-2">
+                            <i data-lucide="play" class="w-5 h-5"></i> 開始
+                        </button>
+                        <button id="pauseBtn"
+                            class="btn-primary text-white px-4 py-2 rounded-lg font-semibold flex items-center gap-2"
+                            disabled>
+                            <i data-lucide="pause" class="w-5 h-5"></i> 暫停
+                        </button>
+                        <button id="stopBtn"
+                            class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-semibold flex items-center gap-2"
+                            disabled>
+                            <i data-lucide="square" class="w-5 h-5"></i> 停止
+                        </button>
+                    </div>
+                    <button id="downloadBtn"
+                        class="hidden bg-[#205f72] text-white px-4 py-2 rounded-lg font-semibold hover:bg-[#124654] transition">
+                        📄 下載逐字稿
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Safari WAV 相容 -->
+    <script src="https://cdn.jsdelivr.net/gh/mattdiamond/Recorderjs@master/dist/recorder.js"></script>
+    <script>
+        function toggleSidebar() { document.getElementById("sidebar").classList.toggle("collapsed"); }
+        function goToNext() { window.location.href = "{{ url_for('permission.meeting_review_page', meeting_id=meeting_id) }}"; }
+        function openHelpModal() { alert("開始：啟用麥克風 → 建立 WS → 自動斷句上傳。\n停止：等最終稿（說話者+段落）回來後可編輯與下載。"); }
+
+        window.addEventListener("load", () => {
+            const startBtn = document.getElementById("startBtn");
+            const pauseBtn = document.getElementById("pauseBtn");
+            const stopBtn = document.getElementById("stopBtn");
+            const downloadBtn = document.getElementById("downloadBtn");
+            const sliceSel = document.getElementById("slice");
+
+            const statusContainer = document.getElementById("statusContainer");
+            const liveTextEl = document.getElementById("liveText");
+            const wsStateEl = document.getElementById("wsState");
+            const autoScrollChk = document.getElementById("autoScrollChk");
+            const jumpLatestBtn = document.getElementById("jumpLatestBtn");
+            const editModeChk = document.getElementById("editModeChk");
+            const addSpeakerBtn = document.getElementById("addSpeakerBtn");
+
+            const WS_PATH = "/ws/transcribe";
+
+            let ws = null, mediaStream = null, mediaRec = null;
+            let fullTranscript = "";      // 串流逐字全文
+            let streamItems = [];         // 串流逐句 [{t:秒, text}]
+            let finalData = [];           // 最終段落
+            let speakerList = [];
+            let paused = false, aliveTimer = null;
+            let awaitingFull = false, fullTimeout = null;
+            let autoScroll = true;
+            const MAX_DOM_ROWS = 300;
+            let recStartedAt = null;
+
+            // WAV 相容（Safari）
+            let isWavFallback = false, audioCtx = null, inputNode = null, wavRecorder = null, wavTimer = null;
+
+            // 會議資訊
+            document.getElementById("meeting-name").textContent =
+                localStorage.getItem("currentMeetingName") || "未命名會議";
+            document.getElementById("meeting-date").textContent =
+                localStorage.getItem("currentMeetingDate") || "未指定日期";
+
+            function setStatus(msg, type) {
+                statusContainer.innerHTML = `<div class="${type === "start" ? "status-start" : "status-stop"}">${msg}</div>`;
+            }
+            function setWsState(text) { wsStateEl.textContent = "WebSocket：" + text; }
+            function uniq(arr) { return Array.from(new Set(arr)); }
+            function fmtTime(s) { const m = Math.floor(s / 60), sec = Math.round(s % 60).toString().padStart(2, "0"); return `${m}:${sec}`; }
+
+            // ===== 直播呈現（一句話一行）=====
+            function appendText(text) {
+                if (!text || !text.trim()) return;
+                const block = document.createElement("div");
+                block.className = "rounded p-3 bg-white shadow-sm mb-2 text-[#205f72] text-base font-medium";
+                block.textContent = text;
+                liveTextEl.appendChild(block);
+                if (liveTextEl.children.length > MAX_DOM_ROWS) {
+                    liveTextEl.removeChild(liveTextEl.firstElementChild);
+                }
+                fullTranscript += (fullTranscript ? "\n" : "") + text;
+                if (recStartedAt) {
+                    const tSec = (Date.now() - recStartedAt) / 1000;
+                    streamItems.push({ t: tSec, text: text });
+                }
+
+                const nearBottom = liveTextEl.scrollTop + liveTextEl.clientHeight >= liveTextEl.scrollHeight - 60;
+                if (autoScroll || nearBottom) {
+                    liveTextEl.scrollTop = liveTextEl.scrollHeight;
+                    jumpLatestBtn.classList.add("hidden");
+                }
+            }
+
+            // ===== 建立發言者下拉 =====
+            function buildSpeakerSelect(current) {
+                const sel = document.createElement("select");
+                sel.className = "speakerSel hidden border rounded px-2 py-1 text-sm";
+                const all = speakerList.length ? speakerList : ["說話者1", "說話者2"];
+                all.forEach(n => {
+                    const opt = document.createElement("option");
+                    opt.value = n; opt.textContent = n;
+                    if (n === current) opt.selected = true;
+                    sel.appendChild(opt);
+                });
+                const optNew = document.createElement("option");
+                optNew.value = "__NEW__"; optNew.textContent = "＋ 新增…";
+                sel.appendChild(optNew);
+                return sel;
+            }
+
+            // ===== 真的渲染「最終段落」 =====
+            function renderFinalCore(segments) {
+                finalData = segments.map(s => ({ ...s }));
+                speakerList = uniq(segments.map(s => s.speaker)).sort();
+
+                liveTextEl.innerHTML = "";
+                finalData.forEach((seg, idx) => {
+                    const wrap = document.createElement("div");
+                    wrap.className = "rounded p-3 bg-white shadow-sm mb-2";
+                    wrap.dataset.idx = idx;
+
+                    const head = document.createElement("div");
+                    head.className = "flex items-center justify-between mb-1 text-sm text-gray-500";
+                    const left = document.createElement("div");
+                    left.innerHTML = `<span class="time">${fmtTime(seg.start)}–${fmtTime(seg.end)}</span> · <span class="font-semibold speakerLabel">${seg.speaker}</span>`;
+                    head.appendChild(left);
+                    const sel = buildSpeakerSelect(seg.speaker);
+                    head.appendChild(sel);
+
+                    const body = document.createElement("div");
+                    body.className = "editable text-[#205f72] text-base font-medium";
+                    body.textContent = seg.text || "";
+                    body.contentEditable = "false";
+
+                    sel.addEventListener("change", (e) => {
+                        if (e.target.value === "__NEW__") {
+                            const name = prompt("輸入新發言者名稱：");
+                            if (name && name.trim()) {
+                                speakerList.push(name.trim());
+                                document.querySelectorAll(".speakerSel").forEach(dd => {
+                                    const cur = dd.value;
+                                    dd.innerHTML = "";
+                                    speakerList.forEach(n => {
+                                        const opt = document.createElement("option");
+                                        opt.value = n; opt.textContent = n;
+                                        if (n === cur) opt.selected = true;
+                                        dd.appendChild(opt);
+                                    });
+                                    const optNew = document.createElement("option");
+                                    optNew.value = "__NEW__"; optNew.textContent = "＋ 新增…";
+                                    dd.appendChild(optNew);
+                                });
+                                e.target.value = name.trim();
+                            } else {
+                                e.target.value = finalData[idx].speaker;
+                                return;
+                            }
+                        }
+                        finalData[idx].speaker = e.target.value;
+                        wrap.querySelector(".speakerLabel").textContent = e.target.value;
+                    });
+
+                    body.addEventListener("input", () => { finalData[idx].text = body.textContent.trim(); });
+
+                    wrap.appendChild(head);
+                    wrap.appendChild(body);
+                    liveTextEl.appendChild(wrap);
+                });
+
+                applyEditMode(editModeChk.checked);
+                liveTextEl.scrollTop = liveTextEl.scrollHeight;
+            }
+
+            // ===== 備援：用直播逐字產生段落，避免空白 =====
+            function buildFallbackSegmentsFromStream() {
+                let items = streamItems.slice();
+                // 若沒記錄逐句，就用全文每行補成句
+                if (!items.length && fullTranscript.trim()) {
+                    items = fullTranscript.split(/\n+/).map((t, i) => ({ t: i * 2, text: t.trim() })).filter(x => x.text);
+                }
+                if (!items.length) return [];
+
+                const segs = items.map((it, i) => {
+                    const start = i > 0 ? items[i - 1].t : Math.max(0, it.t - 1);
+                    const end = items[i + 1] ? items[i + 1].t : it.t + 2;
+                    return { start, end, speaker: "說話者1", text: it.text };
+                });
+                return segs;
+            }
+
+            function renderFinal(segments) {
+                if (Array.isArray(segments) && segments.length) {
+                    renderFinalCore(segments);
+                    setStatus("⏹️ 錄音已結束（已產生段落與說話者，可編輯）", "stop");
+                } else {
+                    const fallback = buildFallbackSegmentsFromStream();
+                    if (fallback.length) {
+                        renderFinalCore(fallback);
+                        setStatus("⏹️ 錄音已結束（最終稿為空，已保留即時逐字）", "stop");
+                    } else {
+                        // 什麼都沒有，就維持原畫面並警示
+                        setStatus("⚠️ 最終稿為空，且無可用的即時逐字。", "stop");
+                    }
+                }
+                downloadBtn.classList.remove("hidden");
+            }
+
+            function applyEditMode(isEdit) {
+                document.querySelectorAll(".speakerSel").forEach(sel => sel.classList.toggle("hidden", !isEdit));
+                document.querySelectorAll(".editable").forEach(div => div.contentEditable = isEdit ? "true" : "false");
+                addSpeakerBtn.disabled = !isEdit;
+            }
+
+            // 捲動監聽
+            let scrollDebounce = null;
+            liveTextEl.addEventListener("scroll", () => {
+                if (scrollDebounce) cancelAnimationFrame(scrollDebounce);
+                scrollDebounce = requestAnimationFrame(() => {
+                    const atBottom = liveTextEl.scrollTop + liveTextEl.clientHeight >= liveTextEl.scrollHeight - 60;
+                    if (!atBottom) {
+                        autoScroll = false; autoScrollChk.checked = false; jumpLatestBtn.classList.remove("hidden");
+                    } else {
+                        if (!autoScroll) { autoScroll = true; autoScrollChk.checked = true; }
+                        jumpLatestBtn.classList.add("hidden");
+                    }
+                });
+            });
+            autoScrollChk.addEventListener("change", () => {
+                autoScroll = !!autoScrollChk.checked;
+                if (autoScroll) { liveTextEl.scrollTop = liveTextEl.scrollHeight; jumpLatestBtn.classList.add("hidden"); }
+            });
+            jumpLatestBtn.addEventListener("click", () => {
+                autoScroll = true; autoScrollChk.checked = true;
+                liveTextEl.scrollTop = liveTextEl.scrollHeight; jumpLatestBtn.classList.add("hidden");
+            });
+            editModeChk.addEventListener("change", () => applyEditMode(editModeChk.checked));
+            addSpeakerBtn.addEventListener("click", () => {
+                const name = prompt("輸入新發言者名稱：");
+                if (name && name.trim()) {
+                    speakerList.push(name.trim());
+                    document.querySelectorAll(".speakerSel").forEach(dd => {
+                        const cur = dd.value;
+                        dd.innerHTML = "";
+                        speakerList.forEach(n => {
+                            const opt = document.createElement("option");
+                            opt.value = n; opt.textContent = n;
+                            if (n === cur) opt.selected = true;
+                            dd.appendChild(opt);
+                        });
+                        const optNew = document.createElement("option");
+                        optNew.value = "__NEW__"; optNew.textContent = "＋ 新增…";
+                        dd.appendChild(optNew);
+                    });
+                }
+            });
+
+            function pickBestMime() {
+                const cands = ["audio/webm;codecs=opus", "audio/webm", "audio/ogg;codecs=opus"];
+                if (!window.MediaRecorder) return "";
+                for (const c of cands) if (MediaRecorder.isTypeSupported(c)) return c;
+                return "";
+            }
+
+            async function start() {
+                try { mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
+                catch (e) { setStatus("❌ 無法啟用麥克風：" + e.message, "stop"); return; }
+
+                const mime = pickBestMime();
+                isWavFallback = !mime;
+
+                const url = (location.protocol === "https:" ? "wss://" : "ws://") + location.host + WS_PATH;
+                ws = new WebSocket(url);
+
+                ws.onopen = () => {
+                    setWsState("已連線");
+                    fullTranscript = ""; streamItems = []; finalData = []; speakerList = [];
+                    liveTextEl.textContent = ""; downloadBtn.classList.add("hidden");
+                    startBtn.disabled = true; pauseBtn.disabled = false; stopBtn.disabled = false;
+                    paused = false; pauseBtn.innerHTML = `<i data-lucide="pause" class="w-5 h-5"></i> 暫停`;
+                    editModeChk.checked = false; applyEditMode(false);
+                    recStartedAt = Date.now();
+
+                    if (!isWavFallback) {
+                        mediaRec = new MediaRecorder(mediaStream, { mimeType: mime });
+                        mediaRec.ondataavailable = async (e) => {
+                            if (e.data && e.data.size > 0 && ws && ws.readyState === 1) ws.send(await e.data.arrayBuffer());
+                        };
+                        mediaRec.start(Number(sliceSel.value) * 1000);
+                        setStatus("🎤 即時錄音中…", "start");
+                    } else {
+                        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                        inputNode = audioCtx.createMediaStreamSource(mediaStream);
+                        wavRecorder = new Recorder(inputNode, { numChannels: 1 });
+                        wavRecorder.record();
+                        wavTimer = setInterval(() => {
+                            wavRecorder.exportWAV(async (blob) => {
+                                try { if (ws && ws.readyState === 1) ws.send(await blob.arrayBuffer()); }
+                                finally { wavRecorder.clear(); }
+                            });
+                        }, Number(sliceSel.value) * 1000);
+                        setStatus("🎤 即時錄音中（WAV 相容模式）…", "start");
+                    }
+
+                    aliveTimer = setInterval(() => { if (!ws || ws.readyState !== 1) setWsState("非連線"); }, 2000);
+                    lucide.createIcons();
+                };
+
+                ws.onmessage = (ev) => {
+                    let payload = {};
+                    try { payload = JSON.parse(ev.data); } catch { return; }
+
+                    // 進度提示
+                    if (payload.type === "progress") {
+                        const st = payload.stage;
+                        if (st === "received_stop") setStatus("🧠 正在整理音訊…", "stop");
+                        else if (st === "concat_done") setStatus(`🧠 已合併音訊（${payload.seconds}s），準備分離說話者…`, "stop");
+                        else if (st === "diarize_done") setStatus(`🧠 分離完成，找到 ${payload.segments} 段，開始轉譯…`, "stop");
+                        else if (st === "diarize_skipped") setStatus("🧠 錄音較長，跳過說話者分離，直接轉譯…", "stop");
+                        else if (st === "transcribe") setStatus(`🧠 轉譯中 ${payload.i}/${payload.total}…`, "stop");
+                        return;
+                    }
+
+                    if (payload.type === "full") {
+                        awaitingFull = false; if (fullTimeout) { clearTimeout(fullTimeout); fullTimeout = null; }
+                        const segs = Array.isArray(payload.segments) ? payload.segments : [];
+                        renderFinal(segs);                 // ★ 這裡會做備援，不會把畫面清空
+                        try { if (ws && ws.readyState === 1) ws.close(); } catch { }
+                        return;
+                    }
+
+                    if (payload.type === "partial") appendText(payload.text || "");
+                };
+
+                ws.onclose = () => {
+                    setWsState(awaitingFull ? "關閉（未完成）" : "關閉");
+                    if (awaitingFull) {
+                        setStatus("⚠️ 連線已關閉，未收到最終稿。請再試一次或檢查後端日誌。", "stop");
+                        downloadBtn.classList.remove("hidden");
+                    }
+                };
+
+                ws.onerror = () => {
+                    setWsState("錯誤");
+                    setStatus("❌ WebSocket 連線失敗，請檢查後端 /ws/transcribe", "stop");
+                    try { mediaStream && mediaStream.getTracks().forEach(t => t.stop()); } catch { }
+                    startBtn.disabled = false; pauseBtn.disabled = true; stopBtn.disabled = true;
+                };
+            }
+
+            function cleanupRecorders() {
+                try { if (mediaRec && mediaRec.state && mediaRec.state !== "inactive") mediaRec.stop(); } catch { }
+                try { if (wavTimer) clearInterval(wavTimer); if (wavRecorder) wavRecorder.stop(); if (audioCtx) audioCtx.close(); } catch { }
+                try { mediaStream && mediaStream.getTracks().forEach(t => t.stop()); } catch { }
+            }
+
+            function pauseOrResume() {
+                if (isWavFallback) {
+                    if (!paused) {
+                        try { if (wavTimer) clearInterval(wavTimer); wavRecorder.stop(); paused = true; } catch { }
+                        setStatus("⏸️ 已暫停錄音（WAV）", "stop");
+                        pauseBtn.innerHTML = `<i data-lucide="play" class="w-5 h-5"></i> 繼續`;
+                    } else {
+                        try {
+                            wavRecorder.record();
+                            wavTimer = setInterval(() => {
+                                wavRecorder.exportWAV(async (blob) => {
+                                    try { if (ws && ws.readyState === 1) ws.send(await blob.arrayBuffer()); }
+                                    finally { wavRecorder.clear(); }
+                                });
+                            }, Number(sliceSel.value) * 1000);
+                            paused = false;
+                        } catch { }
+                        setStatus("🎤 即時錄音中（WAV 相容模式）…", "start");
+                        pauseBtn.innerHTML = `<i data-lucide="pause" class="w-5 h-5"></i> 暫停`;
+                    }
+                } else {
+                    if (!mediaRec) return;
+                    if (!paused) {
+                        try { mediaRec.pause(); paused = true; } catch { }
+                        setStatus("⏸️ 已暫停錄音", "stop");
+                        pauseBtn.innerHTML = `<i data-lucide="play" class="w-5 h-5"></i> 繼續`;
+                    } else {
+                        try { mediaRec.resume(); paused = false; } catch { }
+                        setStatus("🎤 即時錄音中…", "start");
+                        pauseBtn.innerHTML = `<i data-lucide="pause" class="w-5 h-5"></i> 暫停`;
+                    }
+                }
+                lucide.createIcons();
+            }
+
+            function stopAll() {
+                try { if (mediaRec && mediaRec.state !== "inactive") mediaRec.stop(); } catch { }
+                try { if (mediaStream) mediaStream.getTracks().forEach(t => t.stop()); } catch { }
+                clearInterval(aliveTimer);
+
+                if (ws && ws.readyState === 1) {
+                    try { ws.send("STOP"); } catch { }
+                    awaitingFull = true; setWsState("處理中");
+                    setStatus("🧠 正在產生段落與說話者…", "stop");
+                    downloadBtn.classList.add("hidden");
+
+                    // 動態逾時：max(60s, 錄音時長 * 1.8)，上限 10 分鐘
+                    const recDurMs = recStartedAt ? (Date.now() - recStartedAt) : 0;
+                    const dynTimeout = Math.min(10 * 60_000, Math.max(60_000, Math.round(recDurMs * 1.8)));
+                    fullTimeout = setTimeout(() => {
+                        if (!awaitingFull) return;
+                        awaitingFull = false;
+                        setStatus("⌛ 等待最終稿逾時，僅保留即時逐字。", "stop");
+                        try { if (ws && ws.readyState === 1) ws.close(); } catch { }
+                        downloadBtn.classList.remove("hidden");
+                    }, dynTimeout);
+                }
+
+                startBtn.disabled = false; pauseBtn.disabled = true; stopBtn.disabled = true;
+            }
+
+            // 下載（優先使用 finalData；若沒有就用直播全文）
+            function downloadTxt() {
+                let textOut = "";
+                if (finalData.length) {
+                    textOut = finalData.map(s => `[${fmtTime(s.start)}–${fmtTime(s.end)} ${s.speaker}] ${s.text || ""}`).join("\n\n");
+                } else {
+                    textOut = fullTranscript;
+                }
+                const blob = new Blob([textOut], { type: "text/plain;charset=utf-8" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url; a.setAttribute("download", "transcript.txt"); a.click();
+                URL.revokeObjectURL(url);
+            }
+
+            // 綁定
+            startBtn.addEventListener("click", start);
+            pauseBtn.addEventListener("click", pauseOrResume);
+            stopBtn.addEventListener("click", stopAll);
+            downloadBtn.addEventListener("click", downloadTxt);
+            window.addEventListener("beforeunload", () => { try { if (ws && ws.readyState === 1) ws.close(); } catch { }; cleanupRecorders(); });
+
+            lucide.createIcons();
+        });
+    </script>
+
+
+</body>
+
+</html>
