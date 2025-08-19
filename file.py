@@ -2,10 +2,33 @@ from flask import Blueprint, render_template, request, jsonify, session, Respons
 import os
 from db import get_db, add_file 
 from embedding_utils import build_doc_embeddings
-from flask import send_from_directory  # 加這行可以回傳上傳的檔案
 
 
 file_bp = Blueprint('file', __name__)
+
+# 放在這支 file_bp 檔案靠上位置（import 之後、route 之前）
+def norm_role(r: str) -> str:
+    """把資料庫或前端傳來的角色統一成 host/edit/view"""
+    r = (r or "").strip().lower()
+    # 主持人/擁有者同義字
+    if r in ("主持人", "host", "creator", "owner", "admin"):
+        return "host"
+    # 可編輯同義字
+    if r in ("edit", "可供編輯", "可編輯", "editor"):
+        return "edit"
+    # 其他一律視為只能看
+    return "view"
+
+def role_display(role_norm: str) -> str:
+    """前端 UI 友善顯示"""
+    return "主持人" if role_norm == "host" else "與會者"
+
+def can_upload_by_role(role_norm: str) -> bool:
+    return role_norm in ("host", "edit")
+
+def can_delete_by_role(role_norm: str) -> bool:
+    return role_norm == "host"
+
 
 
 # === 上傳設定 ===
@@ -44,12 +67,13 @@ def upload_file():
         WHERE meeting_id = %s AND user_id = %s
     """, (meeting_id, user_id))
     row = cursor.fetchone()
-
     cursor.close()
     conn.close()
 
-    if not row or row["role"] not in ["主持人", "可供編輯", "edit"]:
+    role_norm = norm_role(row["role"] if row else None)
+    if not can_upload_by_role(role_norm):
         return jsonify({"success": False, "message": "您沒有上傳權限"})
+
 
     if 'file' not in request.files:
         return jsonify({'success': False, 'message': '未選擇檔案'})
@@ -70,7 +94,7 @@ def upload_file():
         if filename.lower().endswith((".docx", ".pdf")):
             try:
                 build_doc_embeddings(save_path)
-                print("✅ 已建立 embedding 檔：{get_embedding_path(save_path)}")
+                print(f"✅ 已建立 embedding 檔：{get_embedding_path(save_path)}")
             except Exception as e:
                 print(f"❌ 建立 embedding 失敗：{e}")
 
@@ -83,37 +107,68 @@ def upload_file():
             file_type
         )
 
-        if success:
-            if file_type == "會議紀錄整理":
-                try:
-                    from blueprints.action_items_bp import minutes_to_tasks_extract_internal
-                    # 做法 A：utils 在專案根
-                    from utils.text_extract import extract_text_from_file
-                    # 做法 B：如果此段程式碼在 blueprints/ 內部，則改成：
-                    # from .utils.text_extract import extract_text_from_file
+    # --- 成功寫 DB 後 ---
+    if success:
+        # ✅ 只要上傳的是「會議紀錄整理」，就觸發抽取 → 建任務
+        def _is_minutes(kind: str|None) -> bool:
+            if not kind: return False
+            k = kind.strip().lower()
+            return k in ("會議紀錄整理", "minutes", "summary")
 
-                    file_text = extract_text_from_file(save_path)
+        if _is_minutes(file_type):
+            try:
+                # 延後匯入，避免循環匯入
+                from blueprints.action_items_bp import minutes_to_tasks_extract_internal
+                from utils.text_extract import extract_text_from_file
 
-                    llama_result = minutes_to_tasks_extract_internal(
-                        meeting_id=meeting_id,
-                        text=file_text,
-                        assigner_id=user_id,
-                    )
-                    print(f"📌 LLaMA 任務解析完成: {llama_result}")
+                # 讀取檔案文字
+                file_text = extract_text_from_file(save_path)
 
-                except ModuleNotFoundError as e:
-                    # 更明確提示「utils」套件找不到
-                    print("❌ 模組匯入失敗：", e)
-                    print("➡ 檢查是否已建立 utils/ 資料夾與 __init__.py，或改用相對匯入 .utils.xxx")
-                except Exception as e:
-                    print(f"❌ LLaMA 任務解析失敗: {e}")
+                # 取得 topic_id（front 端要記得傳來）
+                topic_id_raw = request.form.get("topic_id")
+                topic_id = int(topic_id_raw) if topic_id_raw and topic_id_raw.isdigit() else None
 
-            return jsonify({'success': True, 'message': '檔案上傳成功'}), 200
-        else:
-            return jsonify({'success': False, 'message': f'資料庫錯誤：{msg}'}), 500
+                # 呼叫內部任務轉換
+                result = minutes_to_tasks_extract_internal(
+                    meeting_id=meeting_id,
+                    text=file_text,
+                    assigner_id=user_id,
+                    topic_id=topic_id
+                )
+                # 方便前端提示：建立了幾個代辦
+                created = (result or {}).get("created", None)
+                return jsonify({
+                    'success': True,
+                    'message': '檔案上傳成功，已解析會議代辦' if created else '檔案上傳成功（未找到代辦）',
+                    'created_tasks': created
+                }), 200
+
+            except ModuleNotFoundError as e:
+                # 明確回傳，方便你測
+                return jsonify({
+                    'success': True,
+                    'message': '檔案上傳成功，但任務解析模組未找到',
+                    'error': str(e)
+                }), 200
+
+            except Exception as e:
+                # 不讓整體上傳失敗，但記錄錯誤
+                print(f"❌ 會議紀錄解析失敗: {e}")
+                return jsonify({
+                    'success': True,
+                    'message': '檔案上傳成功，但任務解析失敗',
+                    'error': str(e)
+                }), 200
+
+        # 非 minutes 類型，維持原本回應
+        return jsonify({'success': True, 'message': '檔案上傳成功'}), 200
+    else:
+        return jsonify({'success': False, 'message': f'資料庫錯誤：{msg}'}), 500
+
 
     # 如果檔案格式不被允許（這行放 if 外面）
-    return jsonify({'success': False, 'message': '檔案格式不允許，僅支援 docx, pdf'}), 400
+    return jsonify({'success': False, 'message': f'檔案格式不允許，僅支援：{", ".join(sorted(ALLOWED_EXTENSIONS))}'}), 400
+
 
 
 # === 讓前端可以存取上傳的檔案（靜態下載路由 ===
@@ -179,8 +234,11 @@ def delete_file():
         print("🔍 查到角色:", row)
 
         cursor.close()  # ✅ 關掉避免 unread result
-        if not row or row["role"] not in ["主持人", "edit"]:
+
+        role_norm = norm_role(row["role"] if row else None)
+        if not can_delete_by_role(role_norm):
             return jsonify({'success': False, 'message': '您沒有刪除權限'})
+
 
 
         # Step 2: 查詢檔案路徑
@@ -215,7 +273,7 @@ def delete_file():
         cursor.close()
         conn.close()
 
-# === 會議前檔案上傳權限設定（修正版） ===
+# === 會議前檔案上傳權限設定（修正版，含 topic_id） ===
 @file_bp.route('/meeting_before_file_upload')
 def meeting_before_file_upload_page():
     if "user" not in session:
@@ -230,7 +288,6 @@ def meeting_before_file_upload_page():
     if conn is None:
         return "資料庫連線失敗", 500
 
-    # 你的 meeting_participants 只有一個欄位 role → 正規化成 host/edit/view
     def norm_role(r: str) -> str:
         r = (r or "").strip().lower()
         if r in ("主持人", "host", "creator", "owner"):
@@ -242,9 +299,10 @@ def meeting_before_file_upload_page():
     try:
         cur = conn.cursor(dictionary=True)
 
-        # 會議與組織資訊
+        # 會議與組織資訊（補上 topic_id）
         cur.execute("""
-            SELECT m.id AS meeting_id, m.title AS meeting_title, m.date AS meeting_date, m.org_id,
+            SELECT m.id AS meeting_id, m.title AS meeting_title, m.date AS meeting_date,
+                   m.org_id, m.topic_id,
                    o.name AS org_name
             FROM meetings m
             JOIN organizations o ON m.org_id = o.id
@@ -254,7 +312,7 @@ def meeting_before_file_upload_page():
         if not row:
             return "找不到該會議", 404
 
-        # 只查 role
+        # 查詢使用者在該會議的角色
         cur.execute("""
             SELECT role
             FROM meeting_participants
@@ -263,9 +321,9 @@ def meeting_before_file_upload_page():
         p = cur.fetchone() or {}
 
         role_norm = norm_role(p.get("role"))
-        role_display = "主持人" if role_norm == "host" else "與會者"   # UI 顯示
+        role_display = "主持人" if role_norm == "host" else "與會者"
         permission   = "edit" if role_norm in ("host", "edit") else "view"
-        can_upload   = (role_norm in ("host", "edit"))                 # ✅ 核心布林
+        can_upload   = (role_norm in ("host", "edit"))
 
         return render_template(
             "meeting.before/meeting_before_file_upload.html",
@@ -273,9 +331,9 @@ def meeting_before_file_upload_page():
             meeting_name=row["meeting_title"],
             meeting_date=row["meeting_date"],
             org_id=row["org_id"],
+            topic_id=row["topic_id"],            # ✅ 補上 topic_id
             organization_name=row["org_name"],
 
-            # ⬇️ 這三個一定要傳，前端才會放行
             role=role_display,
             permission=permission,
             can_upload=can_upload
@@ -284,7 +342,7 @@ def meeting_before_file_upload_page():
         cur.close()
         conn.close()
 
-# === 會議中檔案上傳權限設定 ===
+# === 會議中檔案上傳權限設定（含 topic_id） ===
 @file_bp.route('/meeting_during_file_upload')
 def meeting_during_file_upload_page():
     meeting_id = request.args.get("meeting_id")
@@ -296,20 +354,52 @@ def meeting_during_file_upload_page():
     if conn is None:
         return "資料庫連線失敗", 500
 
+    def norm_role(r: str) -> str:
+        r = (r or "").strip().lower()
+        if r in ("主持人", "host", "creator", "owner"):
+            return "host"
+        if r in ("edit", "可供編輯", "可編輯"):
+            return "edit"
+        return "view"
+
+    def role_display(r: str) -> str:
+        return "主持人" if r == "host" else "與會者"
+
+    def can_upload_by_role(r: str) -> bool:
+        return r in ("host", "edit")
+
     try:
         cursor = conn.cursor(dictionary=True)
-        # 取得角色
+
+        # 先撈會議資訊，補上 topic_id
+        cursor.execute("""
+            SELECT id AS meeting_id, title, date, org_id, topic_id
+            FROM meetings
+            WHERE id = %s
+        """, (meeting_id,))
+        meeting = cursor.fetchone()
+        if not meeting:
+            return "找不到會議", 404
+
+        # 撈取使用者角色
         cursor.execute("""
             SELECT role FROM meeting_participants
             WHERE meeting_id = %s AND user_id = %s
         """, (meeting_id, user_id))
-        row = cursor.fetchone()
-        role = row["role"] if row else "與會者"
+        p = cursor.fetchone() or {}
+        role_norm = norm_role(p.get("role"))
 
         return render_template(
             "meeting.during/meeting_during_file_upload.html",
-            meeting_id=meeting_id,
-            role=role
+            meeting_id=meeting["meeting_id"],
+            meeting_name=meeting["title"],
+            meeting_date=meeting["date"],
+            org_id=meeting["org_id"],
+            topic_id=meeting["topic_id"],          # ✅ 補上 topic_id
+
+            role=role_display(role_norm),          # UI 顯示中文
+            permission=("edit" if role_norm in ("host", "edit") else "view"),
+            can_upload=can_upload_by_role(role_norm)
         )
     finally:
         cursor.close()
@@ -329,15 +419,29 @@ def meeting_after_file_upload_page():
 
     try:
         cursor = conn.cursor(dictionary=True)
+
+        # 1️⃣ 查詢使用者在此會議的角色
         cursor.execute("""
             SELECT role FROM meeting_participants
             WHERE meeting_id = %s AND user_id = %s
         """, (meeting_id, user_id))
-        row = cursor.fetchone()
-        role = row["role"] if row else "與會者"
+        p = cursor.fetchone() or {}
+        role_norm = norm_role(p.get("role"))
 
-        return render_template("meeting.after/meeting_after_file_upload.html",
-                               meeting_id=meeting_id, role=role)
+        # 2️⃣ 查詢會議對應的 topic_id
+        cursor.execute("SELECT topic_id FROM meetings WHERE id = %s", (meeting_id,))
+        meeting = cursor.fetchone() or {}
+        topic_id = meeting.get("topic_id")
+
+        # 3️⃣ 回傳頁面，帶上 topic_id
+        return render_template(
+            "meeting.after/meeting_after_file_upload.html",
+            meeting_id=meeting_id,
+            topic_id=topic_id,                     # ⬅️ 新增傳給前端
+            role=role_display(role_norm),          # UI 顯示中文
+            permission=("edit" if role_norm in ("host","edit") else "view"),
+            can_upload=can_upload_by_role(role_norm)
+        )
     finally:
         cursor.close()
         conn.close()
