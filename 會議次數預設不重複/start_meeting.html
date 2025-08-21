@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>會議寶｜創建會議</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/navbar_b.css') }}" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <style>
+        .btn-primary {
+            background-color: #205f72;
+        }
+
+        .btn-primary:hover {
+            background-color: #175c71;
+        }
+
+        .dashed-box {
+            border: 2px dashed #cedfe4;
+            border-radius: 20px;
+            background-color: #ffffff;
+            padding: 24px;
+            min-height: 150px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .org-card {
+            background-color: #cedfe4;
+            border-radius: 16px;
+            padding: 12px 20px;
+            width: calc(25% - 12px);
+            height: 160px;
+            position: relative;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-sizing: border-box;
+        }
+
+        .menu-button {
+            position: absolute;
+            top: 8px;
+            right: 12px;
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            color: #205f72;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            /* 圓形 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .menu-button:hover,
+        .menu-button:focus {
+            background-color: rgba(255, 255, 255, 0.8);
+            box-shadow: 0 0 6px rgba(0, 0, 0, 0.2);
+            transform: scale(1.1);
+            color: #103c47;
+        }
+
+        .menu-list button {
+            white-space: nowrap;
+            padding: 8px 16px;
+            text-align: left;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-weight: normal;
+            font-size: 15px;
+        }
+
+        .menu-list button:hover {
+            background-color: #f0f0f0;
+        }
+
+        #orgList {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+            gap: 16px;
+        }
+
+        .dashed-box {
+            border: 2px dashed #cedfe4;
+            border-radius: 20px;
+            background-color: #ffffff;
+            padding: 24px;
+            min-height: 150px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .menu-button {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .org-card {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .menu-wrapper {
+            position: absolute;
+            top: 8px;
+            right: 5px;
+            width: 36px;
+            height: 36px;
+        }
+
+        .menu-button:hover+.menu-list,
+        .menu-list:hover {
+            display: flex;
+        }
+
+        .menu-list {
+            display: none;
+            flex-direction: column;
+            position: absolute;
+            top: 36px;
+            right: 0;
+            background-color: #ffffff;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+            padding: 4px 0;
+            min-width: 140px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="layout">
+        <aside class="sidebar" id="sidebar">
+            <button class="navbar-toggle" onclick="toggleSidebar()" id="toggleBtn">
+                <i data-lucide="align-justify" class="w-6 h-6 stroke-[#205f72]"></i>
+            </button>
+            <nav class="menu">
+                <div class="sidebar-item cursor-default hover:bg-transparent select-none">
+                    <i data-lucide="building" class="sidebar-icon stroke-[#205f72]"></i>
+                    <div class="flex flex-col leading-snug">
+                        <span class="text-xs text-gray-500">目前議題</span>
+                        <span id="topic-title"
+                            class="text-[#205f72] text-sm font-semibold truncate max-w-[180px]"></span>
+                    </div>
+                </div>
+                <a href="{{ url_for('organization.build_organization_page') }}"
+                    class="sidebar-item flex items-center gap-2">
+                    <i data-lucide="home" class="sidebar-icon"></i>
+                    <span>首頁</span>
+                </a>
+                <a href="#" class="sidebar-item flex items-center gap-2" onclick="goToTopicPage()">
+                    <i data-lucide="newspaper" class="sidebar-icon"></i>
+                    <span>創建議題</span>
+                </a>
+                <a href="#" class="sidebar-item flex items-center gap-2" onclick="goToStartMeetingPage()">
+                    <i data-lucide="presentation" class="sidebar-icon"></i>
+                    <span>創建會議</span>
+                </a>
+                </a>
+                <a href="#" class="sidebar-item flex items-center gap-2" onclick="openHelpModal()">
+                    <i data-lucide="circle-question-mark" class="sidebar-icon"></i>
+                    <span>使用說明</span>
+                </a>
+                <a href="{{ url_for('auth.signin_page') }}" class="sidebar-item flex items-center gap-2">
+                    <i data-lucide="log-out" class="sidebar-icon"></i>
+                    <span>登出</span>
+                </a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header class="header">
+                <div class="header-left">
+                    <a href="{{ url_for('organization.build_organization_page') }}">
+                        <img src="{{ url_for('static', filename='image/logo.png') }}" alt="Logo" class="logo-img" />
+                    </a>
+                </div>
+                <div class="header-right">
+                    <a href="#" onclick="goToTopicMemberPage()">
+                        <img src="{{ url_for('static', filename='image/head.png') }}" alt="Head" class="avatar-img" />
+                    </a>
+
+            </header>
+
+            <section class="workspace px-10 py-8">
+                <button onclick="openMeetingModal()" class="btn-primary text-white px-4 py-2 rounded-lg font-bold">＋
+                    創建會議</button>
+
+                <div class="mt-8 dashed-box text-center">
+                    <h2 class="text-2xl font-bold text-[#205f72] mb-2">我的會議</h2>
+                    <p id="meetingHint" class="text-gray-600">在此顯示你發起或參與的會議</p>
+                    <div id="meetingList"
+                        style="display: flex; flex-wrap: wrap; gap: 16px; justify-content: flex-start;"></div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- 會議建立視窗 -->
+    <div id="meetingModal" class="fixed inset-0 hidden items-center justify-center bg-black bg-opacity-50 z-50">
+        <div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <h3 class="text-xl font-bold text-[#205f72] mb-4 text-center">發起新會議</h3>
+            <div class="mb-4">
+                <label class="block font-bold mb-1">會議發起人</label>
+                <input id="creatorInput" type="text" value="{{ user_name }}" readonly
+                    class="w-full p-3 rounded-lg border border-gray-300 bg-gray-100 text-gray-700 cursor-not-allowed" />
+            </div>
+
+            <div class="mb-4">
+                <label class="block font-bold mb-1">會議日期</label>
+                <input id="dateInput" type="date" min=""
+                    class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none" />
+
+            </div>
+            <div class="mb-4">
+                <label class="block font-bold mb-1">會議名稱</label>
+                <input id="titleInput" type="text" readonly
+                    class="w-full p-3 rounded-lg border border-gray-300 bg-gray-100 text-gray-700 cursor-not-allowed" />
+            </div>
+            <div class="mb-4">
+                <label class="block font-bold mb-1">會議參與者</label>
+                <div id="participantList"
+                    class="flex flex-col gap-2 max-h-32 overflow-y-auto border border-gray-300 rounded-lg p-3 bg-gray-50">
+                </div>
+            </div>
+            <div class="flex justify-end gap-2">
+                <button onclick="closeMeetingModal()" class="bg-gray-300 text-black px-4 py-2 rounded-lg">取消</button>
+                <button onclick="createMeeting()" class="btn-primary text-white px-4 py-2 rounded-lg">建立</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openHelpModal() {
+            document.getElementById("helpModal").classList.remove("hidden");
+            document.getElementById("helpModal").classList.add("flex");
+        }
+
+        function closeHelpModal() {
+            document.getElementById("helpModal").classList.add("hidden");
+            document.getElementById("helpModal").classList.remove("flex");
+        }
+        function goToTopicPage() {
+            const orgId = localStorage.getItem("currentOrgId");
+            if (!orgId) {
+                alert("⚠️ 尚未選擇組織，請先建立或切換組織！");
+                return;
+            }
+            window.location.href = `/topics?org_id=${orgId}`;
+        }
+        function goToStartMeetingPage() {
+            const orgId = localStorage.getItem("currentOrgId");
+            const topicId = localStorage.getItem("currentTopicId");
+
+            if (!orgId || !topicId) {
+                alert("⚠️ 請先選擇一個議題再前往創建會議！");
+                return;
+            }
+
+            // ✅ 修正這一行：確保網址會帶上 topic_id
+            window.location.href = `/meeting?org_id=${orgId}&topic_id=${topicId}`;
+        }
+
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const orgId = urlParams.get("org_id");
+        const topicId = urlParams.get("topic_id");
+
+        localStorage.setItem("currentOrgId", orgId);
+        localStorage.setItem("currentTopicId", topicId);
+
+
+        function formatDate(dateStr) {
+            return new Date(dateStr).toISOString().split("T")[0].replace(/-/g, "/");
+        }
+
+        let cachedMeetingName = null;
+
+        // 🔹 預先抓取最新會議名稱
+        function preloadDefaultMeetingName() {
+        return fetch(`/api/default_meeting_name?org_id=${orgId}&topic_id=${topicId}`)
+            .then(res => res.json())
+            .then(data => {
+            if (data && data.success) {
+                cachedMeetingName = data.title;
+            } else {
+                cachedMeetingName = "會議名稱載入失敗";
+            }
+            })
+            .catch(err => {
+            console.error("預載入會議名稱失敗：", err);
+            cachedMeetingName = "錯誤：無法取得預設名稱";
+            });
+        }
+
+        async function openMeetingModal() {
+        // 先把最新數字算好
+        if (!cachedMeetingName) {
+            await preloadDefaultMeetingName();
+        } else {
+            // 已有快取也再刷新一次，避免多人同時建立造成落後
+            await preloadDefaultMeetingName();
+        }
+        
+        // 先填好再打開 -> 不會看到閃爍
+        const titleInput = document.getElementById("titleInput");
+        titleInput.value = cachedMeetingName || "會議名稱載入失敗";
+        
+        document.getElementById("meetingModal").classList.remove("hidden");
+        document.getElementById("meetingModal").classList.add("flex");
+        loadParticipants();
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+        preloadDefaultMeetingName();
+        });
+
+        function closeMeetingModal() {
+            document.getElementById("meetingModal").classList.add("hidden");
+            document.getElementById("meetingModal").classList.remove("flex");
+        }
+
+        function loadParticipants() {
+            const container = document.getElementById("participantList");
+            container.innerHTML = "";
+
+            const topicId = localStorage.getItem("currentTopicId");
+            const currentUserEmail = localStorage.getItem("userEmail");
+
+            if (!topicId) {
+                container.innerHTML = "<p class='text-red-500'>無法取得議題資訊</p>";
+                return;
+            }
+
+            fetch(`/api/topic_members/${topicId}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (!data.success) {
+                        container.innerHTML = "<p class='text-red-500'>無法載入議題成員</p>";
+                        return;
+                    }
+
+                    data.members.forEach((member, index) => {
+                        if (member.email === currentUserEmail) return;
+
+                        const div = document.createElement("div");
+                        div.className = "flex items-center justify-between mb-2";
+
+                        div.innerHTML = `
+                    <div class="participant-info text-sm text-gray-700">
+                        ${member.name}（${member.email}）
+                    </div>
+                    <select class="permission-select border border-gray-300 rounded-md px-2 py-1 text-sm">
+                        <option value="edit">可供編輯</option>
+                        <option value="view">僅可查看</option>
+                    </select>
+                `;
+                        container.appendChild(div);
+                    });
+                })
+                .catch(err => {
+                    console.error("載入議題成員錯誤：", err);
+                    container.innerHTML = "<p class='text-red-500'>發生錯誤，請稍後再試！</p>";
+                });
+        }
+
+        function toggleRoleSelect(id) {
+            const checkbox = document.getElementById(id);
+            const select = document.getElementById(`role-${id}`);
+            select.style.display = checkbox.checked ? "block" : "none";
+        }
+
+        function createMeeting() {
+            const creator = document.getElementById("creatorInput").value.trim();
+            const date = document.getElementById("dateInput").value;
+            const title = document.getElementById("titleInput").value.trim();
+
+            const selected = Array.from(document.querySelectorAll('#participantList select')).map(select => {
+                const infoText = select.closest('div').querySelector('.participant-info').textContent;
+                const emailMatch = infoText.match(/（(.+?)）/);
+                const email = emailMatch ? emailMatch[1] : "";
+
+                const role = select.value;
+                return {
+                    email,
+                    role
+                };
+            });
+
+
+            if (!creator || !date || !title) {
+                alert("請完整填寫所有欄位！");
+                return;
+            }
+
+            if (selected.length === 0) {
+                alert("請選擇至少一位會議參與者！");
+                return;
+            }
+
+            const creatorId = localStorage.getItem("userId");
+
+            if (!creatorId) {
+                alert("請先登入才能發起會議！");
+                return;
+            }
+
+            // ✅ 傳送至後端
+            fetch("/api/meeting", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    title: title,
+                    date: date,
+                    creator_id: creatorId,
+                    org_id: orgId,
+                    topic_id: topicId,
+                    participants: selected
+                })
+            })
+                .then(res => res.json())
+                .then(result => {
+                    if (result.success) {
+                        alert("會議建立成功！");
+                        cachedMeetingName = null;
+                        closeMeetingModal();
+                        loadMyMeetings();
+                    } else {
+                        alert("建立失敗：" + result.message);
+                    }
+                })
+
+                .catch(err => {
+                    console.error("建立過程發生錯誤：", err);
+                    alert("發生錯誤，請稍後再試！");
+                });
+        }
+
+        // 這是你要的會議卡片點擊跳轉 function
+        function enterMeeting(meetingId, title, date) {
+            localStorage.setItem("currentMeetingId", meetingId);
+            localStorage.setItem("currentMeetingName", title);
+            localStorage.setItem("currentMeetingDate", date);
+            window.location.href = `/meeting_entry/${meetingId}`;
+        }
+
+        function toggleMenu(id) {
+            const menu = document.getElementById("menu-" + id);
+            document.querySelectorAll(".menu-list").forEach(m => {
+                if (m !== menu) m.style.display = "none";
+            });
+            menu.style.display = (menu.style.display === "flex") ? "none" : "flex";
+        }
+
+        function renameMeeting(id) {
+            const titleEl = document.getElementById("meeting-title-" + id);
+            const oldName = titleEl.textContent;
+            const newName = prompt("輸入新的會議名稱：", oldName);
+            if (!newName || newName.trim() === oldName.trim()) return;
+
+            // 先改畫面
+            titleEl.textContent = newName;
+
+            // 發送 PATCH 請求更新後端
+            fetch(`/api/meeting/${id}`, {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    title: newName.trim()
+                })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (!data.success) {
+                        alert("更新失敗：" + data.message);
+                        // 若失敗，還原舊名稱
+                        titleEl.textContent = oldName;
+                    }
+                })
+                .catch(err => {
+                    alert("發生錯誤：" + err);
+                    titleEl.textContent = oldName;
+                });
+        }
+
+        function deleteMeeting(meetingId) {
+            if (!confirm("確定要刪除這場會議嗎？")) return;
+
+            fetch(`/api/meeting/${meetingId}`, {
+                method: "DELETE"
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        alert("已成功刪除會議！");
+                        document.getElementById("meeting-" + meetingId).remove();
+                    } else {
+                        alert("刪除失敗：" + data.message);
+                    }
+                })
+                .catch(err => {
+                    console.error("刪除錯誤：", err);
+                    alert("刪除時發生錯誤，請稍後再試！");
+                });
+        }
+
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+            const todayStr = `${yyyy}-${mm}-${dd}`;
+
+            const dateInput = document.getElementById("dateInput");
+            if (dateInput) {
+                dateInput.setAttribute("min", todayStr); // ⛔ 禁止選擇今天以前的日期
+            }
+        });
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('collapsed');
+        }
+
+        function loadMyMeetings() {
+            const orgId = localStorage.getItem("currentOrgId");
+            const userId = localStorage.getItem("userId");
+            const topicId = localStorage.getItem("currentTopicId");
+            if (!orgId || !userId || !topicId) {
+                console.error("缺少 orgId / userId / topicId");
+                return;
+            }
+            fetch(`/api/meetings/by_topic?org_id=${orgId}&user_id=${userId}&topic_id=${topicId}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (!data.success) {
+                        console.error("載入會議失敗：", data.message);
+                        return;
+                    }
+
+                    const list = document.getElementById("meetingList");
+                    list.innerHTML = ""; // 清空舊的
+                    if (data.meetings.length === 0) {
+                        document.getElementById("meetingHint").style.display = "block";
+                    } else {
+                        document.getElementById("meetingHint").style.display = "none";
+                    }
+
+                    data.meetings.forEach(meeting => {
+                        const displayDate = formatDate(meeting.date);
+                        const card = document.createElement("div");
+                        card.className = "org-card cursor-pointer";
+                        card.id = "meeting-" + meeting.id;
+                        card.onclick = function (e) {
+                            if (e.target.closest(".menu-button") || e.target.closest(".menu-list")) return;
+                            enterMeeting(meeting.id, meeting.title, displayDate);
+                        };
+
+                        card.innerHTML = `
+  <div class='text-center w-full'>
+    <h3 id="meeting-title-${meeting.id}" class="font-bold text-base text-[#205f72] truncate max-w-full">${meeting.title}</h3>
+    <div class='text-sm text-gray-700'>發起人：${meeting.creator_name}</div>
+    <div class='text-sm text-gray-700'>日期：${displayDate}</div>
+  </div>
+  ${meeting.role === "主持人"
+                                ? `
+    <div class="menu-wrapper" onclick="event.stopPropagation()">
+      <button class="menu-button">
+        <i class="fas fa-ellipsis-vertical"></i>
+      </button>
+      <div class="menu-list">
+        <button onclick="deleteMeeting(${meeting.id})">刪除會議</button>
+      </div>
+    </div>`
+                                : ""
+                            }
+`;
+                        list.appendChild(card);
+                    });
+
+                })
+                .catch(err => {
+                    console.error("錯誤發生：", err);
+                });
+        }
+
+        function goToTopicMemberPage() {
+            const topicId = localStorage.getItem("currentTopicId");
+            if (!topicId) {
+                alert("⚠️ 尚未選擇議題！");
+                return;
+            }
+            window.location.href = `/topic_members?topic_id=${topicId}`;
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const orgName = localStorage.getItem("org_name");
+            if (orgName) {
+                const orgNameEl = document.getElementById("meeting-name");
+                if (orgNameEl) orgNameEl.textContent = orgName;
+            }
+        });
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const topicTitle = localStorage.getItem("currentTopicTitle");
+            if (topicTitle) {
+                const el = document.getElementById("topic-title");
+                if (el) el.textContent = topicTitle;
+            }
+        });
+
+    </script>
+    <script>
+        window.onload = function () {
+            loadMyMeetings();
+            lucide.createIcons(); // 這行會把 data-lucide 的 <i> 元素渲染成 SVG 圖示
+        };
+    </script>
+    <!-- 使用說明 Modal -->
+    <div id="helpModal" class="fixed inset-0 hidden items-center justify-center bg-black bg-opacity-50 z-50">
+        <div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-lg">
+            <h3 class="text-xl font-bold text-[#205f72] mb-4 text-center">使用說明</h3>
+            <ul class="list-disc pl-5 text-gray-700 leading-relaxed text-base">
+                <li>
+                    點選頁面右上角 <span class="inline-flex items-center gap-1">
+                        <span>頭像</span>
+                        <img src="{{ url_for('static', filename='image/head.png') }}" alt="頭像圖示"
+                            class="w-6 h-6 inline-block">
+                    </span> 可查看該議題的成員列表。
+                </li>
+                <li>
+                    按下<button class="btn-primary text-white px-2 py-1 text-sm rounded">＋創建會議</button>
+                    可新增一場新的會議。
+                </li>
+                <li>
+                    會議名稱將依照目前進度自動產生（例如「第一次會議」、「第二次會議」），無需手動輸入。
+                </li>
+                <li>
+                    請選擇會議日期，並為參與者設定權限（可編輯 / 僅可查看）後點擊「建立」完成創建。
+                </li>
+                <li>
+                    建立後的會議將顯示於「我的會議」區塊中，點擊卡片可進入該會議頁面。
+                </li>
+                <li>
+                    若您為主持人，可於卡片右上角點選 <i class="fas fa-ellipsis-vertical text-gray-600 text-sm px-1"></i>
+                    可刪除會議。
+                </li>
+            </ul>
+            <div class="flex justify-center mt-6">
+                <button onclick="closeHelpModal()" class="bg-gray-300 text-black px-6 py-2 rounded-lg">關閉</button>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>
