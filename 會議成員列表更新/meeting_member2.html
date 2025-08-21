@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>會議寶｜會議成員</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/navbar_d.css') }}" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    .btn-primary {
+      background-color: #205f72;
+    }
+
+    .btn-primary:hover {
+      background-color: #175c71;
+    }
+
+    .card {
+      background-color: #cedfe4;
+      border-radius: 16px;
+      padding: 16px 20px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="layout">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <button class="navbar-toggle" onclick="toggleSidebar()" id="toggleBtn">
+        <i data-lucide="align-justify" class="w-6 h-6 stroke-[#205f72]"></i>
+      </button>
+      <nav class="menu">
+        <div class="sidebar-item cursor-default hover:bg-transparent select-none">
+          <i data-lucide="building" class="sidebar-icon stroke-[#205f72]"></i>
+          <div class="flex flex-col leading-snug">
+            <span class="text-xs text-gray-500">目前會議</span>
+            <span id="meeting-date" class="text-[#205f72] text-sm font-semibold truncate max-w-[180px]"></span>
+            <span id="meeting-name" class="text-[#205f72] text-sm font-semibold truncate max-w-[180px]"></span>
+          </div>
+        </div>
+        <a href="{{ url_for('file.meeting_during_file_upload_page', meeting_id=meeting_id) }}" class="sidebar-item">
+          <i data-lucide="file-plus" class="sidebar-icon"></i><span>檔案上傳</span>
+        </a>
+        <a href="{{ url_for('meeting_during_transcript_now_page', meeting_id=meeting_id) }}" class="sidebar-item">
+          <i data-lucide="mic" class="sidebar-icon"></i><span>語音轉文字</span>
+        </a>
+        <a href="#" class="sidebar-item flex items-center gap-2" onclick="openHelpModal()">
+          <i data-lucide="circle-question-mark" class="sidebar-icon"></i>
+          <span>使用說明</span>
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <header class="header">
+        <div class="header-left">
+          <a href="{{ url_for('organization.build_organization_page') }}">
+            <img src="{{ url_for('static', filename='image/logo.png') }}" alt="Logo" class="logo-img" />
+          </a>
+        </div>
+        <div class="progress-bar flex items-center">
+          <div class="step-group">
+            <div class="circle gray-completed"></div>
+            <div class="label label-gray">前</div>
+          </div>
+          <div class="line solid-gray"></div>
+          <div class="step-group">
+            <div class="circle completed"></div>
+            <div class="label">中</div>
+          </div>
+          <div class="line dashed relative flex-1 flex items-center justify-center">
+            <button onclick="goToNext()"
+              class="absolute z-10 bg-[#175c71] text-white text-sm px-3 py-1 rounded-full hover:bg-[#124654] transition-all">下一步</button>
+          </div>
+          <div class="step-group">
+            <div class="circle"></div>
+            <div class="label">後</div>
+          </div>
+        </div>
+        <div class="header-right">
+          <a href="{{ url_for('permission.meeting_member2_page', meeting_id=meeting_id) }}">
+            <img src="{{ url_for('static', filename='image/head.png') }}" alt="Head" class="avatar-img" />
+          </a>
+        </div>
+      </header>
+
+      <div class="w-full max-w-4xl mx-auto px-4 mt-6">
+        <h2 class="text-center text-[#205f72] text-2xl font-bold mb-4">會議參與者列表</h2>
+        <div id="memberList" class="flex flex-col gap-3 mb-8"></div>
+        <div class="card" id="addMemberCard" style="display: none;">
+          <h2 class="text-xl font-bold text-[#205f72] mb-4">新增會議參與者</h2>
+          <div class="flex items-center justify-between gap-4">
+            <!-- Email 下拉 -->
+            <select id="orgMemberDropdown"
+              class="flex-grow rounded-full px-4 py-2 shadow text-base focus:outline-none bg-white">
+            </select>
+
+            <!-- 權限選單 -->
+            <select id="orgMemberRole" class="rounded-full px-4 py-2 shadow text-base bg-white focus:outline-none">
+              <option value="edit">可供編輯</option>
+              <option value="view">僅可查看</option>
+            </select>
+
+            <!-- 新增按鈕 -->
+            <button onclick="addSelectedOrgMember()"
+              class="bg-[#205f72] text-white px-6 py-2 rounded-full shadow hover:bg-[#175c71]">
+              新增
+            </button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const CURRENT_USER_EMAIL = "{{ user_email }}";
+    const role = "{{ role }}";
+    const userEmail = "{{ user_email }}";
+    function toggleSidebar() {
+
+      document.getElementById("sidebar").classList.toggle("collapsed");
+    }
+
+    function goToNext() {
+      window.location.href = "{{ url_for('permission.meeting_review_page', meeting_id=meeting_id) }}";
+    }
+
+    // 取得會議成員（Flask API）
+    function renderMembers() {
+        const container = document.getElementById("memberList");
+        container.innerHTML = "";
+
+        const meetingId = "{{ meeting_id }}";
+
+        fetch(`/api/meeting_members/${meetingId}`)
+          .then(res => res.json())
+          .then(data => {
+            if (!data.success || !data.members.length) {
+              container.innerHTML = '<p class="text-center text-gray-600">尚無會議參與者</p>';
+              return;
+            }
+
+            // ✅ 由資料判斷我是不是主持人（不要只靠模板字串）
+            const me = data.members.find(m => m.email === CURRENT_USER_EMAIL);
+            const isHost = !!me && me.role === "主持人";
+
+            // ✅ 控制「新增會議參與者」卡片是否顯示
+            const addCard = document.getElementById("addMemberCard");
+            addCard.style.display = isHost ? "block" : "none";
+
+            data.members.forEach(entry => {
+              const row = document.createElement("div");
+              row.className = "bg-white border border-gray-300 rounded px-4 py-3 flex justify-between items-center flex-wrap";
+              row.dataset.email = entry.email;
+
+              // 顯示「姓名（email）」
+              const name = (entry.name && entry.name.trim()) ? entry.name : entry.email.split('@')[0];
+              const displayLabel = `${name}（${entry.email}）`;
+              const normRole = (entry.role === '與會者') ? 'view' : entry.role;
+
+              // 右側權限下拉
+              const selectHTML = (entry.role === "主持人")
+                ? `<select class="border border-gray-300 rounded px-2 py-1 text-sm w-[100px]" disabled>
+                    <option value="edit" selected>可供編輯</option>
+                  </select>`
+                : `<select class="border border-gray-300 rounded px-2 py-1 text-sm w-[100px]"
+                          data-email="${entry.email}"
+                          onchange="updateMemberRole('${entry.email}', this.value)">
+                    <option value="edit" ${normRole === 'edit' ? 'selected' : ''}>可供編輯</option>
+                    <option value="view" ${normRole === 'view' ? 'selected' : ''}>僅可查看</option>
+                  </select>`;
+
+              // 右側叉叉（主持人可刪；自己那列顯示禁用的灰色叉）
+              let deleteButtonHTML = "";
+              if (isHost) {
+                if (entry.email !== CURRENT_USER_EMAIL && entry.role !== "主持人") {
+                  deleteButtonHTML = `
+                    <button onclick="removeMember('${entry.email}')" class="ml-1" title="移除成員">
+                      <i data-lucide="x" class="w-5 h-5 stroke-red-600 hover:stroke-red-800"></i>
+                    </button>`;
+                } else {
+                  deleteButtonHTML = `
+                    <button disabled class="ml-1 cursor-not-allowed" title="無法刪除此成員">
+                      <i data-lucide="x" class="w-5 h-5 stroke-gray-400"></i>
+                    </button>`;
+                }
+              }
+
+              row.innerHTML = `
+                <span class="text-sm text-gray-800 w-full sm:w-auto">${displayLabel}</span>
+                <div class="flex items-center gap-2 mt-2 sm:mt-0">
+                  <span class="text-sm text-gray-500">${entry.role === '主持人' ? '主持人' : '參與者'}</span>
+                  ${selectHTML}
+                  ${deleteButtonHTML}
+                </div>`;
+              container.appendChild(row);
+            });
+
+            lucide.createIcons();
+          })
+          .catch(err => {
+            container.innerHTML = '<p class="text-center text-red-600">載入失敗</p>';
+            console.error("載入會議成員失敗：", err);
+          });
+      }
+
+    // 新增會議成員（建議用 API）
+    function addNewMember() {
+      const input = document.getElementById("newMemberEmail");
+      const roleSelect = document.getElementById("newMemberRole");
+      const email = input.value.trim();
+      const role = roleSelect.value;
+      const meetingId = "{{ meeting_id }}";
+      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailPattern.test(email)) {
+        alert("請輸入有效的 Email 地址");
+        return;
+      }
+
+      fetch(`/api/meeting_members/${meetingId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, role })  // key 用 role
+      })
+        .then(res => res.json())
+        .then(result => {
+          if (result.success) {
+            renderMembers();
+            input.value = "";
+          } else {
+            alert(result.message || "新增失敗");
+          }
+        });
+    }
+
+
+    document.addEventListener("DOMContentLoaded", () => {
+        renderMembers();           // 會自動決定是否顯示新增卡片、是否顯示叉叉
+        loadOrganizationMembers(); // 建立下拉內容
+        document.getElementById("meeting-name").textContent =
+          localStorage.getItem("currentMeetingName") || "未命名會議";
+        document.getElementById("meeting-date").textContent =
+          localStorage.getItem("currentMeetingDate") || "未指定日期";
+        lucide.createIcons();
+
+      // ✅ 正確控制新增卡片的顯示權限
+      const addCard = document.getElementById("addMemberCard");
+      if (role === "主持人") {
+        addCard.style.display = "block";
+      } else {
+        addCard.style.display = "none";
+      }
+
+      document.getElementById("newMemberEmail")?.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") addNewMember();
+      });
+
+      // ✅ 禁用 view 權限的按鈕操作
+      if (role === "view") {
+        document.querySelectorAll('.primary').forEach(btn => {
+          btn.disabled = true;
+          btn.style.backgroundColor = "#ccc";
+          btn.style.cursor = "not-allowed";
+          btn.onclick = null;
+          btn.title = "您沒有權限";
+        });
+
+        const notifyBtn = document.querySelector('button[onclick="openNotifyModal()"]');
+        if (notifyBtn) {
+          notifyBtn.disabled = true;
+          notifyBtn.style.color = "#aaa";
+          notifyBtn.style.cursor = "not-allowed";
+          notifyBtn.onclick = null;
+          notifyBtn.title = "您沒有權限";
+        }
+      }
+    });
+
+
+    function updateMemberRole(email, role) {
+      const meetingId = "{{ meeting_id }}";
+      fetch(`/api/meeting_members/${meetingId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, role })  // key 用 role
+      })
+        .then(res => res.json())
+        .then(result => {
+          if (result.success) {
+            renderMembers();
+          } else {
+            alert(result.message || "更新失敗");
+            renderMembers();
+          }
+        })
+        .catch(err => {
+          alert("發生錯誤，請稍後再試");
+          renderMembers();
+        });
+    }
+
+    function removeMember(email) {
+      if (!confirm(`確定要刪除 ${email} 嗎？`)) return;
+
+      const meetingId = "{{ meeting_id }}";
+
+      // 找到該成員那一列與刪除按鈕，先防連點
+      const rows = document.querySelectorAll("#memberList > div");
+      let row = null, btn = null;
+      for (const r of rows) {
+        if (r.dataset && r.dataset.email === email) {
+          row = r;
+          btn = r.querySelector('button[title="移除成員"]');
+          break;
+        }
+      }
+      if (btn) btn.disabled = true;
+
+      fetch(`/api/meeting_members/${meetingId}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email })
+      })
+        .then(res => { if (!res.ok) throw new Error("HTTP " + res.status); return res.json(); })
+        .then(result => {
+          if (!result.success) throw new Error(result.message || "刪除失敗");
+
+          // ✅ 視覺上即時移除
+          if (row) {
+            row.style.transition = "opacity 180ms ease, transform 180ms ease";
+            row.style.opacity = "0";
+            row.style.transform = "scale(0.98)";
+            setTimeout(() => row.remove(), 180);
+          }
+
+          // ✅ 重新建立「可加入成員」下拉（被刪除的人會回來可選）
+          loadOrganizationMembers();
+        })
+        .catch(err => {
+          alert("刪除失敗：" + err.message);
+          if (btn) btn.disabled = false;
+        });
+    }
+
+
+    function openNotifyModal() {
+      const modal = document.getElementById("notifyModal");
+      modal.style.display = "flex"; // 顯示為彈出視窗（flex 中央對齊
+      document.getElementById("notifyMeetingName").value = localStorage.getItem("currentMeetingName") || "未命名會議";
+    }
+
+    function closeNotifyModal() {
+      const modal = document.getElementById("notifyModal");
+      modal.style.display = "none"; // 隱藏
+    }
+
+    function loadOrganizationMembers() {
+        const meetingId = "{{ meeting_id }}";
+        const orgId = localStorage.getItem("currentOrgId");
+        const dropdown = document.getElementById("orgMemberDropdown");
+        const roleSelect = document.getElementById("orgMemberRole");
+        const addBtn = document.querySelector('#addMemberCard button[onclick="addSelectedOrgMember()"]');
+
+        fetch(`/api/organization_members/${orgId}`)
+          .then(res => res.json())
+          .then(data => {
+            if (!data.success) return;
+
+            return fetch(`/api/meeting_members/${meetingId}`)
+              .then(res => res.json())
+              .then(meetingData => {
+                const existingEmails = meetingData.members.map(m => m.email);
+
+                dropdown.innerHTML = "";
+                const remaining = data.members.filter(m => !existingEmails.includes(m.email));
+
+                if (remaining.length === 0) {
+                  dropdown.innerHTML = `<option disabled selected>所有成員都已加入會議</option>`;
+                  dropdown.disabled = true;
+                  roleSelect.disabled = true;
+                  addBtn.disabled = true;
+                  addBtn.classList.add("opacity-60","cursor-not-allowed");
+                } else {
+                  remaining.forEach(member => {
+                    const optName = (member.name && member.name.trim()) ? member.name : member.email.split('@')[0];
+                    const opt = document.createElement("option");
+                    opt.value = member.email;
+                    opt.textContent = `${optName}（${member.email}）`;
+                    dropdown.appendChild(opt);
+                  });
+                  dropdown.disabled = false;
+                  roleSelect.disabled = false;
+                  addBtn.disabled = false;
+                  addBtn.classList.remove("opacity-60","cursor-not-allowed");
+                }
+              });
+          })
+          .catch(err => console.error("❌ 載入組織成員錯誤：", err));
+      }
+
+    function addSelectedOrgMember() {
+      const meetingId = "{{ meeting_id }}";
+      const email = document.getElementById("orgMemberDropdown").value;
+      const role = document.getElementById("orgMemberRole").value;
+
+      if (!email) {
+        alert("請選擇一位成員");
+        return;
+      }
+
+      fetch(`/api/meeting_members/batch/${meetingId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ emails: [email], role })
+      })
+        .then(res => res.json())
+        .then(result => {
+          if (result.success) {
+            renderMembers();
+            loadOrganizationMembers();  // 重新載入選單，移除已加入的成員
+          } else {
+            alert(result.message || "新增失敗");
+          }
+        });
+    }
+  </script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    lucide.createIcons();
+  </script>
+</body>
+
+</html>
