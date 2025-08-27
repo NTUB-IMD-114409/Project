@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>會議寶｜會議後｜檔案轉錄</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/navbar_a.css') }}" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        .btn-primary {
+            background: #205f72
+        }
+
+        .btn-primary:hover {
+            background: #175c71
+        }
+
+        .hidden {
+            display: none !important
+        }
+
+        .dashed {
+            border: 2px dashed #cedfe4;
+            border-radius: 16px;
+            background: #fff
+        }
+
+        .shadow-s {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, .06)
+        }
+
+        /* 兩大框一致高度（內部可滾動） */
+        .card-body-scroll {
+            height: 420px;
+            overflow: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* ===== 解鎖整頁捲動（強制覆寫） ===== */
+        html,
+        body {
+            height: auto !important;
+            min-height: 100% !important;
+            overflow-y: auto !important;
+            overflow-x: hidden;
+            position: static !important;
+        }
+
+        .layout,
+        .main-content,
+        .main-wrapper,
+        .container,
+        .app,
+        #app {
+            height: auto !important;
+            min-height: 0 !important;
+            max-height: none !important;
+            overflow: visible !important;
+            position: static !important;
+        }
+
+        /* 側欄改 sticky，避免 fixed 擋捲動 */
+        .sidebar {
+            position: sticky !important;
+            top: 0
+        }
+
+        /* 避免任何把 body 鎖成滿版的 header 蓋住內容（若你的 header 是固定高，可移除） */
+        .header {
+            position: relative
+        }
+    </style>
+</head>
+
+<body>
+    <div class="layout">
+        <aside class="sidebar" id="sidebar">
+            <button class="navbar-toggle" onclick="document.getElementById('sidebar').classList.toggle('collapsed')">
+                <i data-lucide="align-justify" class="w-6 h-6 stroke-[#205f72]"></i>
+            </button>
+            <nav class="menu">
+                <div class="sidebar-item cursor-default hover:bg-transparent select-none">
+                    <i data-lucide="building" class="sidebar-icon stroke-[#205f72]"></i>
+                    <div class="flex flex-col leading-snug">
+                        <span class="text-xs text-gray-500">目前會議</span>
+                        <span id="meeting-date"
+                            class="text-[#205f72] text-sm font-semibold truncate max-w-[180px]"></span>
+                        <span id="meeting-name"
+                            class="text-[#205f72] text-sm font-semibold truncate max-w-[180px]"></span>
+                    </div>
+                </div>
+                <a href="{{ url_for('file.meeting_after_file_upload_page', meeting_id=meeting_id) }}"
+                    class="sidebar-item">
+                    <i data-lucide="file-plus" class="sidebar-icon"></i><span>檔案上傳</span>
+                </a>
+                <a href="{{ url_for('transcript_file_page', meeting_id=meeting_id) }}" class="sidebar-item">
+                    <i data-lucide="mic" class="sidebar-icon"></i><span>語音轉文字</span>
+                </a>
+                <a href="{{ url_for('permission.meeting_review_page', meeting_id=meeting_id) }}" class="sidebar-item">
+                    <i data-lucide="folder-search-2" class="sidebar-icon"></i><span>會議回顧</span>
+                </a>
+                <a href="{{ url_for('qa.meeting_qa_history', meeting_id=meeting_id) }}" class="sidebar-item">
+                    <i data-lucide="search" class="sidebar-icon"></i><span>查詢紀錄</span>
+                </a>
+                <a href="{{ url_for('meeting_formal_doc_page', meeting_id=meeting_id) }}" class="sidebar-item">
+                    <i data-lucide="file-text" class="sidebar-icon"></i><span>正式文件</span>
+                </a>
+                <a href="{{ url_for('task.task_page', meeting_id=meeting_id, org_id=org_id, topic_id=topic_id) }}"
+                    class="sidebar-item flex items-center gap-2">
+                    <i data-lucide="list-todo" class="sidebar-icon"></i><span>任務追蹤</span>
+                </a>
+                <a href="#" class="sidebar-item flex items-center gap-2" onclick="openHelpModal()">
+                    <i data-lucide="circle-question-mark" class="sidebar-icon"></i><span>使用說明</span>
+                </a>
+
+                {% set CTX = (MEETING_CTX if (MEETING_CTX is defined and MEETING_CTX) else (g.meeting_ctx if g and
+                g.meeting_ctx
+                else none)) %}
+                {% set st = ((CTX.status|string|lower|trim) if CTX and CTX.status else ((status|string|lower|trim) if
+                (status is
+                defined and status) else ((meeting.status|string|lower|trim) if (meeting and meeting.status) else '')))
+                %}
+                {% set mid = ((CTX.id) if CTX and CTX.id else (meeting_id if meeting_id is defined and meeting_id else
+                (meeting.id if meeting and meeting.id else ''))) %}
+                {% if st in ['before','during'] and mid %}
+                <a id="endMeetingBtn" data-meeting-id="{{ mid }}" href="#"
+                    class="sidebar-item flex items-center space-x-2 text-red-600 rounded-lg px-4 py-2 hover:bg-red-200 transition"
+                    onclick="endMeeting(event)">
+                    <i data-lucide="power" class="sidebar-icon text-red-600"></i>
+                    <span class="font-bold text-red-600">結束會議</span>
+                </a>
+                {% endif %}
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header class="header">
+                <div class="header-left">
+                    <a href="{{ url_for('organization.build_organization_page') }}">
+                        <img src="{{ url_for('static', filename='image/logo.png') }}" alt="Logo" class="logo-img" />
+                    </a>
+                </div>
+                <div class="progress-bar">
+                    <div class="step-group">
+                        <div class="circle gray-completed"></div>
+                        <div class="label label-gray">前</div>
+                    </div>
+                    <div class="line solid-gray"></div>
+                    <div class="step-group">
+                        <div class="circle gray-completed"></div>
+                        <div class="label label-gray">中</div>
+                    </div>
+                    <div class="line solid-gray"></div>
+                    <div class="step-group">
+                        <div class="circle green-completed"></div>
+                        <div class="label label-green">後</div>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <a href="{{ url_for('permission.meeting_member3_page', meeting_id=meeting_id) }}">
+                        <img src="{{ url_for('static', filename='image/head.png') }}" alt="Head" class="avatar-img" />
+                    </a>
+                </div>
+            </header>
+
+            <section class="main-wrapper">
+                <div class="w-full max-w-5xl mx-auto">
+
+                    <!-- 初始提示框（內部不放按鈕） -->
+                    <div id="uploadCard" class="dashed shadow-s p-6 min-h-[140px] flex items-center justify-center">
+                        <p class="text-gray-500">尚未上傳任何音訊或影片檔...</p>
+                    </div>
+
+                    <!-- 操作按鈕 -->
+                    <div class="mt-4 flex flex-wrap items-center justify-center gap-4">
+                        <input type="file" id="fileInput" accept="audio/*,video/*" class="hidden" />
+                        <button class="btn-upload btn-primary text-white py-2 px-4 rounded-lg flex items-center gap-2">
+                            <i data-lucide="upload" class="w-5 h-5"></i><span>上傳音檔或影片</span>
+                        </button>
+                        <button id="btnDownloadFull"
+                            class="btn-primary text-white py-2 px-4 rounded-lg flex items-center gap-2" disabled>
+                            <i data-lucide="file-text" class="w-5 h-5"></i><span>下載逐字稿</span>
+                        </button>
+                        <button id="btnSaveFull"
+                            class="rounded-xl bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-700" disabled>
+                            儲存至檔案區（含說話者）
+                        </button>
+                    </div>
+
+                    <!-- 狀態提示 -->
+                    <div id="status" class="text-sm text-center text-[#205f72] hidden mt-2">處理中…</div>
+
+                    <!-- ① 完整逐字稿（固定高度、內部捲動） -->
+                    <section id="fullTranscriptArea" class="mt-6 hidden">
+                        <div class="rounded-2xl dashed shadow-s p-5">
+                            <h3 class="mb-3 text-lg font-semibold text-gray-800">完整逐字稿</h3>
+                            <div class="card-body-scroll">
+                                <textarea id="fullTranscript"
+                                    class="h-full w-full resize-none rounded-lg border border-gray-300 p-3 leading-7 text-gray-800 focus:border-teal-700 focus:outline-none"
+                                    placeholder="（這裡會自動顯示上傳轉錄後的整段文本）"></textarea>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- ② 逐段（固定高度、內部捲動） -->
+                    <section id="segmentsArea" class="mt-6 hidden">
+                        <div class="rounded-2xl dashed shadow-s p-5">
+                            <h3 class="mb-3 text-lg font-semibold text-gray-800">標記發言者</h3>
+                            <div id="segments" class="card-body-scroll space-y-4 pr-1"></div>
+                        </div>
+                    </section>
+
+                    <!-- ③ 說話者版本動作 -->
+                    <section id="speakerActions" class="mt-4 hidden">
+                        <div class="flex flex-wrap items-center justify-center gap-3">
+                            <button id="btnDownloadSpeaker" class="btn-primary text-white py-2 px-4 rounded-lg"
+                                disabled>下載說話者版本逐字稿</button>
+                            <button id="btnSaveSpeaker"
+                                class="rounded-xl bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-700"
+                                disabled>上傳說話者版本至檔案區</button>
+                        </div>
+                    </section>
+
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        // 初始化
+        document.addEventListener("DOMContentLoaded", () => {
+            document.getElementById("meeting-name").textContent = localStorage.getItem("currentMeetingName") || "未命名會議";
+            document.getElementById("meeting-date").textContent = localStorage.getItem("currentMeetingDate") || "未指定日期";
+            lucide.createIcons();
+        });
+
+        // 解鎖整頁捲動的守門員（若有外部 CSS 又把頁面鎖住，這裡會解除）
+        (function unlockScrolling() {
+            document.documentElement.classList.remove('overflow-hidden');
+            document.body.classList.remove('overflow-hidden');
+            const suspects = [...document.querySelectorAll('*')];
+            suspects.forEach(el => {
+                const cs = getComputedStyle(el);
+                const isViewportSized = (cs.height === '100vh' || cs.maxHeight === '100vh');
+                const blocksScroll = (cs.overflowY === 'hidden' || cs.overflow === 'hidden');
+                const isFixedFull = (cs.position === 'fixed' && (cs.top === '0px' || cs.bottom === '0px'));
+                if (isViewportSized || blocksScroll || isFixedFull) {
+                    if (!['SELECT', 'TEXTAREA'].includes(el.tagName)) {
+                        el.style.setProperty('overflow', 'visible', 'important');
+                        el.style.setProperty('overflow-y', 'visible', 'important');
+                        el.style.setProperty('max-height', 'none', 'important');
+                        if (isViewportSized) el.style.setProperty('height', 'auto', 'important');
+                        if (isFixedFull) el.style.setProperty('position', 'static', 'important');
+                    }
+                }
+            });
+        })();
+
+        // DOM 參照
+        const el = {
+            fileInput: document.getElementById('fileInput'),
+            uploadBtns: document.querySelectorAll('.btn-upload'),
+            uploadCard: document.getElementById('uploadCard'),
+            fullWrap: document.getElementById('fullTranscriptArea'),
+            full: document.getElementById('fullTranscript'),
+            btnDownloadFull: document.getElementById('btnDownloadFull'),
+            btnSaveFull: document.getElementById('btnSaveFull'),
+            status: document.getElementById('status'),
+            segmentsArea: document.getElementById('segmentsArea'),
+            segments: document.getElementById('segments'),
+            speakerActions: document.getElementById('speakerActions'),
+            btnDownloadSpeaker: document.getElementById('btnDownloadSpeaker'),
+            btnSaveSpeaker: document.getElementById('btnSaveSpeaker'),
+        };
+
+        const meetingId = "{{ meeting_id }}";
+        const SPEAKER_KEY = `speakers_${meetingId}`;
+
+        // 狀態
+        let state = {
+            uploadedFilename: null,
+            fullText: "",
+            lines: [],
+            linesPunct: [],
+            downloads: { fullTxt: null, fullDocx: null, srtSingle: null, srtStandard: null },
+            speakers: loadSpeakers()
+        };
+
+        function defaultSpeakers() { return ['說話者 1', '說話者 2', '說話者 3']; }
+        function loadSpeakers() {
+            try { const raw = localStorage.getItem(SPEAKER_KEY); const arr = raw ? JSON.parse(raw) : null; if (Array.isArray(arr) && arr.length) return arr; }
+            catch (_) { }
+            return defaultSpeakers();
+        }
+        function saveSpeakers() { localStorage.setItem(SPEAKER_KEY, JSON.stringify(state.speakers)); }
+
+        const show = n => n.classList.remove('hidden');
+        const hide = n => n.classList.add('hidden');
+        const esc = s => (s || '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+
+        function triggerPick() { el.fileInput.click(); }
+        el.uploadBtns.forEach(b => b.addEventListener('click', triggerPick));
+
+        // 上傳→轉錄
+        el.fileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0]; e.target.value = ''; if (!file) return;
+            try {
+                hide(el.status); el.status.textContent = "上傳中…"; show(el.status);
+                const fd = new FormData(); fd.append('file', file);
+                const upRes = await fetch('/upload_audio', { method: 'POST', body: fd }).then(r => r.json());
+                if (!upRes.success) throw new Error(upRes.error || '上傳失敗');
+                state.uploadedFilename = upRes.filename;
+
+                hide(el.uploadCard); show(el.fullWrap); show(el.segmentsArea); show(el.speakerActions);
+
+                el.status.textContent = "語音轉文字處理中（即時產生段落）…";
+                const w = await fetch('/whisper', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ meeting_id: meetingId, filename: state.uploadedFilename, use_gpt: true, use_basic: false, srt_punct: true, srt_standard: true })
+                }).then(r => r.json());
+                if (!w.success) throw new Error(w.error || '轉錄失敗');
+
+                state.fullText = w.result || ""; el.full.value = state.fullText;
+                state.downloads.fullTxt = w.download_txt || null;
+                state.downloads.fullDocx = w.download_docx || null;
+                state.downloads.srtSingle = w.download_srt_single || null;
+                state.downloads.srtStandard = w.download_srt_standard || null;
+
+                state.linesPunct = w.lines_punct || []; state.lines = w.lines || [];
+                renderSegments(state.linesPunct.length ? state.linesPunct : state.lines);
+
+                el.btnDownloadFull.disabled = !state.downloads.fullTxt;
+                el.btnSaveFull.disabled = false;
+                el.btnDownloadSpeaker.disabled = false;
+                el.btnSaveSpeaker.disabled = false;
+
+                el.status.textContent = "✅ 完成"; setTimeout(() => hide(el.status), 1200);
+            } catch (err) { el.status.textContent = "❌ " + err.message; }
+        });
+
+        // 完整逐字稿：下載與儲存
+        el.btnDownloadFull.addEventListener('click', () => {
+            if (!state.downloads.fullTxt) return alert('尚無逐字稿可下載');
+            window.open(state.downloads.fullTxt, '_blank');
+        });
+        el.btnSaveFull.addEventListener('click', async () => {
+            const text = (el.full.value || "").trim(); if (!text) return alert('沒有內容可儲存');
+            const res = await fetch('/save_full_transcript', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ meeting_id: meetingId, text }) }).then(r => r.json());
+            if (!res.success) return alert('儲存失敗：' + (res.error || '')); alert('已儲存：' + res.filename);
+        });
+
+        // 說話者下拉：可新增
+        function buildSpeakerOptions(current) {
+            const opts = state.speakers.map(n => `<option value="${esc(n)}"${n === current ? ' selected' : ''}>${esc(n)}</option>`);
+            opts.push('<option value="__add__">+ 新增…</option>');
+            return opts.join('');
+        }
+        function onSpeakerChange(e) {
+            const sel = e.target;
+            if (sel.value !== '__add__') return;
+            let name = prompt('新增說話者名稱：') || ''; name = name.trim();
+            if (!name) { sel.value = state.speakers[0] || ''; return; }
+            if (!state.speakers.includes(name)) {
+                state.speakers.push(name); saveSpeakers();
+                document.querySelectorAll('#segments select[data-speaker]').forEach(s => {
+                    const cur = (s === sel) ? name : s.value;
+                    s.innerHTML = buildSpeakerOptions(cur);
+                });
+            }
+            sel.value = name;
+        }
+
+        // 渲染逐段
+        function renderSegments(lines) {
+            el.segments.innerHTML = '';
+            (lines || []).forEach(ln => {
+                const parts = ln.split('|');
+                const time = (parts[0] || '').trim();
+                const text = (parts[1] || ln).trim();
+                const row = document.createElement('div');
+                row.className = 'rounded-xl border border-gray-200 p-3 bg-white hover:bg-gray-50';
+                row.innerHTML = `
+          <div class="mb-2 flex items-center gap-3 text-sm text-gray-500">
+            <span class="seg-time">${esc(time)}</span><span>・</span><span>說話者</span>
+            <select data-speaker class="rounded border border-gray-300 px-2 py-1 text-gray-700">
+              ${buildSpeakerOptions(state.speakers[0])}
+            </select>
+          </div>
+          <div class="seg-text leading-7 text-gray-800" contenteditable="true">${esc(text)}</div>
+        `;
+                row.querySelector('select').addEventListener('change', onSpeakerChange);
+                el.segments.appendChild(row);
+            });
+        }
+
+        // 匯整說話者版本
+        function collectSpeakerVersion() {
+            const rows = [...el.segments.querySelectorAll('.rounded-xl')];
+            const out = [];
+            rows.forEach(r => {
+                const t = r.querySelector('.seg-time').textContent.trim();
+                const spk = r.querySelector('select').value;
+                const txt = (r.querySelector('.seg-text').innerText || '').trim();
+                out.push(`[${spk}] ${t}\n${txt}\n`);
+            });
+            return out.join('\n');
+        }
+
+        // 說話者版下載/上傳
+        el.btnDownloadSpeaker.addEventListener('click', () => {
+            const content = collectSpeakerVersion();
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'speaker_version.txt';
+            a.click();
+            URL.revokeObjectURL(a.href);
+        });
+        el.btnSaveSpeaker.addEventListener('click', async () => {
+            const content = collectSpeakerVersion();
+            const res = await fetch('/save_speaker_transcript', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ meeting_id: meetingId, text: content }) }).then(r => r.json());
+            if (!res.success) return alert('上傳失敗：' + (res.error || '')); alert('已上傳說話者版本：' + res.filename);
+        });
+
+        // 結束會議
+        function getCurrentMeetingId() { const btn = document.getElementById("endMeetingBtn"); return btn ? btn.dataset.meetingId : ""; }
+        async function endMeeting(e) {
+            e?.preventDefault();
+            const id = getCurrentMeetingId(); if (!id) { alert("找不到會議 ID"); return; }
+            if (!confirm("確定要結束會議嗎？")) return;
+            try {
+                const r = await fetch(`/api/meeting/${id}/end`, { method: "POST" }); const data = await r.json();
+                if (!data.success) { alert("❌ " + (data.message || "結束會議失敗")); return; }
+                const orgId = data.org_id || localStorage.getItem("current_org_id");
+                const topicId = data.topic_id || localStorage.getItem("current_topic_id");
+                const url = topicId ? `/meeting?org_id=${encodeURIComponent(orgId)}&topic_id=${encodeURIComponent(topicId)}` : `/meeting?org_id=${encodeURIComponent(orgId)}`;
+                window.location.replace(url);
+            } catch (err) { console.error(err); alert("⚠️ 系統錯誤"); }
+        }
+    </script>
+</body>
+
+</html>
