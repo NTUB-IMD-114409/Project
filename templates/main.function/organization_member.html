@@ -87,7 +87,9 @@
           {% for m in members %}
           <div id="member-{{ m.email }}"
             class="bg-white border border-gray-300 rounded px-4 py-3 flex justify-between items-center">
-            <div class="text-sm text-gray-800">{{ m.email }}</div>
+            <div class="text-sm text-gray-800">
+              {{ m.name or '未命名' }}（{{ m.email }}）
+            </div>
             <div class="flex items-center gap-3 min-w-[120px] justify-end">
               <span class="text-xs text-gray-500 whitespace-nowrap">{{ m.role }}</span>
 
@@ -102,10 +104,10 @@
           </div>
           {% endfor %}
 
-          <!-- 只有創建者才顯示的新增成員區塊 -->
+          <!-- 只有創建者才顯示的新增組織成員區塊 -->
           <div id="invite-section" style="display: none;">
             <div class="card">
-              <h3 class="text-lg font-bold text-[#205f72] mb-3">新增成員</h3>
+              <h3 class="text-lg font-bold text-[#205f72] mb-3">新增組織成員</h3>
               <div class="flex flex-col md:flex-row md:items-center gap-2">
                 <input id="newMemberEmail" type="email" placeholder="請輸入Email"
                   class="flex-1 p-3 rounded-lg border border-gray-300 focus:outline-none" />
@@ -248,26 +250,29 @@
   <div id="helpModal" class="fixed inset-0 hidden items-center justify-center bg-black bg-opacity-50 z-50">
     <div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-lg">
       <h3 class="text-xl font-bold text-[#205f72] mb-4 text-center">使用說明</h3>
-      <ul class="list-disc pl-5 text-gray-700 leading-relaxed text-base">
+      <ol class="list-decimal pl-5 text-gray-700 leading-relaxed text-base space-y-2">
+        <li>僅限「創建者」具有新增或移除成員的權限。</li>
         <li>
-          僅「創建者」具有新增或移除成員的權限。
+          若您為創建者，畫面下方會顯示「新增組織成員」區塊。
+          輸入 Email 並點擊
+          <button class="btn-primary text-white text-xs font-bold px-2.5 py-0.5 rounded-full">發送邀請</button>
+          即可將新成員加入，並同時寄送邀請信。
         </li>
         <li>
-          若您為創建者，畫面下方會顯示「新增成員」區塊，可輸入 Email 並點擊
-          <button class="bg-[#205f72] text-white text-xs font-bold px-2.5 py-0.5 rounded-full">發送邀請</button>
-          來新增成員。
+          成員列表中會顯示姓名與角色：
+          <ul class="list-disc pl-6 mt-1">
+            <li>創建者帳號無法被刪除。</li>
+            <li>其餘成員右側會出現<i class="w-4 h-4 stroke-red-600 inline-block" data-lucide="x"></i>刪除按鈕，可將該成員移除。</li>
+            <li>一般成員不會看到新增或刪除的控制項。</li>
+          </ul>
         </li>
-        <li>
-          除了自己（創建者）無法被刪除，其餘成員旁會顯示
-          <i class="w-4 h-4 stroke-red-600 inline-block" data-lucide="x"></i>
-          刪除按鈕可移除該成員。
-        </li>
-      </ul>
+      </ol>
       <div class="flex justify-center mt-6">
         <button onclick="closeHelpModal()" class="bg-gray-300 text-black px-6 py-2 rounded-lg">關閉</button>
       </div>
     </div>
   </div>
+
 
 </body>
 

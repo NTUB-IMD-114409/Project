@@ -204,7 +204,6 @@
                     <a id="avatarLink" href="#">
                         <img src="{{ url_for('static', filename='image/head.png') }}" alt="Head" class="avatar-img" />
                     </a>
-                    </a>
                 </div>
             </header>
 
@@ -440,38 +439,49 @@
             window.location.href = `/topics?org_id=${orgId}`;
         }
 
-        function loadTopics() {
+        async function loadTopics() {
             const orgId = localStorage.getItem("currentOrgId");
             const orgList = document.getElementById("orgList");
-            const hintText = document.getElementById("meetingHint");  // 🔸這行必須放在函式內部
+            const hintText = document.getElementById("meetingHint");
 
-            fetch(`/api/topic/by_org/${orgId}`)
-                .then(res => {
-                    if (!res.ok) {
-                        return res.text().then(text => {
-                            throw new Error("⚠️ 非 JSON 回應：" + text);
-                        });
-                    }
-                    return res.json();
-                })
-                .then(data => {
-                    orgList.innerHTML = ""; // 清空原本的卡片區
+            orgList.innerHTML = ""; // 清空
 
-                    // ✅ 顯示/隱藏提示文字
-                    if (data.topics.length > 0) {
-                        hintText.style.display = "none";
-                    } else {
-                        hintText.style.display = "block";
-                    }
+            let data;
+            try {
+                const res = await fetch(`/api/topic/by_org/${orgId}`, { credentials: "include" });
+                if (!res.ok) {
+                    const txt = await res.text();
+                    throw new Error("⚠️ 非 JSON 回應：" + txt);
+                }
+                data = await res.json();
+            } catch (err) {
+                console.error("❌ 載入議題失敗：", err);
+                hintText.style.display = "block";
+                hintText.textContent = "載入議題失敗，稍後再試。";
+                return;
+            }
 
-                    data.topics.forEach(topic => {
-                        addTopicCard(topic.title, topic.description || "", topic.id, topic.creator_id, topic.creator_name);
-                    });
-                })
-                .catch(err => {
-                    console.error("❌ 發生錯誤：", err);
-                });
+            const allTopics = Array.isArray(data?.topics) ? data.topics : [];
+
+            // 逐一檢查我是否可看（只產生可見的卡片）
+            const checks = await Promise.all(allTopics.map(async t => (await canSeeTopic(t)) ? t : null));
+            const visibleTopics = checks.filter(Boolean);
+
+            // 顯示/隱藏提示
+            if (visibleTopics.length === 0) {
+                hintText.style.display = "block";
+                hintText.textContent = "目前沒有可見的議題。";
+                return;
+            } else {
+                hintText.style.display = "none";
+            }
+
+            // 只渲染可見的
+            for (const t of visibleTopics) {
+                addTopicCard(t.title, t.description || "", t.id, t.creator_id, t.creator_name);
+            }
         }
+
         function deleteTopic(button) {
             const topicId = button.getAttribute("data-id");
             if (!topicId) return;
@@ -522,12 +532,49 @@
                 });
         }
 
+        // 取得目前登入者 id
+        function getCurrentUserId() {
+            return String(localStorage.getItem("user_id") || "");
+        }
+
+        // 判斷我是否可看這個 topic（先 creator 快速通過 → 再打 API）
+        async function canSeeTopic(topic) {
+            const me = getCurrentUserId();
+            if (!me) return false;
+
+            // 1) 我就是創建者 → 直接顯示
+            if (String(topic.creator_id) === String(me)) return true;
+
+            // 2) 嘗試輕量端點：/api/is_topic_member/<topic_id>  (若你還沒做，會進 fallback)
+            try {
+                const r = await fetch(`/api/is_topic_member/${topic.id}`, { credentials: "include" });
+                if (r.ok) {
+                    const j = await r.json();
+                    if (j?.success && j?.is_member === true) return true;
+                    if (j?.success && j?.is_member === false) return false;
+                    // 若回傳格式不同，往下 fallback
+                }
+            } catch (_) { }
+
+            // 3) fallback：抓清單自己判斷（N+1，但先滿足「前端先處理」）
+            try {
+                const r2 = await fetch(`/api/topic_members/${topic.id}`, { credentials: "include" });
+                if (!r2.ok) return false;
+                const j2 = await r2.json();
+                const members = j2?.members || [];
+                return members.some(m => String(m.user_id) === String(me));
+            } catch (_) {
+                // 保守：取不到就當作不可見
+                return false;
+            }
+        }
+
     </script>
     <!-- 使用說明 Modal -->
     <div id="helpModal" class="fixed inset-0 hidden items-center justify-center bg-black bg-opacity-50 z-50">
         <div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-lg">
             <h3 class="text-xl font-bold text-[#205f72] mb-4 text-center">使用說明</h3>
-            <ul class="list-disc pl-5 text-gray-700 leading-relaxed text-base">
+            <ol class="list-decimal pl-5 text-gray-700 leading-relaxed text-base space-y-2">
                 <li>
                     點選頁面右上角
                     <span class="inline-flex items-center gap-1">
@@ -539,14 +586,14 @@
                 </li>
                 <li>
                     按下
-                    <button class="btn-primary text-white px-2 py-1 text-sm rounded">＋創建議題</button>
-                    可新增一個新的討論議題並選擇參與成員。
+                    <button class="btn-primary text-white px-2 py-1 text-sm rounded">＋ 創建議題</button>
+                    可新增一個新的討論議題。
                 </li>
-                <li>填寫議題標題並勾選參與者後，點選「創建」即可完成建立。</li>
-                <li>建立後會顯示在「我的議題」區塊中。</li>
-                <li>點擊議題卡片可進入該議題對應的會議頁面。</li>
-                <li>建立者移動滑鼠到卡片右上角的「⋮」可重新命名或刪除議題。</li>
-            </ul>
+                <li>在表單中輸入議題標題，並勾選要參與的成員（創建者會自動加入）。</li>
+                <li>點選「創建」後，議題將顯示在「我的議題」區塊中。</li>
+                <li>點擊議題卡片可進入該議題的會議頁面。</li>
+                <li>僅限建立者可將滑鼠移到卡片右上角的「⋮」進行重新命名或刪除。</li>
+            </ol>
             <div class="flex justify-center mt-6">
                 <button onclick="closeHelpModal()" class="bg-gray-300 text-black px-6 py-2 rounded-lg">關閉</button>
             </div>

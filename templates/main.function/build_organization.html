@@ -484,7 +484,7 @@
     <div id="helpModal" class="fixed inset-0 hidden items-center justify-center bg-black bg-opacity-50 z-50">
         <div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-lg">
             <h3 class="text-xl font-bold text-[#205f72] mb-4 text-center">使用說明</h3>
-            <ul class="list-disc pl-5 text-gray-700 leading-relaxed text-base">
+            <ol class="list-decimal pl-5 text-gray-700 leading-relaxed text-base space-y-2">
                 <li>
                     點選頁面右上角
                     <span class="inline-flex items-center gap-1">
@@ -496,14 +496,16 @@
                 </li>
                 <li>
                     按下
-                    <button class="btn-primary text-white px-2 py-1 text-sm rounded">＋建立組織</button>
-                    可創建新的組織並邀請成員。
+                    <button class="btn-primary text-white px-2 py-1 text-sm rounded">＋ 建立組織</button>
+                    可新增組織並邀請成員。
                 </li>
-                <li>建立後會顯示在「我的組織」中，可點選進入發起會議頁面。</li>
                 <li>
-                    鼠標移到組織卡片右上角的「⋮」可重新命名或刪除。
+                    組織建立後會顯示在「我的組織」中，點選卡片即可進入該組織的議題頁面。
                 </li>
-            </ul>
+                <li>
+                    若為創建者，將滑鼠移到組織卡片右上角的「⋮」可進行重新命名或刪除操作。
+                </li>
+            </ol>
             <div class="flex justify-center mt-6">
                 <button onclick="closeHelpModal()" class="bg-gray-300 text-black px-6 py-2 rounded-lg">關閉</button>
             </div>

@@ -239,10 +239,9 @@
   </style>
 </head>
 
-<body>
-
-  <body style="height:100vh;"></body>
+<body style="height:100vh;">
   <div class="layout">
+
     <aside class="sidebar" id="sidebar">
       <button class="navbar-toggle" onclick="toggleSidebar()" id="toggleBtn">
         <i data-lucide="align-justify" class="w-6 h-6 stroke-[#205f72]"></i>
@@ -266,9 +265,6 @@
         <a href="#" class="sidebar-item flex items-center gap-2" onclick="openHelpModal()">
           <i data-lucide="circle-question-mark" class="sidebar-icon"></i>
           <span>使用說明</span>
-        </a>
-        <a href="{{ url_for('auth.signin_page') }}" class="sidebar-item">
-          <i data-lucide="log-out" class="sidebar-icon"></i><span>登出</span>
         </a>
       </nav>
     </aside>
@@ -382,7 +378,25 @@
     </div>
   </div>
 
+  <div id="toast" style="display:none;
+            position:fixed;
+            top:20px;
+            left:50%;
+            transform:translateX(-50%);
+            background:#175c71;
+            color:#fff;
+            padding:12px 24px;
+            border-radius:8px;
+            z-index:2000;
+            font-weight:bold;
+            box-shadow:0 2px 8px rgba(0,0,0,0.2);">
+  </div>
+
   <script>
+    function toggleSidebar() {
+      document.getElementById("sidebar").classList.toggle("collapsed");
+    }
+
     window.ROLE = "{{ role }}";
     window.MEETING = {
       id: "{{ meeting_id }}",
@@ -390,12 +404,9 @@
 
       date: "{{ meeting_date }}",
       org_id: "{{ org_id }}",
+      topic_id: "{{ topic_id }}",
       org_name: "{{ organization_name }}"
     };
-
-    function toggleSidebar() {
-      document.getElementById("sidebar").classList.toggle("collapsed");
-    }
 
     function openModal() {
       document.getElementById("uploadModal").classList.add("show");
@@ -410,25 +421,30 @@
       const meetingId = localStorage.getItem("currentMeetingId");
       const fileInput = document.getElementById("fileInput");
       const fileType = document.getElementById("fileType").value;
+      const topicId = localStorage.getItem("current_topic_id") || (window.MEETING && window.MEETING.topic_id);
+
 
       const formData = new FormData();
       formData.append("meeting_id", meetingId);
       formData.append("file_type", fileType);
       formData.append("file", fileInput.files[0]);
+      formData.append("topic_id", topicId);
 
       console.log("📤 submitUpload() 觸發！");
+      showProcessing(); // 🚩 顯示處理中
+
       fetch("/upload_file", {
         method: "POST",
         body: formData,
       })
         .then((res) => res.json())
         .then((result) => {
+          hideProcessing(); // ✅ 關掉處理中
           console.log("🪵 原始回傳：", result);
           if (result.success) {
             alert("✅ 檔案成功上傳！");
             fileInput.value = ""; // 清空
-            closeModal();  // 正確呼叫原本就有的 closeModal() 函式
-            // ⏳ 延遲 300ms 後再重新載入列表，避免太快撈資料庫還沒寫入完
+            closeModal();
             setTimeout(() => {
               renderFileList();
             }, 300);
@@ -437,6 +453,7 @@
           }
         })
         .catch((err) => {
+          hideProcessing();
           alert("❌ 上傳過程發生錯誤");
           console.error("Upload error:", err);
         })
@@ -566,6 +583,10 @@
       document.getElementById("meeting-date").textContent = date;
       const role = window.ROLE;
 
+      // 確保 meeting_id / topic_id 有存進 localStorage（給上傳用）
+      localStorage.setItem("currentMeetingId", "{{ meeting_id }}");
+      localStorage.setItem("current_topic_id", "{{ topic_id }}");
+
       // === 1. 禁用「+新增」與發送通知按鈕 ===
       if (role === "view") {
         // 禁用所有 primary 按鈕（新增檔案、發送通知內的按鈕）
@@ -592,20 +613,17 @@
     });
 
     function goToNext() {
-      window.location.href = "{{ url_for('meeting_during_transcript_now_page', meeting_id=meeting_id) }}";
+      window.location.href = "{{ url_for('permission.meeting_review_page', meeting_id=meeting_id) }}";
     }
 
-    function openNotifyModal() {
-      document.getElementById("notifyModal").classList.add("show");
 
-      const meeting = window.MEETING || {};
-      const name = localStorage.getItem("currentMeetingName") || meeting.name || "未命名會議";
-      const date = localStorage.getItem("currentMeetingDate") || meeting.date || "未指定日期";
+    const meeting = window.MEETING || {};
+    const name = localStorage.getItem("currentMeetingName") || meeting.name || "未命名會議";
+    const date = localStorage.getItem("currentMeetingDate") || meeting.date || "未指定日期";
 
-      const displayName = `${date.replace(/-/g, "/")} ${name}`;
-      document.getElementById("notifyMeetingName").value = displayName;
-      document.getElementById("notifyMeetingClock").value = meeting.date || "";
+    const displayName = `${date.replace(/-/g, "/")} ${name}`;
 
+    function initOrgMembers() {
       let org_id = localStorage.getItem("current_org_id");
       if (!org_id && meeting.org_id) {
         org_id = meeting.org_id;
@@ -614,7 +632,7 @@
 
       if (!org_id) {
         alert("⚠️ 無法取得組織 ID，請重新整理頁面");
-        return;
+        return; // ✅ 合法了，因為在函式裡
       }
 
       window.orgMembersEmails = [];
@@ -635,6 +653,8 @@
           console.error("❌ API 呼叫錯誤：", err);
         });
     }
+
+    initOrgMembers(); // 呼叫初始化
 
     function closeNotifyModal() {
       document.getElementById("notifyModal").classList.remove("show");
@@ -831,21 +851,87 @@
       }
     });
 
-    function openNotifyModal() {
-      const modal = document.getElementById("notifyModal");
-      modal.style.display = "flex"; // 顯示為彈出視窗（flex 中央對齊
-      document.getElementById("notifyMeetingName").value = localStorage.getItem("currentMeetingName") || "未命名會議";
+    function showProcessing() {
+      const toast = document.getElementById("toast");
+      toast.textContent = "⏳ 系統處理中，請稍候…";
+      toast.style.background = "#175c71";
+      toast.style.display = "block";
     }
 
-    function closeNotifyModal() {
-      const modal = document.getElementById("notifyModal");
-      modal.style.display = "none"; // 隱藏
+    function hideProcessing() {
+      const toast = document.getElementById("toast");
+      toast.style.display = "none";
     }
+
+    function openHelpModal() {
+      document.getElementById("helpModal").classList.remove("hidden");
+      document.getElementById("helpModal").classList.add("flex");
+    }
+
+    function closeHelpModal() {
+      document.getElementById("helpModal").classList.add("hidden");
+      document.getElementById("helpModal").classList.remove("flex");
+    }
+
   </script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <script>
     lucide.createIcons();
   </script>
+
+  <!-- 使用說明 Modal -->
+  <div id="helpModal" class="fixed inset-0 hidden items-center justify-center bg-black bg-opacity-50 z-50">
+    <!-- 外層：圓角 + 陰影 + overflow-hidden -->
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg flex flex-col overflow-hidden">
+      <!-- 內層：可捲動內容 -->
+      <div class="p-6 flex-1 overflow-y-auto max-h-[80vh]">
+        <h3 class="text-xl font-bold text-[#205f72] mb-4 text-center">使用說明</h3>
+        <ol class="list-decimal pl-5 text-gray-700 leading-relaxed text-base space-y-3">
+          <li>
+            <span class="font-semibold text-[#205f72]">檔案上傳</span>
+            <ul class="list-disc pl-6 mt-1 space-y-1">
+              <li>僅主持人與「可供編輯」成員可以上傳檔案。</li>
+              <li>點擊左側「＋新增」按鈕，選擇檔案類型後再上傳檔案。</li>
+              <li>若沒有權限，按鈕將被停用。</li>
+            </ul>
+          </li>
+
+          <li>
+            <span class="font-semibold text-[#205f72]">檔案管理與瀏覽</span>
+            <ul class="list-disc pl-6 mt-1 space-y-1">
+              <li>已上傳檔案會依類型分區顯示（語音、逐字稿、會議紀錄整理、會議正式文件）。</li>
+              <li>點擊檔案名稱可直接瀏覽或下載檔案內容。</li>
+              <li>有上傳權限的成員可刪除檔案；僅查看者不可刪除。</li>
+            </ul>
+          </li>
+
+          <li>
+            <span class="font-semibold text-[#205f72]">智能查詢</span>
+            <ul class="list-disc pl-6 mt-1 space-y-1">
+              <li>勾選一個檔案後，在右側輸入框輸入問題，即可向系統提問。</li>
+              <li>系統會依據檔案內容回覆答案。</li>
+            </ul>
+          </li>
+
+          <li>
+            <span class="font-semibold text-[#205f72]">流程進度</span>
+            <ul class="list-disc pl-6 mt-1 space-y-1">
+              <li>頁面上方進度條顯示「前 / 中 / 後」三個階段。</li>
+              <li>
+                點擊 <span class="bg-[#175c71] text-white text-xs px-2 py-0.5 rounded">下一步</span>
+                進入會議後階段。
+              </li>
+            </ul>
+          </li>
+        </ol>
+      </div>
+      <!-- 底部固定按鈕 -->
+      <div class="flex justify-center p-4 border-t">
+        <button onclick="closeHelpModal()" class="bg-gray-300 text-black px-6 py-2 rounded-lg">關閉</button>
+      </div>
+    </div>
+  </div>
+
 </body>
 
 </html>

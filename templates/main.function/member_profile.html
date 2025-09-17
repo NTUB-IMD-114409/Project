@@ -104,17 +104,15 @@
   <div id="helpModal" class="fixed inset-0 hidden flex items-center justify-center bg-black bg-opacity-50 z-50">
     <div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-lg">
       <h3 class="text-xl font-bold text-[#205f72] mb-4 text-center">使用說明</h3>
-      <ul class="list-disc pl-5 text-gray-700 leading-relaxed text-base">
+      <ol class="list-decimal pl-5 text-gray-700 leading-relaxed text-base space-y-2">
         <li>此頁面可查看並修改您的會員資訊。</li>
         <li>「姓名」與「密碼」欄位可直接編輯。</li>
-        <li>「帳號」為註冊時使用的 Email，無法修改。</li>
-        <li>
-          修改完畢後請點選下方
-          <button class="bg-[#205f72] text-white text-xs font-bold px-3 py-1 rounded-full">送出</button>
-          按鈕，系統將立即更新資料。
+        <li>「帳號」為註冊時使用的 Email，僅供查看，無法修改。</li>
+        <li>修改完畢後請點選下方
+          <button class="btn-primary text-white text-xs font-bold px-3 py-1 rounded-full">送出</button> 按鈕，系統將立即更新資料。
         </li>
         <li>若未輸入新密碼，將保留原密碼不變。</li>
-      </ul>
+      </ol>
       <div class="flex justify-center mt-6">
         <button onclick="closeHelpModal()" class="bg-gray-300 text-black px-6 py-2 rounded-lg hover:bg-gray-400">
           關閉

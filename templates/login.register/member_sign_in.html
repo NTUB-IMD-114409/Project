@@ -170,22 +170,28 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(data)
         })
-          .then(res => res.json())
+          .then(async res => {
+            if (!res.ok) {
+              // 這裡處理非 2xx 狀態，例如 405/500/503
+              const text = await res.text(); // 嘗試讀取伺服器錯誤訊息（通常是 HTML）
+              throw new Error("HTTP " + res.status + ": " + text);
+            }
+            return res.json();
+          })
           .then(result => {
             if (result.success) {
               localStorage.setItem("userId", result.user.id);
               localStorage.setItem("userName", result.user.name);
-              localStorage.setItem("userEmail", data.email);  // ⭐ 加這行：儲存登入 email
+              localStorage.setItem("userEmail", data.email);
               localStorage.setItem("user_id", result.user.id);
               alert("登入成功！");
               window.location.href = `/set_session?user_id=${result.user.id}&redirect_to=/organization`;
-            }
-            else {
+            } else {
               alert("登入失敗：" + result.message);
             }
           })
           .catch(err => {
-            alert("系統錯誤，請稍後再試" + err);
+            alert("系統錯誤：" + err.message);
             console.error("登入錯誤：", err);
           });
       }

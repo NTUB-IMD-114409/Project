@@ -203,8 +203,8 @@
             </header>
 
             <section class="workspace px-10 py-8">
-                <button onclick="openMeetingModal()" class="btn-primary text-white px-4 py-2 rounded-lg font-bold">＋
-                    創建會議</button>
+                <button onclick="openMeetingModal()"
+                    class="btn-primary text-white px-4 py-2 rounded-lg font-bold">＋創建會議</button>
 
                 <div class="mt-8 dashed-box text-center">
                     <h2 class="text-2xl font-bold text-[#205f72] mb-2">我的會議</h2>
@@ -294,27 +294,46 @@
             return new Date(dateStr).toISOString().split("T")[0].replace(/-/g, "/");
         }
 
-        function openMeetingModal() {
-            document.getElementById("meetingModal").classList.remove("hidden");
-            document.getElementById("meetingModal").classList.add("flex");
-            loadParticipants();
-            loadDefaultMeetingName(); // ✅ 加這一行
-        }
-        function loadDefaultMeetingName() {
-            fetch(`/api/default_meeting_name?org_id=${orgId}&topic_id=${topicId}`) // ✅ 加上 topic_id
+        let cachedMeetingName = null;
+
+        // 🔹 預先抓取最新會議名稱
+        function preloadDefaultMeetingName() {
+            return fetch(`/api/default_meeting_name?org_id=${orgId}&topic_id=${topicId}`)
                 .then(res => res.json())
                 .then(data => {
-                    if (data.success) {
-                        document.getElementById("titleInput").value = data.title;
+                    if (data && data.success) {
+                        cachedMeetingName = data.title;
                     } else {
-                        document.getElementById("titleInput").value = "會議名稱載入失敗";
+                        cachedMeetingName = "會議名稱載入失敗";
                     }
                 })
                 .catch(err => {
-                    console.error("載入會議名稱失敗：", err);
-                    document.getElementById("titleInput").value = "錯誤：無法取得預設名稱";
+                    console.error("預載入會議名稱失敗：", err);
+                    cachedMeetingName = "錯誤：無法取得預設名稱";
                 });
         }
+
+        async function openMeetingModal() {
+            // 先把最新數字算好
+            if (!cachedMeetingName) {
+                await preloadDefaultMeetingName();
+            } else {
+                // 已有快取也再刷新一次，避免多人同時建立造成落後
+                await preloadDefaultMeetingName();
+            }
+
+            // 先填好再打開 -> 不會看到閃爍
+            const titleInput = document.getElementById("titleInput");
+            titleInput.value = cachedMeetingName || "會議名稱載入失敗";
+
+            document.getElementById("meetingModal").classList.remove("hidden");
+            document.getElementById("meetingModal").classList.add("flex");
+            loadParticipants();
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            preloadDefaultMeetingName();
+        });
 
         function closeMeetingModal() {
             document.getElementById("meetingModal").classList.add("hidden");
@@ -425,6 +444,7 @@
                 .then(result => {
                     if (result.success) {
                         alert("會議建立成功！");
+                        cachedMeetingName = null;
                         closeMeetingModal();
                         loadMyMeetings();
                     } else {
@@ -443,7 +463,7 @@
             localStorage.setItem("currentMeetingId", meetingId);
             localStorage.setItem("currentMeetingName", title);
             localStorage.setItem("currentMeetingDate", date);
-            window.location.href = `/meeting_before_file_upload?meeting_id=${meetingId}`;
+            window.location.href = `/meeting_entry/${meetingId}`;
         }
 
         function toggleMenu(id) {
@@ -588,12 +608,12 @@
                     console.error("錯誤發生：", err);
                 });
         }
-     
+
         function goToTopicMemberPage() {
             const topicId = localStorage.getItem("currentTopicId");
             if (!topicId) {
-            alert("⚠️ 尚未選擇議題！");
-            return;
+                alert("⚠️ 尚未選擇議題！");
+                return;
             }
             window.location.href = `/topic_members?topic_id=${topicId}`;
         }
@@ -625,32 +645,34 @@
     <div id="helpModal" class="fixed inset-0 hidden items-center justify-center bg-black bg-opacity-50 z-50">
         <div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-lg">
             <h3 class="text-xl font-bold text-[#205f72] mb-4 text-center">使用說明</h3>
-            <ul class="list-disc pl-5 text-gray-700 leading-relaxed text-base">
+            <ol class="list-decimal pl-5 text-gray-700 leading-relaxed text-base space-y-2">
                 <li>
-                    點選頁面右上角 <span class="inline-flex items-center gap-1">
+                    點選頁面右上角
+                    <span class="inline-flex items-center gap-1">
                         <span>頭像</span>
                         <img src="{{ url_for('static', filename='image/head.png') }}" alt="頭像圖示"
                             class="w-6 h-6 inline-block">
-                    </span> 可查看該議題的成員列表。
+                    </span>
+                    可查看該議題的成員列表。
                 </li>
                 <li>
-                    按下<button class="btn-primary text-white px-2 py-1 text-sm rounded">＋創建會議</button>
+                    按下
+                    <button class="btn-primary text-white px-2 py-1 text-sm rounded">＋創建會議</button>
                     可新增一場新的會議。
                 </li>
                 <li>
-                    會議名稱將依照目前進度自動產生（例如「第一次會議」、「第二次會議」），無需手動輸入。
+                    會議名稱將依照目前進度自動產生（如「第一次會議」、「第二次會議」），不可手動修改。
                 </li>
                 <li>
-                    請選擇會議日期，並為參與者設定權限（可編輯 / 僅可查看）後點擊「建立」完成創建。
+                    選擇會議日期，並為參與者設定權限（可編輯 / 僅可查看），完成後點擊「建立」即可創建會議。
                 </li>
                 <li>
-                    建立後的會議將顯示於「我的會議」區塊中，點擊卡片可進入該會議頁面。
+                    已建立的會議會顯示於「我的會議」區塊，點擊卡片即可進入對應的會議頁面。
                 </li>
                 <li>
-                    若您為主持人，可於卡片右上角點選 <i class="fas fa-ellipsis-vertical text-gray-600 text-sm px-1"></i>
-                    可刪除會議。
+                    僅發起人可在卡片右上角點選「⋮」 進行刪除操作。
                 </li>
-            </ul>
+            </ol>
             <div class="flex justify-center mt-6">
                 <button onclick="closeHelpModal()" class="bg-gray-300 text-black px-6 py-2 rounded-lg">關閉</button>
             </div>
