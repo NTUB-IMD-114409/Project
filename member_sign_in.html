@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>會議寶｜會員登入</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
@@ -12,6 +13,7 @@
     }
   </style>
 </head>
+
 <body class="flex items-center justify-center min-h-screen">
 
   <!-- 整體排版 -->
@@ -20,7 +22,9 @@
     <!-- 左側 Logo 與按鈕 -->
     <div class="flex flex-col items-center justify-center">
       <img src="{{ url_for('static', filename='image/logo.png') }}" alt="會議寶 Logo" class="w-[260px] h-auto mb-10" />
-      <div class="flex flex-row gap-8 text-[#205f72] text-lg font-semibold underline">
+
+      <!-- 功能簡介 / 關於我們 -->
+      <div class="flex flex-row gap-8 text-[#205f72] text-lg font-semibold underline mb-8">
         <button onclick="openModal('featureModal')" class="hover:text-[#175c71]">功能簡介</button>
         <button onclick="openModal('aboutModal')" class="hover:text-[#175c71]">關於我們</button>
       </div>
@@ -32,19 +36,29 @@
       <form onsubmit="handleLogin(event)">
         <div class="mb-4">
           <label class="block font-bold mb-1">Email</label>
-          <input id="loginEmail" type="email" class="w-full p-3 rounded-lg border focus:outline-none"/>
+          <input id="loginEmail" type="email" class="w-full p-3 rounded-lg border focus:outline-none" />
           <p id="emailError" class="text-sm text-red-600 mt-1"></p>
         </div>
         <div class="mb-6">
           <label class="block font-bold mb-1">密碼</label>
-          <input id="loginPassword" type="password" class="w-full p-3 rounded-lg border focus:outline-none"/>
+          <input id="loginPassword" type="password" class="w-full p-3 rounded-lg border focus:outline-none" />
           <p id="passwordError" class="text-sm text-red-600 mt-1"></p>
         </div>
         <div class="text-right mb-4">
-          <a href="../login.register/forgot_password.html" class="text-sm text-[#205f72] hover:underline">忘記密碼？</a>
+          <a href="{{ url_for('forgot_password_page') }}" class="text-sm text-[#205f72] hover:underline">忘記密碼？</a>
         </div>
-        <button type="submit" class="w-full bg-[#205f72] hover:bg-[#175c71] text-white py-3 text-lg rounded-lg">登入</button>
-        <p class="text-sm text-center mt-4">還沒有帳號？<a href="{{ url_for('signup_page') }}" class="text-[#205f72] hover:underline">立即註冊</a></p>
+        <button type="submit"
+          class="w-full bg-[#205f72] hover:bg-[#175c71] text-white py-3 text-lg rounded-lg">登入</button>
+        <p class="text-sm text-center mt-4">
+          還沒有帳號？
+          <a href="{{ url_for('auth.signup_page') }}" class="text-[#205f72] hover:underline">立即註冊</a>
+        </p>
+        <div class="text-center mt-2">
+          <span class="text-sm text-gray-700 mr-2">想接收最新會議通知？</span>
+          <a href="https://lin.ee/zqTFQEg" target="_blank" class="inline-block align-middle">
+            <img src="https://scdn.line-apps.com/n/line_add_friends/btn/zh-Hant.png" alt="加入好友" class="h-7 inline" />
+          </a>
+        </div>
       </form>
     </div>
   </div>
@@ -54,13 +68,17 @@
     <div class="bg-white rounded-2xl p-8 max-w-md w-full shadow-xl">
       <h3 class="text-2xl font-bold text-[#205f72] mb-4 text-center">功能簡介</h3>
       <ul class="space-y-2 text-base text-gray-700 list-disc list-inside">
-        <li>檔案上傳</li>
-        <li>語音轉文字</li>
-        <li>智能查詢</li>
-        <li>會議回顧</li>
+        <li>📧 發送會議通知：整合Email系統，寄送通知給所有與會者，並可增加會議議程，確保資訊即時傳達。</li>
+        <li>📂 檔案上傳：支援多格式檔案上傳，可依照檔案類型儲存，方便管理與查閱。</li>
+        <li>🎙️ 語音轉文字：支援即時與事後上傳語音檔轉錄成文字，協助快速生成逐字稿，節省整理時間。</li>
+        <li>🤖 智能查詢：結合AI模型，使用者可針對上傳資料進行提問，快速獲得摘要、重點或具體資訊。</li>
+        <li>📝 會議回顧：會議結束後可集中檢視摘要、討論內容與決策記錄，提供清晰的會議脈絡與成果回顧。</li>
+        <li>📑 正式文件：支援會議資料轉換更有格式化的文件，強調排版結構與內容組織。</li>
+        <li>📋 任務追蹤：可標記與會中指派的行動項目與負責人，並追蹤執行情況，確保後續任務落實執行。</li>
       </ul>
       <div class="text-center mt-6">
-        <button onclick="closeModal('featureModal')" class="bg-[#205f72] text-white px-4 py-2 rounded-lg hover:bg-[#175c71]">關閉</button>
+        <button onclick="closeModal('featureModal')"
+          class="bg-[#205f72] text-white px-4 py-2 rounded-lg hover:bg-[#175c71]">關閉</button>
       </div>
     </div>
   </div>
@@ -72,108 +90,124 @@
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
         <!-- 成員卡片 -->
         <div class="bg-[#cedfe4] rounded-2xl p-4 text-center shadow-md flex flex-col items-center">
-          <img src="{{ url_for('static', filename='image/yun.png') }}" alt="姜筱雲" class="w-24 h-24 rounded-full object-cover mb-3" />
+          <img src="{{ url_for('static', filename='image/yun.png') }}" alt="姜筱雲"
+            class="w-24 h-24 rounded-full object-cover mb-3" />
           <div class="font-bold text-base text-[#143139]">姜筱雲</div>
           <div class="text-sm text-black">11146065@ntub.edu.tw</div>
         </div>
         <div class="bg-[#cedfe4] rounded-2xl p-4 text-center shadow-md flex flex-col items-center">
-          <img src="{{ url_for('static', filename='image/kiki.png') }}" alt="連湘琪" class="w-24 h-24 rounded-full object-cover mb-3" />
+          <img src="{{ url_for('static', filename='image/kiki.png') }}" alt="連湘琪"
+            class="w-24 h-24 rounded-full object-cover mb-3" />
           <div class="font-bold text-base text-[#143139]">連湘琪</div>
           <div class="text-sm text-black">11146067@ntub.edu.tw</div>
         </div>
         <div class="bg-[#cedfe4] rounded-2xl p-4 text-center shadow-md flex flex-col items-center">
-          <img src="{{ url_for('static', filename='image/chi.png') }}" alt="邵紫綺" class="w-24 h-24 rounded-full object-cover mb-3" />
+          <img src="{{ url_for('static', filename='image/chi.png') }}" alt="邵紫綺"
+            class="w-24 h-24 rounded-full object-cover mb-3" />
           <div class="font-bold text-base text-[#143139]">邵紫綺</div>
           <div class="text-sm text-black">11146074@ntub.edu.tw</div>
         </div>
         <div class="bg-[#cedfe4] rounded-2xl p-4 text-center shadow-md flex flex-col items-center">
-          <img src="{{ url_for('static', filename='image/yu.png') }}" alt="李曼鈺" class="w-24 h-24 rounded-full object-cover mb-3" />
+          <img src="{{ url_for('static', filename='image/yu.png') }}" alt="李曼鈺"
+            class="w-24 h-24 rounded-full object-cover mb-3" />
           <div class="font-bold text-base text-[#143139]">李曼鈺</div>
           <div class="text-sm text-black">11146079@ntub.edu.tw</div>
         </div>
         <div class="bg-[#cedfe4] rounded-2xl p-4 text-center shadow-md flex flex-col items-center">
-          <img src="{{ url_for('static', filename='image/ya.png') }}" alt="范雅淇" class="w-24 h-24 rounded-full object-cover mb-3" />
+          <img src="{{ url_for('static', filename='image/ya.png') }}" alt="范雅淇"
+            class="w-24 h-24 rounded-full object-cover mb-3" />
           <div class="font-bold text-base text-[#143139]">范雅淇</div>
           <div class="text-sm text-black">11146082@ntub.edu.tw</div>
         </div>
       </div>
       <div class="text-center mt-10">
-        <button onclick="closeModal('aboutModal')" class="bg-[#205f72] text-white px-6 py-3 rounded-lg hover:bg-[#175c71]">關閉</button>
+        <button onclick="closeModal('aboutModal')"
+          class="bg-[#205f72] text-white px-6 py-3 rounded-lg hover:bg-[#175c71]">關閉</button>
       </div>
     </div>
   </div>
 
   <!-- JS 控制區 -->
-<script>
-  function openModal(id) {
-    document.getElementById(id).classList.remove('hidden');
-    document.getElementById(id).classList.add('flex');
-  }
-
-  function closeModal(id) {
-    document.getElementById(id).classList.remove('flex');
-    document.getElementById(id).classList.add('hidden');
-  }
-
-  function handleLogin(event) {
-    event.preventDefault();
-    const email = document.getElementById("loginEmail");
-    const password = document.getElementById("loginPassword");
-    const emailError = document.getElementById("emailError");
-    const passwordError = document.getElementById("passwordError");
-
-    emailError.textContent = "";
-    passwordError.textContent = "";
-
-    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const pwPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
-    let valid = true;
-
-    if (!email.value.trim()) {
-      emailError.textContent = "請輸入 Email";
-      valid = false;
-    } else if (!emailPattern.test(email.value.trim())) {
-      emailError.textContent = "Email 格式錯誤，請重新輸入";
-      valid = false;
+  <script>
+    function openModal(id) {
+      document.getElementById(id).classList.remove('hidden');
+      document.getElementById(id).classList.add('flex');
     }
 
-    if (!password.value) {
-      passwordError.textContent = "請輸入密碼";
-      valid = false;
-    } else if (!pwPattern.test(password.value)) {
-      passwordError.textContent = "密碼格式錯誤，請確認是否包含英文大小寫與數字，至少 8 碼";
-      valid = false;
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('flex');
+      document.getElementById(id).classList.add('hidden');
     }
 
-    if (valid) {
-      const data = {
-        email: email.value.trim(),
-        password: password.value
-      };
+    function handleLogin(event) {
+      event.preventDefault();
+      const email = document.getElementById("loginEmail");
+      const password = document.getElementById("loginPassword");
+      const emailError = document.getElementById("emailError");
+      const passwordError = document.getElementById("passwordError");
 
-      fetch("/api/signin", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
-      })
-      .then(res => res.json())
-      .then(result => {
-        if (result.success) {
-          localStorage.setItem("userId", result.user.id);
-          localStorage.setItem("userName", result.user.name);
-          alert("登入成功！");
-          window.location.href = "/organization";
-        } else {
-          alert("登入失敗：" + result.message);
-        }
-      })
-      .catch(err => {
-        alert("系統錯誤，請稍後再試");
-        console.error("登入錯誤：", err);
-      });
+      emailError.textContent = "";
+      passwordError.textContent = "";
+
+      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const pwPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+      let valid = true;
+
+      if (!email.value.trim()) {
+        emailError.textContent = "請輸入 Email";
+        valid = false;
+      } else if (!emailPattern.test(email.value.trim())) {
+        emailError.textContent = "Email 格式錯誤，請重新輸入";
+        valid = false;
+      }
+
+      if (!password.value) {
+        passwordError.textContent = "請輸入密碼";
+        valid = false;
+      } else if (!pwPattern.test(password.value)) {
+        passwordError.textContent = "密碼格式錯誤，請確認是否包含英文大小寫與數字，至少 8 碼";
+        valid = false;
+      }
+
+      if (valid) {
+        const data = {
+          email: email.value.trim(),
+          password: password.value
+        };
+
+        fetch("/api/signin", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data)
+        })
+          .then(async res => {
+            if (!res.ok) {
+              // 這裡處理非 2xx 狀態，例如 405/500/503
+              const text = await res.text(); // 嘗試讀取伺服器錯誤訊息（通常是 HTML）
+              throw new Error("HTTP " + res.status + ": " + text);
+            }
+            return res.json();
+          })
+          .then(result => {
+            if (result.success) {
+              localStorage.setItem("userId", result.user.id);
+              localStorage.setItem("userName", result.user.name);
+              localStorage.setItem("userEmail", data.email);
+              localStorage.setItem("user_id", result.user.id);
+              alert("登入成功！");
+              window.location.href = `/set_session?user_id=${result.user.id}&redirect_to=/organization`;
+            } else {
+              alert("登入失敗：" + result.message);
+            }
+          })
+          .catch(err => {
+            alert("系統錯誤：" + err.message);
+            console.error("登入錯誤：", err);
+          });
+      }
     }
-  }
-</script>
+  </script>
 
 </body>
+
 </html>
