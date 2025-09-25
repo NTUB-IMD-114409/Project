@@ -1,0 +1,139 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36" version="28.2.0">
+  <diagram name="第 1 页" id="uIvQCA4F2e-PmySc0bRi">
+    <mxGraphModel grid="1" page="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="PQjBRTVwvNCcJ6mZfP_D-35" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="PQjBRTVwvNCcJ6mZfP_D-1" target="PQjBRTVwvNCcJ6mZfP_D-5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="PQjBRTVwvNCcJ6mZfP_D-1" value="ㄢ" style="ellipse;html=1;shape=endState;fillColor=#000000;strokeColor=#FFFFFF;" vertex="1" parent="1">
+          <mxGeometry x="373.5" y="10" width="45" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="PQjBRTVwvNCcJ6mZfP_D-2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.547;exitY=0.959;exitDx=0;exitDy=0;exitPerimeter=0;strokeColor=none;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="378.76" y="119.99999999999994" as="sourcePoint" />
+            <mxPoint x="370" y="168" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="370" y="120" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PQjBRTVwvNCcJ6mZfP_D-3" value="選擇錄音" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" connectable="0" vertex="1" parent="PQjBRTVwvNCcJ6mZfP_D-2">
+          <mxGeometry x="0.0979" y="1" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PQjBRTVwvNCcJ6mZfP_D-4" value="語音轉文字" style="rounded=1;whiteSpace=wrap;html=1;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="352" y="80" width="88" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="PQjBRTVwvNCcJ6mZfP_D-5" value="錄音中" style="rounded=1;whiteSpace=wrap;html=1;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="340" y="168" width="58" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="PQjBRTVwvNCcJ6mZfP_D-6" value="" style="endArrow=classic;html=1;rounded=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0.494;exitY=0.916;exitDx=0;exitDy=0;exitPerimeter=0;" edge="1" parent="1" source="PQjBRTVwvNCcJ6mZfP_D-1" target="PQjBRTVwvNCcJ6mZfP_D-4">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="399" y="40" as="sourcePoint" />
+            <mxPoint x="498" y="70" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PQjBRTVwvNCcJ6mZfP_D-9" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.547;exitY=0.959;exitDx=0;exitDy=0;exitPerimeter=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="378.76" y="200" as="sourcePoint" />
+            <mxPoint x="370" y="248.00000000000006" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="370" y="200.00000000000006" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PQjBRTVwvNCcJ6mZfP_D-10" value="轉錄中" style="rounded=1;whiteSpace=wrap;html=1;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="414" y="246" width="68" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="PQjBRTVwvNCcJ6mZfP_D-11" value="辨識中" style="rounded=1;whiteSpace=wrap;html=1;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="330" y="246" width="68" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="PQjBRTVwvNCcJ6mZfP_D-26" value="" style="endArrow=classic;html=1;rounded=0;entryX=0.736;entryY=0.037;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" target="PQjBRTVwvNCcJ6mZfP_D-27">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="432.39" y="372" as="sourcePoint" />
+            <mxPoint x="400" y="440" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PQjBRTVwvNCcJ6mZfP_D-27" value="" style="ellipse;html=1;shape=endState;fillColor=#000000;strokeColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="384" y="440" width="30" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="PQjBRTVwvNCcJ6mZfP_D-38" value="逐字稿生成" style="rounded=1;whiteSpace=wrap;html=1;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="316" y="340" width="82" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="PQjBRTVwvNCcJ6mZfP_D-39" value="錯誤" style="rounded=1;whiteSpace=wrap;html=1;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="414" y="340" width="66" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="PQjBRTVwvNCcJ6mZfP_D-40" value="" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="352" y="372" as="sourcePoint" />
+            <mxPoint x="391" y="441" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PQjBRTVwvNCcJ6mZfP_D-43" value="" style="endArrow=classic;html=1;rounded=0;entryX=0.575;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" target="PQjBRTVwvNCcJ6mZfP_D-39">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="374" y="278" as="sourcePoint" />
+            <mxPoint x="434" y="340" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PQjBRTVwvNCcJ6mZfP_D-49" value="辨識失敗" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" connectable="0" vertex="1" parent="PQjBRTVwvNCcJ6mZfP_D-43">
+          <mxGeometry x="0.0262" y="1" relative="1" as="geometry">
+            <mxPoint x="12" y="1" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PQjBRTVwvNCcJ6mZfP_D-46" value="轉錄成功" style="endArrow=classic;html=1;rounded=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" target="PQjBRTVwvNCcJ6mZfP_D-38">
+          <mxGeometry x="0.2239" y="-8" width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="429.39" y="278" as="sourcePoint" />
+            <mxPoint x="397" y="346" as="targetPoint" />
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PQjBRTVwvNCcJ6mZfP_D-47" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.889;exitY=0.998;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.148;entryY=0.023;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" target="PQjBRTVwvNCcJ6mZfP_D-10">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="437.6769999999999" y="119.92000000000002" as="sourcePoint" />
+            <mxPoint x="424" y="240" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="433" y="120" />
+              <mxPoint x="424" y="120" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PQjBRTVwvNCcJ6mZfP_D-48" value="選擇檔案" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" connectable="0" vertex="1" parent="PQjBRTVwvNCcJ6mZfP_D-47">
+          <mxGeometry x="-0.0225" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PQjBRTVwvNCcJ6mZfP_D-57" value="" style="endArrow=classic;html=1;rounded=0;entryX=0.307;entryY=-0.035;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="340" y="279.12" as="sourcePoint" />
+            <mxPoint x="341.1740000000001" y="340" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="320" y="310" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PQjBRTVwvNCcJ6mZfP_D-59" value="辨識成功" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" connectable="0" vertex="1" parent="PQjBRTVwvNCcJ6mZfP_D-57">
+          <mxGeometry x="-0.2814" y="1" relative="1" as="geometry">
+            <mxPoint y="8" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PQjBRTVwvNCcJ6mZfP_D-60" value="" style="endArrow=classic;html=1;rounded=0;entryX=0.572;entryY=-0.035;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" target="PQjBRTVwvNCcJ6mZfP_D-39">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="460" y="280" as="sourcePoint" />
+            <mxPoint x="530" y="260" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="480" y="310" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PQjBRTVwvNCcJ6mZfP_D-61" value="轉錄失敗" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" connectable="0" vertex="1" parent="PQjBRTVwvNCcJ6mZfP_D-60">
+          <mxGeometry x="-0.2433" relative="1" as="geometry">
+            <mxPoint y="6" as="offset" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
