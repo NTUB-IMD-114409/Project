@@ -1,0 +1,127 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" version="28.2.5">
+  <diagram name="第 1 页" id="Wmu3tGBIcViPSZ0gh4Ma">
+    <mxGraphModel grid="1" page="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="MxByzlFaf5HcZu2xKcUg-56" value="" style="ellipse;fillColor=strokeColor;" vertex="1" parent="1">
+          <mxGeometry x="462" y="230" width="14" height="14" as="geometry" />
+        </mxCell>
+        <mxCell id="MxByzlFaf5HcZu2xKcUg-57" value="登入畫面" style="rounded=1;arcSize=20;strokeWidth=2" vertex="1" parent="1">
+          <mxGeometry x="429" y="294" width="80" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="MxByzlFaf5HcZu2xKcUg-58" value="加入LINE好友" style="rounded=1;arcSize=20;strokeWidth=2" vertex="1" parent="1">
+          <mxGeometry x="413" y="407" width="111" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="MxByzlFaf5HcZu2xKcUg-59" value="已成為好友" style="rounded=1;arcSize=20;strokeWidth=2" vertex="1" parent="1">
+          <mxGeometry x="421" y="537" width="96" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="MxByzlFaf5HcZu2xKcUg-60" value="輸入Email" style="rounded=1;arcSize=20;strokeWidth=2" vertex="1" parent="1">
+          <mxGeometry x="425" y="649" width="88" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="MxByzlFaf5HcZu2xKcUg-61" value="綁定處理中" style="rounded=1;arcSize=20;strokeWidth=2" vertex="1" parent="1">
+          <mxGeometry x="238" y="762" width="96" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="MxByzlFaf5HcZu2xKcUg-62" value="綁定成功" style="rounded=1;arcSize=20;strokeWidth=2" vertex="1" parent="1">
+          <mxGeometry x="20" y="874" width="80" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="MxByzlFaf5HcZu2xKcUg-63" value="已綁定" style="rounded=1;arcSize=20;strokeWidth=2" vertex="1" parent="1">
+          <mxGeometry x="186" y="874" width="64" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="MxByzlFaf5HcZu2xKcUg-64" value="找不到Email" style="rounded=1;arcSize=20;strokeWidth=2" vertex="1" parent="1">
+          <mxGeometry x="363" y="874" width="104" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="MxByzlFaf5HcZu2xKcUg-65" value="請輸入註冊Email" style="rounded=1;arcSize=20;strokeWidth=2" vertex="1" parent="1">
+          <mxGeometry x="516" y="874" width="136" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="MxByzlFaf5HcZu2xKcUg-66" value="" style="ellipse;shape=endState;fillColor=strokeColor;" vertex="1" parent="1">
+          <mxGeometry x="132" y="964" width="14" height="14" as="geometry" />
+        </mxCell>
+        <mxCell id="MxByzlFaf5HcZu2xKcUg-67" value="" style="curved=1;startArrow=none;;exitX=0.51;exitY=1;entryX=0.5;entryY=0;rounded=0;" edge="1" parent="1" source="MxByzlFaf5HcZu2xKcUg-56" target="MxByzlFaf5HcZu2xKcUg-57">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="MxByzlFaf5HcZu2xKcUg-68" value="[點擊「加入 LINE 好友」]" style="curved=1;startArrow=none;;exitX=0.5;exitY=1;entryX=0.51;entryY=-0.01;rounded=0;" edge="1" parent="1" source="MxByzlFaf5HcZu2xKcUg-57" target="MxByzlFaf5HcZu2xKcUg-58">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="MxByzlFaf5HcZu2xKcUg-69" value="[掃描會議寶 QRCode 並加入]" style="curved=1;startArrow=none;;exitX=0.51;exitY=0.99;entryX=0.5;entryY=-0.01;rounded=0;" edge="1" parent="1" source="MxByzlFaf5HcZu2xKcUg-58" target="MxByzlFaf5HcZu2xKcUg-59">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="MxByzlFaf5HcZu2xKcUg-70" value="[在 LINE 輸入註冊 Email]" style="curved=1;startArrow=none;;exitX=0.5;exitY=0.99;entryX=0.5;entryY=0;rounded=0;" edge="1" parent="1" source="MxByzlFaf5HcZu2xKcUg-59" target="MxByzlFaf5HcZu2xKcUg-60">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="MxByzlFaf5HcZu2xKcUg-71" value="[送出]" style="curved=1;startArrow=none;;exitX=0;exitY=0.84;entryX=0.5;entryY=-0.01;rounded=0;" edge="1" parent="1" source="MxByzlFaf5HcZu2xKcUg-60" target="MxByzlFaf5HcZu2xKcUg-61">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="286" y="725" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="MxByzlFaf5HcZu2xKcUg-72" value="[Email 存在且未綁定]" style="curved=1;startArrow=none;;exitX=0;exitY=0.79;entryX=0.5;entryY=0;rounded=0;" edge="1" parent="1" source="MxByzlFaf5HcZu2xKcUg-61" target="MxByzlFaf5HcZu2xKcUg-62">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="60" y="838" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="MxByzlFaf5HcZu2xKcUg-73" value="[此 LINE 已綁定]" style="curved=1;startArrow=none;;exitX=0.25;exitY=0.99;entryX=0.51;entryY=0;rounded=0;" edge="1" parent="1" source="MxByzlFaf5HcZu2xKcUg-61" target="MxByzlFaf5HcZu2xKcUg-63">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="218" y="838" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="MxByzlFaf5HcZu2xKcUg-74" value="[Email 不存在]" style="curved=1;startArrow=none;;exitX=0.75;exitY=0.99;entryX=0.28;entryY=0;rounded=0;" edge="1" parent="1" source="MxByzlFaf5HcZu2xKcUg-61" target="MxByzlFaf5HcZu2xKcUg-64">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="353" y="838" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="MxByzlFaf5HcZu2xKcUg-75" value="[格式錯誤]" style="curved=1;startArrow=none;;exitX=1;exitY=0.77;entryX=0.36;entryY=0;rounded=0;" edge="1" parent="1" source="MxByzlFaf5HcZu2xKcUg-61" target="MxByzlFaf5HcZu2xKcUg-65">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="529" y="838" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="MxByzlFaf5HcZu2xKcUg-76" value="[重新輸入]" style="curved=1;startArrow=none;;exitX=0.58;exitY=0;entryX=1;entryY=0.93;rounded=0;" edge="1" parent="1" source="MxByzlFaf5HcZu2xKcUg-65" target="MxByzlFaf5HcZu2xKcUg-60">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="614" y="838" />
+              <mxPoint x="614" y="725" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="MxByzlFaf5HcZu2xKcUg-77" value="[重新輸入]" style="curved=1;startArrow=none;;exitX=0.68;exitY=0;entryX=0.5;entryY=1;rounded=0;" edge="1" parent="1" source="MxByzlFaf5HcZu2xKcUg-64" target="MxByzlFaf5HcZu2xKcUg-60">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="469" y="838" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="MxByzlFaf5HcZu2xKcUg-78" value="" style="curved=1;startArrow=none;;exitX=0.5;exitY=1;entryX=0.02;entryY=0.3;rounded=0;" edge="1" parent="1" source="MxByzlFaf5HcZu2xKcUg-62" target="MxByzlFaf5HcZu2xKcUg-66">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="60" y="939" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="MxByzlFaf5HcZu2xKcUg-79" value="" style="curved=1;startArrow=none;;exitX=0.51;exitY=1;entryX=1.02;entryY=0.3;rounded=0;" edge="1" parent="1" source="MxByzlFaf5HcZu2xKcUg-63" target="MxByzlFaf5HcZu2xKcUg-66">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="218" y="939" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

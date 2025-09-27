@@ -1,0 +1,83 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36" version="28.2.0">
+  <diagram name="第 1 页" id="yaSle3UEpyze-fkalIha">
+    <mxGraphModel grid="1" page="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="XsriDVWSbgtF-3kA-jsr-1" value="ㄢ" style="ellipse;html=1;shape=endState;fillColor=#000000;strokeColor=#FFFFFF;" vertex="1" parent="1">
+          <mxGeometry x="347.5" y="60" width="45" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="XsriDVWSbgtF-3kA-jsr-2" value="" style="endArrow=classic;html=1;rounded=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" target="XsriDVWSbgtF-3kA-jsr-4">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="369.57" y="100" as="sourcePoint" />
+            <mxPoint x="369.81000000000023" y="164.24000000000024" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="XsriDVWSbgtF-3kA-jsr-3" value="&lt;font&gt;點擊「＋新增」按紐&lt;/font&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=11;fontStyle=1" connectable="0" vertex="1" parent="XsriDVWSbgtF-3kA-jsr-2">
+          <mxGeometry x="-0.2887" y="1" relative="1" as="geometry">
+            <mxPoint x="4" y="1" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="XsriDVWSbgtF-3kA-jsr-4" value="&lt;b&gt;顯示上傳視窗&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="290" y="160" width="160" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="XsriDVWSbgtF-3kA-jsr-5" value="" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="369.57" y="200" as="sourcePoint" />
+            <mxPoint x="369.57" y="250" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="XsriDVWSbgtF-3kA-jsr-6" value="&lt;font&gt;點擊「上傳」按紐&lt;/font&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=11;fontStyle=1" connectable="0" vertex="1" parent="XsriDVWSbgtF-3kA-jsr-5">
+          <mxGeometry x="-0.2887" y="1" relative="1" as="geometry">
+            <mxPoint x="5" y="3" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="XsriDVWSbgtF-3kA-jsr-7" value="&lt;b&gt;檔案選擇中&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="290" y="250" width="160" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="XsriDVWSbgtF-3kA-jsr-8" value="" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="369.57" y="290" as="sourcePoint" />
+            <mxPoint x="369.57" y="340" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="XsriDVWSbgtF-3kA-jsr-9" value="傳送資料" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=11;fontStyle=1" connectable="0" vertex="1" parent="XsriDVWSbgtF-3kA-jsr-8">
+          <mxGeometry x="-0.2887" y="1" relative="1" as="geometry">
+            <mxPoint x="1" y="4" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="XsriDVWSbgtF-3kA-jsr-10" value="&lt;b&gt;處理上傳資料&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="290" y="340" width="160" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="XsriDVWSbgtF-3kA-jsr-11" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.309;exitY=0.996;exitDx=0;exitDy=0;exitPerimeter=0;" edge="1" parent="1" source="XsriDVWSbgtF-3kA-jsr-10">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="360" y="380" as="sourcePoint" />
+            <mxPoint x="340" y="430" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="XsriDVWSbgtF-3kA-jsr-12" value="上傳成功" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=11;fontStyle=1" connectable="0" vertex="1" parent="XsriDVWSbgtF-3kA-jsr-11">
+          <mxGeometry x="-0.2887" y="1" relative="1" as="geometry">
+            <mxPoint x="1" y="4" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="XsriDVWSbgtF-3kA-jsr-13" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.309;exitY=0.996;exitDx=0;exitDy=0;exitPerimeter=0;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="390" y="380" as="sourcePoint" />
+            <mxPoint x="391" y="430" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="XsriDVWSbgtF-3kA-jsr-14" value="上傳失敗" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=11;fontStyle=1" connectable="0" vertex="1" parent="XsriDVWSbgtF-3kA-jsr-13">
+          <mxGeometry x="-0.2887" y="1" relative="1" as="geometry">
+            <mxPoint x="1" y="4" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="XsriDVWSbgtF-3kA-jsr-15" value="" style="ellipse;html=1;shape=endState;fillColor=#000000;strokeColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="326" y="430" width="30" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="XsriDVWSbgtF-3kA-jsr-16" value="" style="ellipse;html=1;shape=endState;fillColor=#000000;strokeColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="377" y="430" width="30" height="30" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

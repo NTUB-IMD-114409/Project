@@ -1,0 +1,101 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" version="28.2.5">
+  <diagram name="第 1 页" id="wr3tNOFVHfHUUNGMlg7-">
+    <mxGraphModel grid="1" page="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="GDHqR65AKjc393GmwOjW-1" value="" style="ellipse;fillColor=strokeColor;" vertex="1" parent="1">
+          <mxGeometry x="210" y="20" width="14" height="14" as="geometry" />
+        </mxCell>
+        <mxCell id="GDHqR65AKjc393GmwOjW-2" value="查詢紀錄頁面" style="rounded=1;arcSize=20;strokeWidth=2" vertex="1" parent="1">
+          <mxGeometry x="161" y="84" width="112" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="GDHqR65AKjc393GmwOjW-3" value="選擇會議中" style="rounded=1;arcSize=20;strokeWidth=2" vertex="1" parent="1">
+          <mxGeometry x="169" y="174" width="96" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="GDHqR65AKjc393GmwOjW-4" value="查詢中" style="rounded=1;arcSize=20;strokeWidth=2" vertex="1" parent="1">
+          <mxGeometry x="185" y="287" width="64" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="GDHqR65AKjc393GmwOjW-5" value="顯示查詢紀錄" style="rounded=1;arcSize=20;strokeWidth=2" vertex="1" parent="1">
+          <mxGeometry x="58" y="399" width="112" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="GDHqR65AKjc393GmwOjW-6" value="錯誤" style="rounded=1;arcSize=20;strokeWidth=2" vertex="1" parent="1">
+          <mxGeometry x="273" y="512" width="48" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="GDHqR65AKjc393GmwOjW-7" value="編輯中" style="rounded=1;arcSize=20;strokeWidth=2" vertex="1" parent="1">
+          <mxGeometry x="127" y="512" width="64" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="GDHqR65AKjc393GmwOjW-8" value="" style="ellipse;shape=endState;fillColor=strokeColor;" vertex="1" parent="1">
+          <mxGeometry x="152" y="624" width="14" height="14" as="geometry" />
+        </mxCell>
+        <mxCell id="GDHqR65AKjc393GmwOjW-9" value="" style="curved=1;startArrow=none;;exitX=0.49;exitY=1;entryX=0.5;entryY=0;rounded=0;" edge="1" parent="1" source="GDHqR65AKjc393GmwOjW-1" target="GDHqR65AKjc393GmwOjW-2">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GDHqR65AKjc393GmwOjW-10" value="" style="curved=1;startArrow=none;;exitX=0.5;exitY=1;entryX=0.5;entryY=0;rounded=0;" edge="1" parent="1" source="GDHqR65AKjc393GmwOjW-2" target="GDHqR65AKjc393GmwOjW-3">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GDHqR65AKjc393GmwOjW-11" value="[送出查詢]" style="curved=1;startArrow=none;;exitX=0.5;exitY=1;entryX=0.5;entryY=-0.01;rounded=0;" edge="1" parent="1" source="GDHqR65AKjc393GmwOjW-3" target="GDHqR65AKjc393GmwOjW-4">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GDHqR65AKjc393GmwOjW-12" value="[成功]" style="curved=1;startArrow=none;;exitX=0;exitY=0.92;entryX=0.5;entryY=0;rounded=0;" edge="1" parent="1" source="GDHqR65AKjc393GmwOjW-4" target="GDHqR65AKjc393GmwOjW-5">
+          <mxGeometry x="-0.1109" y="1" relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="114" y="363" />
+            </Array>
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GDHqR65AKjc393GmwOjW-13" value="[失敗]" style="curved=1;startArrow=none;;exitX=0.94;exitY=0.99;entryX=0.49;entryY=-0.01;rounded=0;" edge="1" parent="1" source="GDHqR65AKjc393GmwOjW-4" target="GDHqR65AKjc393GmwOjW-6">
+          <mxGeometry x="-0.0582" y="-7" relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="297" y="363" />
+            </Array>
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GDHqR65AKjc393GmwOjW-14" value="[修改紀錄]" style="curved=1;startArrow=none;;exitX=0.5;exitY=1;entryX=0.25;entryY=-0.01;rounded=0;" edge="1" parent="1" source="GDHqR65AKjc393GmwOjW-5" target="GDHqR65AKjc393GmwOjW-7">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="114" y="475" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GDHqR65AKjc393GmwOjW-15" value="[不修改/離開]" style="curved=1;startArrow=none;;exitX=0.2;exitY=1;entryX=0.03;entryY=0.34;rounded=0;" edge="1" parent="1" source="GDHqR65AKjc393GmwOjW-5" target="GDHqR65AKjc393GmwOjW-8">
+          <mxGeometry x="-0.0348" y="10" relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="20" y="475" />
+              <mxPoint x="20" y="588" />
+            </Array>
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GDHqR65AKjc393GmwOjW-16" value="[儲存成功]" style="curved=1;startArrow=none;;exitX=0.81;exitY=-0.01;entryX=0.82;entryY=1;rounded=0;" edge="1" parent="1" source="GDHqR65AKjc393GmwOjW-7" target="GDHqR65AKjc393GmwOjW-5">
+          <mxGeometry x="0.1961" y="7" relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="214" y="475" />
+            </Array>
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GDHqR65AKjc393GmwOjW-17" value="[完成/離開]" style="curved=1;startArrow=none;;exitX=0.51;exitY=0.99;entryX=0.53;entryY=0;rounded=0;" edge="1" parent="1" source="GDHqR65AKjc393GmwOjW-7" target="GDHqR65AKjc393GmwOjW-8">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GDHqR65AKjc393GmwOjW-18" value="[離開]" style="curved=1;startArrow=none;;exitX=0.49;exitY=0.99;entryX=1.03;entryY=0.34;rounded=0;" edge="1" parent="1" source="GDHqR65AKjc393GmwOjW-6" target="GDHqR65AKjc393GmwOjW-8">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="297" y="588" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

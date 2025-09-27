@@ -1,0 +1,92 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" version="28.2.5">
+  <diagram name="第 1 页" id="HKHml-0J1rPIQJs6dacq">
+    <mxGraphModel grid="1" page="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="sCvuDGk1fMZzybV0YdzN-59" value="" style="ellipse;fillColor=strokeColor;" vertex="1" parent="1">
+          <mxGeometry x="374" y="20" width="14" height="14" as="geometry" />
+        </mxCell>
+        <mxCell id="sCvuDGk1fMZzybV0YdzN-60" value="會議紀錄整理生成中" style="rounded=1;arcSize=20;strokeWidth=2" vertex="1" parent="1">
+          <mxGeometry x="199" y="107" width="160" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="sCvuDGk1fMZzybV0YdzN-61" value="正式文件生成中" style="rounded=1;arcSize=20;strokeWidth=2" vertex="1" parent="1">
+          <mxGeometry x="434" y="107" width="128" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="sCvuDGk1fMZzybV0YdzN-62" value="提供檢視下載_紀錄整理" style="rounded=1;arcSize=20;strokeWidth=2" vertex="1" parent="1">
+          <mxGeometry x="20" y="219" width="184" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="sCvuDGk1fMZzybV0YdzN-63" value="錯誤" style="rounded=1;arcSize=20;strokeWidth=2" vertex="1" parent="1">
+          <mxGeometry x="557" y="219" width="48" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="sCvuDGk1fMZzybV0YdzN-64" value="" style="ellipse;shape=endState;fillColor=strokeColor;" vertex="1" parent="1">
+          <mxGeometry x="340" y="309" width="14" height="14" as="geometry" />
+        </mxCell>
+        <mxCell id="sCvuDGk1fMZzybV0YdzN-65" value="提供檢視下載_正式文件" style="rounded=1;arcSize=20;strokeWidth=2" vertex="1" parent="1">
+          <mxGeometry x="254" y="219" width="184" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="sCvuDGk1fMZzybV0YdzN-66" value="[逐字稿轉會議紀錄整理]" style="curved=1;startArrow=none;;exitX=0.01;exitY=0.71;entryX=0.5;entryY=-0.01;rounded=0;" edge="1" parent="1" source="sCvuDGk1fMZzybV0YdzN-59" target="sCvuDGk1fMZzybV0YdzN-60">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="279" y="70" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="sCvuDGk1fMZzybV0YdzN-67" value="[會議紀錄整理轉正式文件]" style="curved=1;startArrow=none;;exitX=1.01;exitY=0.68;entryX=0.5;entryY=-0.01;rounded=0;" edge="1" parent="1" source="sCvuDGk1fMZzybV0YdzN-59" target="sCvuDGk1fMZzybV0YdzN-61">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="498" y="70" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="sCvuDGk1fMZzybV0YdzN-68" value="[生成完成]" style="curved=1;startArrow=none;;exitX=0.13;exitY=0.99;entryX=0.5;entryY=0;rounded=0;" edge="1" parent="1" source="sCvuDGk1fMZzybV0YdzN-60" target="sCvuDGk1fMZzybV0YdzN-62">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="112" y="183" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="sCvuDGk1fMZzybV0YdzN-69" value="[生成失敗]" style="curved=1;startArrow=none;;exitX=0.95;exitY=0.99;entryX=0.01;entryY=0.17;rounded=0;" edge="1" parent="1" source="sCvuDGk1fMZzybV0YdzN-60" target="sCvuDGk1fMZzybV0YdzN-63">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="480" y="183" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="sCvuDGk1fMZzybV0YdzN-70" value="" style="curved=1;startArrow=none;;exitX=0.5;exitY=1;entryX=-0.03;entryY=0.43;rounded=0;" edge="1" parent="1" source="sCvuDGk1fMZzybV0YdzN-62" target="sCvuDGk1fMZzybV0YdzN-64">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="112" y="284" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="sCvuDGk1fMZzybV0YdzN-71" value="[生成完成]" style="curved=1;startArrow=none;;exitX=0.08;exitY=0.99;entryX=0.5;entryY=0;rounded=0;" edge="1" parent="1" source="sCvuDGk1fMZzybV0YdzN-61" target="sCvuDGk1fMZzybV0YdzN-65">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="347" y="183" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="sCvuDGk1fMZzybV0YdzN-72" value="[生成失敗]" style="curved=1;startArrow=none;;exitX=0.87;exitY=0.99;entryX=0.88;entryY=0;rounded=0;" edge="1" parent="1" source="sCvuDGk1fMZzybV0YdzN-61" target="sCvuDGk1fMZzybV0YdzN-63">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="631" y="183" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="sCvuDGk1fMZzybV0YdzN-73" value="" style="curved=1;startArrow=none;;exitX=0.5;exitY=1;entryX=0.47;entryY=0;rounded=0;" edge="1" parent="1" source="sCvuDGk1fMZzybV0YdzN-65" target="sCvuDGk1fMZzybV0YdzN-64">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="sCvuDGk1fMZzybV0YdzN-74" value="" style="curved=1;startArrow=none;;exitX=0.51;exitY=1;entryX=0.97;entryY=0.43;rounded=0;" edge="1" parent="1" source="sCvuDGk1fMZzybV0YdzN-63" target="sCvuDGk1fMZzybV0YdzN-64">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="581" y="284" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
