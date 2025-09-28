@@ -537,7 +537,6 @@
             return String(localStorage.getItem("user_id") || "");
         }
 
-        // 判斷我是否可看這個 topic（先 creator 快速通過 → 再打 API）
         async function canSeeTopic(topic) {
             const me = getCurrentUserId();
             if (!me) return false;
@@ -545,18 +544,7 @@
             // 1) 我就是創建者 → 直接顯示
             if (String(topic.creator_id) === String(me)) return true;
 
-            // 2) 嘗試輕量端點：/api/is_topic_member/<topic_id>  (若你還沒做，會進 fallback)
-            try {
-                const r = await fetch(`/api/is_topic_member/${topic.id}`, { credentials: "include" });
-                if (r.ok) {
-                    const j = await r.json();
-                    if (j?.success && j?.is_member === true) return true;
-                    if (j?.success && j?.is_member === false) return false;
-                    // 若回傳格式不同，往下 fallback
-                }
-            } catch (_) { }
-
-            // 3) fallback：抓清單自己判斷（N+1，但先滿足「前端先處理」）
+            // 2) 直接抓成員清單自己判斷
             try {
                 const r2 = await fetch(`/api/topic_members/${topic.id}`, { credentials: "include" });
                 if (!r2.ok) return false;
@@ -564,7 +552,6 @@
                 const members = j2?.members || [];
                 return members.some(m => String(m.user_id) === String(me));
             } catch (_) {
-                // 保守：取不到就當作不可見
                 return false;
             }
         }

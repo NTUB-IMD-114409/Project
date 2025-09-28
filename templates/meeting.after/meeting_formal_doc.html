@@ -271,7 +271,7 @@
     </style>
 </head>
 
-<body>
+<body data-meeting-id="{{ meeting_id }}">
     <div class="layout">
         <aside class="sidebar" id="sidebar">
             <button class="navbar-toggle" onclick="toggleSidebar()" id="toggleBtn">
@@ -594,10 +594,15 @@
                       </li>`).join("") :
                     "<li class='text-gray-400'>無</li>";
 
-            if (summaryFiles.length > 0) {
+            const minutesRes = await fetch(`/api/minutes/${meetingId}`);
+            const minutesJson = await minutesRes.json();
+
+            if (minutesJson.success && minutesJson.data) {
+                renderMinutes(minutesJson.data);
+            } else if (summaryFiles.length > 0) {
                 renderSummaryFiles(summaryFiles);
             } else {
-                await loadLatestMinutes();
+                renderMinutes(null);
             }
 
             document.getElementById("formalList").innerHTML =
@@ -663,8 +668,8 @@
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({
-                                meeting_id: Number(meetingId),
-                                transcripts: checked         // ✅ 只處理勾選的
+                                meeting_id: meetingId,
+                                transcripts: checked
                             })
                         });
                         const j = await res.json();
@@ -701,10 +706,11 @@
             }
             fetch("/api/templates")
                 .then(res => res.json())
-                .then(data => {
+                .then(templates => {
                     const list = document.getElementById("template-list");
                     if (!list) return;
-                    list.innerHTML = data.map(t => `
+                    list.innerHTML = templates.map(t => `
+
                     <div id="template-card-${t.id}"
                         onclick="selectTemplate(${t.id})"
                         class="template-card border p-3 rounded hover:border-[#205f72] cursor-pointer relative group">
@@ -743,22 +749,50 @@
             const meetingId = localStorage.getItem("currentMeetingId");
             if (!selectedTemplateId) { alert("請先選擇模板！"); return; }
 
-            fetch("/api/generate_docx", {
+            fetch("/api/generate_formal_doc", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ meeting_id: meetingId, template_id: selectedTemplateId })
             })
                 .then(res => res.blob())
-                .then(blob => {
+                .then(async (blob) => {
+                    const filename = `meeting_${meetingId}.docx`;
+
+                    // 建立下載
                     const url = window.URL.createObjectURL(blob);
                     const a = document.createElement("a");
                     a.href = url;
-                    a.download = `meeting_${meetingId}.docx`;
+                    a.download = filename;
                     document.body.appendChild(a);
                     a.click();
                     a.remove();
+
                     closeTemplateModal();
-                    renderSections();
+
+                    // === 新增：直接插入到「正式文件區」 ===
+                    const formalList = document.getElementById("formalList");
+                    if (formalList) {
+                        if (formalList.querySelector(".text-gray-400")) {
+                            formalList.innerHTML = "";
+                        }
+                        const li = document.createElement("li");
+                        li.className = "file-li justify-between";
+                        li.innerHTML = `
+                    <span class="flex items-center gap-2">
+                    <i data-lucide="file-text" class="w-5 h-5"></i>
+                    ${filename}
+                    </span>
+                    <button class="file-link"
+                    onclick="downloadFile('${url}', '${filename}')"
+                    title="下載">
+                    <i data-lucide="file-down" class="w-5 h-5 hover:stroke-[#205f72]"></i>
+                    </button>`;
+                        formalList.appendChild(li);
+                        await lucide.createIcons();
+                    }
+
+                    // await renderSections();
+                    await pushMinutesToTasks(meetingId);
                 });
         }
 
@@ -813,6 +847,44 @@
             document.getElementById("helpModal").classList.add("hidden");
             document.getElementById("helpModal").classList.remove("flex");
         }
+
+        async function pushMinutesToTasks(meetingId) {
+            try {
+                const res = await fetch(`/api/minutes/${meetingId}`);
+                const j = await res.json();
+                if (!j.success || !j.data) {
+                    console.warn("抓 minutes 失敗");
+                    return;
+                }
+
+                const text = `
+          摘要: ${j.data.summary || ""}
+          決策: ${(j.data.decisions || []).join("；")}
+          待辦: ${(j.data.action_items || []).map(ai => ai.title).join("；")}
+        `;
+
+                const resp = await fetch("/api/minutes_to_tasks_extract", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        meeting_id: meetingId,
+                        topic_id: localStorage.getItem("current_topic_id"),
+                        text: text,
+                        assigner_id: localStorage.getItem("currentUserId") // 假設你有存
+                    })
+                });
+
+                const data = await resp.json();
+                if (!data.ok) {
+                    alert("⚠️ 建立任務失敗：" + (data.error || "未知錯誤"));
+                } else {
+                    console.log("✅ 任務已建立", data.tasks);
+                }
+            } catch (err) {
+                console.error("pushMinutesToTasks error", err);
+            }
+        }
+
     </script>
 
     <!-- 使用說明 Modal -->

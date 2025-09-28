@@ -107,13 +107,37 @@
       scrollbar-width: thin;
       scrollbar-color: #cedfe4 transparent
     }
+
+    /* 小圈圈 loading 動畫 */
+    .spinner {
+      border: 3px solid #e5eef1;
+      border-top: 3px solid #205f72;
+      border-radius: 50%;
+      width: 16px;
+      height: 16px;
+      animation: spin 1s linear infinite;
+      display: inline-block;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
   </style>
 </head>
 
 <body>
   <div class="layout">
     <aside class="sidebar" id="sidebar">
-      <button class="navbar-toggle" onclick="toggleSidebar()" id="toggleBtn">
+      <button class="navbar-toggle" onclick="document.getElementById('sidebar').classList.toggle('collapsed')"
+        id="toggleBtn">
         <i data-lucide="align-justify" class="w-6 h-6 stroke-[#205f72]"></i>
       </button>
       <nav class="menu">
@@ -178,8 +202,8 @@
               <div class="flex flex-wrap items-center gap-3 text-sm">
                 <label class="text-gray-600">切片秒數：</label>
                 <select id="slice" class="border rounded-md px-2 py-1">
-                  <option>1</option>
-                  <option selected>2</option>
+                  <option selected>1</option>
+                  <option>2</option>
                   <option>3</option>
                   <option>5</option>
                 </select>
@@ -187,11 +211,6 @@
                     class="accent-[#205f72]"><span>編輯模式</span></label>
                 <label class="inline-flex items-center gap-1"><input id="autoScrollChk" type="checkbox" checked
                     class="accent-[#205f72]"><span>自動捲動</span></label>
-              </div>
-              <div class="w-full">
-                <label class="text-sm text-gray-600">專有名詞詞庫 </label>
-                <textarea id="hintsBox" class="w-full border rounded-md px-2 py-1 mt-1 h-16"
-                  placeholder="在此輸入詞庫，提升專有名詞準確率"></textarea>
               </div>
             </div>
 
@@ -206,29 +225,27 @@
         <div class="flex flex-col items-center gap-4 mt-6 pb-6">
           <div class="flex flex-wrap justify-center items-center gap-3">
             <button id="startBtn"
-              class="btn-primary text-white px-4 py-2 rounded-lg font-semibold flex items-center gap-2"><i
-                data-lucide="play" class="w-5 h-5"></i> 開始</button>
+              class="btn-primary text-white px-4 py-2 rounded-lg font-semibold flex items-center gap-2">
+              <i data-lucide="play" class="w-5 h-5"></i> 開始</button>
             <button id="pauseBtn"
-              class="btn-primary text-white px-4 py-2 rounded-lg font-semibold flex items-center gap-2" disabled><i
-                data-lucide="pause" class="w-5 h-5"></i> 暫停</button>
+              class="btn-primary text-white px-4 py-2 rounded-lg font-semibold flex items-center gap-2" disabled>
+              <i data-lucide="pause" class="w-5 h-5"></i> 暫停</button>
             <button id="stopBtn"
               class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-semibold flex items-center gap-2"
-              disabled><i data-lucide="square" class="w-5 h-5"></i> 停止</button>
+              disabled>
+              <i data-lucide="square" class="w-5 h-5"></i> 停止</button>
           </div>
           <div class="flex flex-wrap gap-3">
             <button id="downloadBtn"
-              class="hidden bg-[#205f72] text-white px-4 py-2 rounded-lg font-semibold hover:bg-[#124654] transition">📄
-              下載逐字稿</button>
+              class="hidden bg-[#205f72] text-white px-4 py-2 rounded-lg font-semibold hover:bg-[#124654] transition">📄下載逐字稿</button>
             <button id="uploadBtn"
-              class="hidden bg-emerald-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-emerald-700 transition">☁️
-              上傳至檔案區</button>
+              class="hidden bg-emerald-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-emerald-700 transition">☁️上傳至檔案區</button>
           </div>
         </div>
       </div>
     </main>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/gh/mattdiamond/Recorderjs@master/dist/recorder.js"></script>
   <script>
     function openHelpModal() {
       document.getElementById("helpModal").classList.remove("hidden");
@@ -239,440 +256,221 @@
       document.getElementById("helpModal").classList.add("hidden");
       document.getElementById("helpModal").classList.remove("flex");
     }
-    function toggleSidebar() { document.getElementById("sidebar").classList.toggle("collapsed") }
-    function goToNext() { window.location.href = "{{ url_for('permission.meeting_review_page', meeting_id=meeting_id) }}" }
-    //function openHelpModal() { alert("流程：開始 → 每 X 秒切片 → POST 到 /whisper_stream → 顯示即時文字。\\n遇 404 自動切換端點；遇 413 自動縮短切片；遇無聲/太短會自動忽略。") }
+
+    function goToNext() {
+      window.location.href = "{{ url_for('permission.meeting_review_page', meeting_id=meeting_id) }}";
+    }
 
     window.addEventListener("load", () => {
       const MEETING_ID = "{{ meeting_id }}";
-      const FILES_URL = "{{ url_for('file.meeting_during_file_upload_page', meeting_id=meeting_id) }}";
-
       const startBtn = document.getElementById("startBtn");
       const pauseBtn = document.getElementById("pauseBtn");
       const stopBtn = document.getElementById("stopBtn");
       const downloadBtn = document.getElementById("downloadBtn");
       const uploadBtn = document.getElementById("uploadBtn");
-      const sliceSel = document.getElementById("slice");
       const statusContainer = document.getElementById("statusContainer");
       const liveTextEl = document.getElementById("liveText");
       const autoScrollChk = document.getElementById("autoScrollChk");
       const jumpLatestBtn = document.getElementById("jumpLatestBtn");
       const editModeChk = document.getElementById("editModeChk");
-      const hintsBox = document.getElementById("hintsBox");
+      const sliceSel = document.getElementById("slice");
 
       const toTW = (window.OpenCC && OpenCC.Converter) ? OpenCC.Converter({ from: 'cn', to: 'tw' }) : (s => s);
 
-      const apiEndpoints = ["/whisper_stream", "/api/whisper_stream"];
-      let API = apiEndpoints[0];
+      let mediaRecorder = null, mediaStream = null;
+      let paused = false, timelineSec = 0, fullTranscript = "";
 
-      let mediaStream = null, audioCtx = null, inputNode = null, wavRecorder = null, wavTimer = null;
-      let paused = false, recStartedAt = null;
-      const MAX_DOM_ROWS = 300;
-      let fullTranscript = "";
-
-      const MIN_DURATION_SEC = 0.25;
-      const MIN_SIZE_BYTES = 12000;
-      const SILENCE_DBFS = -48;
-
-      // 時間游標（秒）：每 append 一段就往後推進 dur
-      let timelineSec = 0;
-
-      document.getElementById("meeting-name").textContent = localStorage.getItem("currentMeetingName") || "未命名會議";
-      document.getElementById("meeting-date").textContent = localStorage.getItem("currentMeetingDate") || "未指定日期";
-
-      function setStatus(msg, type) { statusContainer.innerHTML = `<div class="${type === "start" ? "status-start" : "status-stop"}">${msg}</div>` }
+      function setStatus(msg, type) {
+        statusContainer.innerHTML = `<div class="${type === "start" ? "status-start" : "status-stop"}">${msg}</div>`;
+      }
 
       function srtTime(sec) {
         const ms = Math.round((sec - Math.floor(sec)) * 1000);
-        const s = Math.floor(sec % 60);
-        const m = Math.floor((sec / 60) % 60);
-        const h = Math.floor(sec / 3600);
-        const pad = (n, w = 2) => String(n).padStart(w, "0");
+        const s = Math.floor(sec % 60); const m = Math.floor((sec / 60) % 60);
+        const h = Math.floor(sec / 3600); const pad = (n, w = 2) => String(n).padStart(w, "0");
         return `${pad(h)}:${pad(m)}:${pad(s)},${pad(ms, 3)}`;
       }
       function fmtTimeRange(a, b) { return `${srtTime(a)} --> ${srtTime(b)}`; }
 
-      const promptBlacklist = [
-        /請以?\s*繁\s*體\s*中\s*文(?:（?臺?台灣?用語）?)?\s*輸出/i,
-        /請用?\s*繁\s*體\s*中\s*文(?:（?臺?台灣?用語）?)?\s*輸出/i,
-        /使用\s*繁\s*體\s*中\s*文(?:（?臺?台灣?用語）?)?\s*輸出/i,
-        /不要\s*使用\s*簡\s*體/i,
-        /不\s*要\s*捏\s*造(?:\s*內\s*容)?/i,
-        /保\s*持\s*內\s*容\s*忠\s*實/i,
-        /只\s*輸\s*出\s*修\s*正\s*後\s*的\s*文\s*字/i,
-        /格\s*式[:：]\s*只\s*輸\s*出\s*修\s*正\s*後\s*的\s*文\s*字/i,
-        /專\s*有\s*名\s*詞\s*提\s*示（若有）/i,
-      ];
-
-      function normalizeForCompare(s) {
-        return (s || "").replace(/[，。、《》〈〉；：「」『』！？!?,.\s\u3000]/g, "").replace(/臺/g, "台").trim();
-      }
-
-      function getLastSeg() {
-        const children = Array.from(liveTextEl.children);
-        return children[children.length - 1] || null;
-      }
-
-      function mergeOrAppend(newText) {
-        const last = getLastSeg();
-        if (!last) return "append";
-        const prevText = (last.querySelector(".seg-body")?.textContent || "").trim();
-        if (!prevText) return "append";
-
-        const a = normalizeForCompare(prevText);
-        const b = normalizeForCompare(newText);
-        if (!a || !b) return "append";
-
-        if (b.includes(a) && b.length >= Math.round(a.length * 1.2)) {
-          last.querySelector(".seg-body").textContent = newText; // 覆蓋內容
-          return "upgraded";
-        }
-        if (a.includes(b) && a.length >= Math.round(b.length * 1.2)) {
-          return "skip";
-        }
-        return "append";
-      }
-
-      function filterClientSide(s) {
-        let t = (s || "").trim();
-        if (!t) return "";
-        if (promptBlacklist.some(re => re.test(t))) return "";
-        return t;
-      }
+      document.getElementById("meeting-name").textContent = localStorage.getItem("currentMeetingName") || "未命名會議";
+      document.getElementById("meeting-date").textContent = localStorage.getItem("currentMeetingDate") || "未指定日期";
 
       function createSeg(startSec, endSec, text) {
-        const seg = document.createElement("div");
-        seg.className = "seg";
-        seg.dataset.start = String(startSec);
-        seg.dataset.end = String(endSec);
-        seg.dataset.speaker = "未標記";
-
-        const head = document.createElement("div");
-        head.className = "seg-head";
-        const timeEl = document.createElement("span");
-        timeEl.className = "seg-time";
-        timeEl.textContent = fmtTimeRange(startSec, endSec);
-
-        const dot = document.createElement("span");
-        dot.textContent = "·";
-
-        const label = document.createElement("span");
-        label.textContent = "說話者";
-
-        const sel = document.createElement("select");
-        sel.className = "border rounded-md px-2 py-1 text-xs";
-        ["未標記", "說話者 1", "說話者 2", "說話者 3", "說話者 4"].forEach(opt => {
-          const o = document.createElement("option");
-          o.value = opt; o.textContent = opt; sel.appendChild(o);
-        });
-        sel.addEventListener("change", () => {
-          seg.dataset.speaker = sel.value;
-        });
-
-        head.appendChild(timeEl); head.appendChild(document.createTextNode("  ")); head.appendChild(dot);
-        head.appendChild(document.createTextNode("  ")); head.appendChild(label); head.appendChild(sel);
-
-        const body = document.createElement("div");
-        body.className = "seg-body";
-        body.textContent = text;
+        const seg = document.createElement("div"); seg.className = "seg";
+        const head = document.createElement("div"); head.className = "seg-head";
+        const timeEl = document.createElement("span"); timeEl.className = "seg-time"; timeEl.textContent = fmtTimeRange(startSec, endSec);
+        const body = document.createElement("div"); body.className = "seg-body"; body.textContent = text;
         body.contentEditable = editModeChk.checked ? "true" : "false";
-
-        seg.appendChild(head); seg.appendChild(body);
+        head.appendChild(timeEl); seg.appendChild(head); seg.appendChild(body);
         return seg;
       }
 
       function appendSegment(text, durSec) {
-        let t = filterClientSide(text);
-        if (!t) return;
-
-        try { t = toTW ? toTW(t) : t; } catch { }
-
-        const op = mergeOrAppend(t);
-        if (op === "skip" || op === "upgraded") {
-          const nearBottom = liveTextEl.scrollTop + liveTextEl.clientHeight >= liveTextEl.scrollHeight - 60;
-          if (autoScrollChk.checked || nearBottom) { liveTextEl.scrollTop = liveTextEl.scrollHeight; jumpLatestBtn.classList.add("hidden"); }
-          if (op === "upgraded") { /* 不動時間 */ }
-          return;
-        }
-
-        const start = timelineSec;
-        const end = start + (durSec || 0);
-        const seg = createSeg(start, end, t);
+        if (!text) return;
+        try { text = toTW ? toTW(text) : text; } catch { }
+        const start = timelineSec, end = start + (durSec || 0);
+        const seg = createSeg(start, end, text);
         liveTextEl.appendChild(seg);
-
-        if (liveTextEl.children.length > MAX_DOM_ROWS) {
-          liveTextEl.removeChild(liveTextEl.firstElementChild);
-        }
-
-        fullTranscript += (fullTranscript ? "\n" : "") + t;
-
-        timelineSec = end; // 推進時間
+        fullTranscript += (fullTranscript ? "\n" : "") + text;
+        timelineSec = end;
 
         const nearBottom = liveTextEl.scrollTop + liveTextEl.clientHeight >= liveTextEl.scrollHeight - 60;
-        if (autoScrollChk.checked || nearBottom) { liveTextEl.scrollTop = liveTextEl.scrollHeight; jumpLatestBtn.classList.add("hidden"); }
-      }
-
-      async function resolveAPI() {
-        for (const p of ["/whisper_stream", "/api/whisper_stream"]) {
-          try { const r = await fetch(p, { method: "GET" }); if (r.ok) { API = p; return; } } catch { }
+        if (autoScrollChk.checked || nearBottom) {
+          liveTextEl.scrollTop = liveTextEl.scrollHeight;
+          jumpLatestBtn.classList.add("hidden");
         }
       }
 
-      async function postChunk(form, tryAltOn404 = true, retry = 2) {
-        try {
-          const r = await fetch(API, { method: "POST", body: form });
-          const bodyText = await r.text().catch(() => "(no body)");
-          let j = null; try { j = JSON.parse(bodyText); } catch { }
-          if (j && j.ok === false && (j.error === "file_too_small" || j.error === "too_silent")) return null;
+      async function sendChunk(blob, durSec) {
+        const fd = new FormData();
+        fd.append("audio", blob, "chunk.webm");
 
-          if (!r.ok || (j && j.ok === false)) {
-            if (r.status === 404 && tryAltOn404) {
-              const alt = ["/whisper_stream", "/api/whisper_stream"].find(p => p !== API);
-              if (alt) { API = alt; return postChunk(form, false, retry); }
-            }
-            if (r.status === 413 || j?.error === "payload_too_large") { setStatus("⚠️ 片段太大（413），已自動將切片設為 1 秒", "stop"); sliceSel.value = "1"; }
-            if ((r.status >= 500 || r.status === 0) && retry > 0) { await new Promise(res => setTimeout(res, 300 * (3 - retry))); return postChunk(form, tryAltOn404, retry - 1); }
-            let msg = "⚠️ 上傳失敗"; if (j?.error === "ffmpeg_error") msg = "⚠️ 音訊轉檔失敗 (FFmpeg)。"; else if (j?.error === "openai_http_error") msg = `⚠️ OpenAI 拒絕音訊：${JSON.stringify(j.detail)?.slice(0, 160)}`; else if (j?.error) msg += ` (${j.error})`;
-            setStatus(msg, "stop"); return null;
+        // 🔹 在逐字稿區先放一個「處理中」段落
+        const start = timelineSec, end = start + durSec;
+        const seg = createSeg(start, end, "");
+        seg.classList.add("pending");
+
+        const placeholder = seg.querySelector(".seg-body");
+        placeholder.innerHTML = `<span class="spinner"></span>處理中...`;
+
+        liveTextEl.appendChild(seg);
+
+        try {
+          const res = await fetch("/chunk/upload_audio", { method: "POST", body: fd });
+          const data = await res.json();
+
+          if (data.transcript) {
+            let text = data.transcript;
+            try { text = toTW ? toTW(text) : text; } catch { }
+            placeholder.textContent = text;
+            seg.classList.remove("pending");
+            fullTranscript += (fullTranscript ? "\n" : "") + text;
+            timelineSec = end;
+          } else {
+            placeholder.textContent = "❌ 轉錄失敗";
           }
-          return j;
-        } catch (err) {
-          if (retry > 0) { await new Promise(res => setTimeout(res, 400 * (3 - retry))); return postChunk(form, tryAltOn404, retry - 1); }
-          setStatus(`⚠️ 上傳失敗（網路/跨域）：${err}`, "stop"); return null;
+        } catch (e) {
+          placeholder.textContent = "⚠️ 網路錯誤";
+          console.error("網路錯誤:", e);
         }
-      }
 
-      async function analyzeBlobWav(blob) {
-        try {
-          const ab = await blob.arrayBuffer();
-          const ctx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
-          const buf = await ctx.decodeAudioData(ab.slice(0));
-          const ch = buf.getChannelData(0);
-          let sum = 0; for (let i = 0; i < ch.length; i++) { const v = ch[i]; sum += v * v; }
-          const rms = Math.sqrt(sum / Math.max(1, ch.length));
-          const dbfs = 20 * Math.log10(rms + 1e-12);
-          return { duration: buf.duration, dbfs };
-        } catch { return { duration: 0, dbfs: -120 }; }
+        // 🔹 自動捲動控制
+        const nearBottom = liveTextEl.scrollTop + liveTextEl.clientHeight >= liveTextEl.scrollHeight - 60;
+        if (autoScrollChk.checked || nearBottom) {
+          liveTextEl.scrollTop = liveTextEl.scrollHeight;
+          jumpLatestBtn.classList.add("hidden");
+        }
       }
 
       async function start() {
-        await resolveAPI();
-        try { mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
-        catch (e) { setStatus("❌ 無法啟用麥克風：" + e.message, "stop"); return; }
+        try {
+          mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        } catch (e) {
+          setStatus("❌ 無法啟用麥克風：" + e.message, "stop");
+          return;
+        }
 
-        startBtn.disabled = true; pauseBtn.disabled = false; stopBtn.disabled = false;
-        downloadBtn.classList.add("hidden"); uploadBtn.classList.add("hidden");
-        liveTextEl.textContent = ""; fullTranscript = ""; paused = false; recStartedAt = Date.now();
-        editModeChk.checked = false; timelineSec = 0;
+        const sliceMs = parseInt(sliceSel.value, 10) * 1000;
+        mediaRecorder = new MediaRecorder(mediaStream, { mimeType: "audio/webm" });
 
-        const sliceMs = Number(sliceSel.value) * 1000;
+        mediaRecorder.ondataavailable = (e) => {
+          if (e.data.size > 0 && !paused) {
+            const durSec = sliceMs / 1000;
+            sendChunk(e.data, durSec);
+          }
+        };
 
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        inputNode = audioCtx.createMediaStreamSource(mediaStream);
-        wavRecorder = new Recorder(inputNode, { numChannels: 1 });
-        wavRecorder.record();
+        mediaRecorder.start(sliceMs);
 
-        wavTimer = setInterval(async () => {
-          if (paused) return;
-          wavRecorder.exportWAV(async (blob) => {
-            try {
-              if (blob.size < MIN_SIZE_BYTES) return;
-              const { duration, dbfs } = await analyzeBlobWav(blob);
-              if (duration < MIN_DURATION_SEC || dbfs < SILENCE_DBFS) return;
-
-              const form = new FormData();
-              form.append("chunk", blob, `p-${Date.now()}.wav`);
-              form.append("hints", (hintsBox.value || "").trim());
-              const j = await postChunk(form);
-              if (j && j.ok && typeof j.text === "string") {
-                appendSegment(j.text, j.dur || duration);
-              }
-            } catch (e) { console.error(e); }
-            finally { wavRecorder.clear(); }
-          });
-        }, sliceMs);
-
-        setStatus("🎤 即時錄音中…（WAV 相容）", "start");
-        lucide.createIcons();
+        startBtn.disabled = true;
+        pauseBtn.disabled = false;
+        stopBtn.disabled = false;
+        liveTextEl.textContent = "";
+        fullTranscript = "";
+        paused = false;
+        timelineSec = 0;
+        setStatus("🎤 錄音中（REST chunk 模式）", "start");
       }
 
       function pauseOrResume() {
-        if (!wavRecorder) return;
-        if (!paused) {
-          try { if (wavTimer) clearInterval(wavTimer); wavRecorder.stop(); paused = true; } catch { }
-          setStatus("⏸️ 已暫停錄音（WAV）", "stop");
-          pauseBtn.innerHTML = `<i data-lucide="play" class="w-5 h-5"></i> 繼續`;
-        } else {
-          try {
-            wavRecorder.record();
-            const sliceMs = Number(sliceSel.value) * 1000;
-            wavTimer = setInterval(() => {
-              wavRecorder.exportWAV(async (blob) => {
-                try {
-                  if (blob.size < MIN_SIZE_BYTES) return;
-                  const { duration, dbfs } = await analyzeBlobWav(blob);
-                  if (duration < MIN_DURATION_SEC || dbfs < SILENCE_DBFS) return;
-
-                  const form = new FormData();
-                  form.append("chunk", blob, `p-${Date.now()}.wav`);
-                  form.append("hints", (hintsBox.value || "").trim());
-                  const j = await postChunk(form);
-                  if (j && j.ok && typeof j.text === "string") {
-                    appendSegment(j.text, j.dur || duration);
-                  }
-                } catch (e) { console.error(e); }
-                finally { wavRecorder.clear(); }
-              });
-            }, sliceMs);
-            paused = false;
-          } catch { }
-          setStatus("🎤 即時錄音中（WAV 相容）…", "start");
-          pauseBtn.innerHTML = `<i data-lucide="pause" class="w-5 h-5"></i> 暫停`;
-        }
-        lucide.createIcons();
-      }
-
-      function cleanupRecorders() {
-        try { if (wavTimer) clearInterval(wavTimer); if (wavRecorder) wavRecorder.stop(); if (audioCtx) audioCtx.close(); } catch { }
-        try { mediaStream && mediaStream.getTracks().forEach(t => t.stop()); } catch { }
+        paused = !paused;
+        setStatus(paused ? "⏸️ 已暫停錄音" : "🎤 錄音中", paused ? "stop" : "start");
       }
 
       function stopAll() {
-        cleanupRecorders();
+        try { mediaRecorder && mediaRecorder.stop(); } catch { }
+        try { mediaStream && mediaStream.getTracks().forEach(t => t.stop()); } catch { }
         startBtn.disabled = false; pauseBtn.disabled = true; stopBtn.disabled = true;
         downloadBtn.classList.remove("hidden"); uploadBtn.classList.remove("hidden");
         setStatus("⏹️ 錄音已結束", "stop");
       }
 
-      function buildExportText() {
-        const segs = Array.from(liveTextEl.children);
-        const lines = [];
-        segs.forEach((seg, idx) => {
-          const start = parseFloat(seg.dataset.start || "0");
-          const end = parseFloat(seg.dataset.end || "0");
-          const speaker = seg.dataset.speaker || "未標記";
-          const text = (seg.querySelector(".seg-body")?.textContent || "").trim();
-          lines.push(String(idx + 1));
-          lines.push(`${srtTime(start)} --> ${srtTime(end)}  ·  ${speaker}`);
-          lines.push(text);
-          lines.push(""); // 空行分隔
-        });
-        const dur = recStartedAt ? Math.round((Date.now() - recStartedAt) / 1000) : 0;
-        const header = `# Transcript（約 ${String(Math.floor(dur / 60)).padStart(2, "0")}:${String(dur % 60).padStart(2, "0")}）\n`;
-        return header + lines.join("\n");
-      }
-
       function downloadTxt() {
-        const textOut = buildExportText();
-        const blob = new Blob([textOut], { type: "text/plain;charset=utf-8" });
+        if (!fullTranscript.trim()) { setStatus("⚠️ 沒有可下載的內容", "stop"); return; }
+        const blob = new Blob([fullTranscript], { type: "text/plain;charset=utf-8" });
         const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url; a.setAttribute("download", "transcript.txt"); a.click();
+        const a = document.createElement("a"); a.href = url; a.download = "transcript.txt"; a.click();
         URL.revokeObjectURL(url);
       }
 
       async function uploadTranscript() {
-        const textOut = buildExportText();
-        if (!textOut.trim()) { setStatus("⚠️ 沒有可上傳的內容", "stop"); return; }
+        if (!fullTranscript.trim()) { setStatus("⚠️ 沒有可上傳的內容", "stop"); return; }
         const fname = `transcript_${new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-")}.txt`;
         const fd = new FormData();
         fd.append("meeting_id", MEETING_ID);
         fd.append("filename", fname);
-        fd.append("file", new Blob([textOut], { type: "text/plain;charset=utf-8" }), fname);
-
-        uploadBtn.disabled = true; const old = uploadBtn.textContent; uploadBtn.textContent = "上傳中…";
+        fd.append("file", new Blob([fullTranscript], { type: "text/plain;charset=utf-8" }), fname);
         try {
           const res = await fetch("/api/files/transcript", { method: "POST", body: fd });
           const data = await res.json().catch(() => ({}));
           if (res.ok && data && data.ok) {
             setStatus("✅ 已上傳至檔案區", "start");
-            setTimeout(() => { window.location.href = "{{ url_for('file.meeting_during_file_upload_page', meeting_id=meeting_id) }}"; }, 600);
+            setTimeout(() => { window.location.href = "{{ url_for('file.meeting_during_file_upload_page', meeting_id=meeting_id) }}"; }, 800);
           } else { throw new Error((data && data.error) || "upload_failed"); }
         } catch (e) { setStatus("❌ 上傳失敗：" + (e.message || e), "stop"); }
-        finally { uploadBtn.disabled = false; uploadBtn.textContent = old; }
       }
-
-      let scrollRaf = null;
-      liveTextEl.addEventListener("scroll", () => {
-        if (scrollRaf) cancelAnimationFrame(scrollRaf);
-        scrollRaf = requestAnimationFrame(() => {
-          const atBottom = liveTextEl.scrollTop + liveTextEl.clientHeight >= liveTextEl.scrollHeight - 60;
-          if (!atBottom) { jumpLatestBtn.classList.remove("hidden"); autoScrollChk.checked = false; }
-          else { jumpLatestBtn.classList.add("hidden"); autoScrollChk.checked = true; }
-        });
-      });
-      document.getElementById("jumpLatestBtn").addEventListener("click", () => {
-        liveTextEl.scrollTop = liveTextEl.scrollHeight; jumpLatestBtn.classList.add("hidden"); autoScrollChk.checked = true;
-      });
-
-      editModeChk.addEventListener("change", () => {
-        const isEdit = editModeChk.checked;
-        document.querySelectorAll("#liveText .seg-body").forEach(div => div.contentEditable = isEdit ? "true" : "false");
-      });
 
       startBtn.addEventListener("click", start);
       pauseBtn.addEventListener("click", pauseOrResume);
       stopBtn.addEventListener("click", stopAll);
       downloadBtn.addEventListener("click", downloadTxt);
       uploadBtn.addEventListener("click", uploadTranscript);
-      window.addEventListener("beforeunload", () => { try { if (mediaStream) mediaStream.getTracks().forEach(t => t.stop()); } catch { } });
-
       lucide.createIcons();
     });
   </script>
 
+
   <!-- 使用說明 Modal -->
   <div id="helpModal" class="fixed inset-0 hidden items-center justify-center bg-black bg-opacity-50 z-50">
-    <!-- 外層：圓角 + 陰影 + overflow-hidden -->
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg flex flex-col overflow-hidden">
-      <!-- 內層：可捲動內容 -->
       <div class="p-6 flex-1 overflow-y-auto max-h-[80vh]">
         <h3 class="text-xl font-bold text-[#205f72] mb-4 text-center">使用說明</h3>
         <ol class="list-decimal pl-5 text-gray-700 leading-relaxed text-base space-y-3">
-          <li>
-            <span class="font-semibold text-[#205f72]">開始錄音</span>
+          <li><span class="font-semibold text-[#205f72]">開始錄音</span>
             <ul class="list-disc pl-6 mt-1 space-y-1">
               <li>點擊「開始」後系統會啟用麥克風，並即時上傳音訊片段。</li>
               <li>錄音進行中，轉譯結果會自動顯示在逐字稿區。</li>
             </ul>
           </li>
-
-          <li>
-            <span class="font-semibold text-[#205f72]">暫停與繼續</span>
+          <li><span class="font-semibold text-[#205f72]">暫停與繼續</span>
             <ul class="list-disc pl-6 mt-1 space-y-1">
               <li>點擊「暫停」可暫停錄音。</li>
-              <li>再次點擊即可繼續錄音，逐字稿會接續新增。</li>
+              <li>再次點擊即可繼續錄音。</li>
             </ul>
           </li>
-
-          <li>
-            <span class="font-semibold text-[#205f72]">停止錄音</span>
+          <li><span class="font-semibold text-[#205f72]">停止錄音</span>
             <ul class="list-disc pl-6 mt-1 space-y-1">
               <li>點擊「停止」後會結束錄音。</li>
-              <li>結束後可選擇「下載逐字稿」或「上傳至檔案區」。</li>
-            </ul>
-          </li>
-
-          <li>
-            <span class="font-semibold text-[#205f72]">進階設定</span>
-            <ul class="list-disc pl-6 mt-1 space-y-1">
-              <li>可調整「切片秒數」，影響每次上傳的音訊長度。</li>
-              <li>「專有名詞詞庫」可輸入專業用詞，提升辨識正確率。</li>
-              <li>勾選「編輯模式」可手動修改逐字稿。</li>
-              <li>「自動捲動」可保持畫面在最新文字，或使用「跳到最新」。</li>
+              <li>可下載或上傳逐字稿。</li>
             </ul>
           </li>
         </ol>
-        <p class="text-xs text-gray-500 mt-4">⚠️ 注意：若錄音片段過短或無聲，系統會自動忽略。</p>
       </div>
-      <!-- 底部固定按鈕 -->
       <div class="flex justify-center p-4 border-t">
         <button onclick="closeHelpModal()" class="bg-gray-300 text-black px-6 py-2 rounded-lg">關閉</button>
       </div>
     </div>
   </div>
-
-
 </body>
 
 </html>

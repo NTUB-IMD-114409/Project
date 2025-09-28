@@ -22,7 +22,9 @@
     <!-- 左側 Logo 與按鈕 -->
     <div class="flex flex-col items-center justify-center">
       <img src="{{ url_for('static', filename='image/logo.png') }}" alt="會議寶 Logo" class="w-[260px] h-auto mb-10" />
-      <div class="flex flex-row gap-8 text-[#205f72] text-lg font-semibold underline">
+
+      <!-- 功能簡介 / 關於我們 -->
+      <div class="flex flex-row gap-8 text-[#205f72] text-lg font-semibold underline mb-8">
         <button onclick="openModal('featureModal')" class="hover:text-[#175c71]">功能簡介</button>
         <button onclick="openModal('aboutModal')" class="hover:text-[#175c71]">關於我們</button>
       </div>
@@ -47,8 +49,16 @@
         </div>
         <button type="submit"
           class="w-full bg-[#205f72] hover:bg-[#175c71] text-white py-3 text-lg rounded-lg">登入</button>
-        <p class="text-sm text-center mt-4">還沒有帳號？<a href="{{ url_for('auth.signup_page') }}"
-            class="text-[#205f72] hover:underline">立即註冊</a></p>
+        <p class="text-sm text-center mt-4">
+          還沒有帳號？
+          <a href="{{ url_for('auth.signup_page') }}" class="text-[#205f72] hover:underline">立即註冊</a>
+        </p>
+        <div class="text-center mt-2">
+          <span class="text-sm text-gray-700 mr-2">想接收最新會議通知？</span>
+          <a href="https://lin.ee/zqTFQEg" target="_blank" class="inline-block align-middle">
+            <img src="https://scdn.line-apps.com/n/line_add_friends/btn/zh-Hant.png" alt="加入好友" class="h-7 inline" />
+          </a>
+        </div>
       </form>
     </div>
   </div>
@@ -58,10 +68,10 @@
     <div class="bg-white rounded-2xl p-8 max-w-md w-full shadow-xl">
       <h3 class="text-2xl font-bold text-[#205f72] mb-4 text-center">功能簡介</h3>
       <ul class="space-y-2 text-base text-gray-700 list-disc list-inside">
+        <li>📧 發送會議通知：整合Email系統，寄送通知給所有與會者，並可增加會議議程，確保資訊即時傳達。</li>
         <li>📂 檔案上傳：支援多格式檔案上傳，可依照檔案類型儲存，方便管理與查閱。</li>
-        <li>📧 發送會議通知：整合 Email 系統，寄送通知給所有與會者，並可增加會議議程，確保資訊即時傳達。</li>
         <li>🎙️ 語音轉文字：支援即時與事後上傳語音檔轉錄成文字，協助快速生成逐字稿，節省整理時間。</li>
-        <li>🤖 智能查詢：結合 AI 模型，使用者可針對上傳資料進行提問，快速獲得摘要、重點或具體資訊。</li>
+        <li>🤖 智能查詢：結合AI模型，使用者可針對上傳資料進行提問，快速獲得摘要、重點或具體資訊。</li>
         <li>📝 會議回顧：會議結束後可集中檢視摘要、討論內容與決策記錄，提供清晰的會議脈絡與成果回顧。</li>
         <li>📑 正式文件：支援會議資料轉換更有格式化的文件，強調排版結構與內容組織。</li>
         <li>📋 任務追蹤：可標記與會中指派的行動項目與負責人，並追蹤執行情況，確保後續任務落實執行。</li>
