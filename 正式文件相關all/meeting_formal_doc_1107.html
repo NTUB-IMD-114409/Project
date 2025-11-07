@@ -1,0 +1,1430 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>會議寶｜會議後｜正式文件</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/navbar_a.css') }}" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <style>
+        .section-box {
+            background-color: #fff;
+            border: 2px dashed #cedfe4;
+            border-radius: 16px;
+            padding: 20px;
+            width: 340px;
+            height: 500px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+            margin: 0 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: stretch;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #205f72;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+
+        .file-li {
+            display: flex;
+            align-items: center;
+            background: #e4e5e5;
+            border-radius: 6px;
+            padding: 8px 12px;
+            margin-bottom: 8px;
+            font-size: 15px;
+            color: #205f72;
+            gap: 8px;
+        }
+
+        .file-link {
+            color: #175c71;
+            text-decoration: underline;
+            cursor: pointer;
+            font-weight: 500;
+            background: none;
+            border: none;
+            font-size: inherit;
+            padding: 0;
+        }
+
+        .section-box ul {
+            overflow-y: auto;
+            max-height: 160px;
+            margin-bottom: 10px;
+        }
+
+        .btn-area {
+            margin-top: auto;
+            display: flex;
+            justify-content: center;
+        }
+
+        .btn-generate {
+            background-color: #205f72;
+            color: #ffffff;
+            padding: 10px 18px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .btn-generate:hover {
+            background-color: #175c71;
+        }
+
+        #downloadModal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.25);
+            z-index: 999;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #downloadModal.active {
+            display: flex;
+        }
+
+        #downloadModal .modal-content {
+            background: white;
+            padding: 32px 32px 24px 32px;
+            border-radius: 14px;
+            min-width: 280px;
+            max-width: 90vw;
+            text-align: center;
+            box-shadow: 0 6px 32px rgba(0, 0, 0, 0.12);
+        }
+
+        #downloadModal .btn-generate {
+            width: 80%;
+            margin-bottom: 10px;
+        }
+
+        #downloadModal .close-btn {
+            margin-top: 18px;
+            color: #888;
+            background: none;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        #templateModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 50;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.4);
+            align-items: center;
+            justify-content: center;
+        }
+
+        #templateModal .modal-content {
+            background-color: white;
+            border-radius: 12px;
+            width: 700px;
+            max-width: 90%;
+            padding: 24px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .template-card {
+            position: relative;
+            overflow: visible !important;
+        }
+
+        .template-preview {
+            transition: transform 0.25s;
+            object-fit: contain;
+            object-position: top;
+            background: #f5f8fa;
+            display: block;
+        }
+
+        #previewModal {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            left: 0;
+            top: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.45);
+            align-items: center;
+            justify-content: center;
+        }
+
+        #previewModal.active {
+            display: flex;
+        }
+
+        #previewModal img {
+            max-width: 90vw;
+            max-height: 90vh;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            border-radius: 10px;
+            background: #fff;
+            object-fit: contain;
+        }
+
+        #previewModal img {
+            max-width: 90vw;
+            max-height: 80vh;
+            display: block;
+            margin: auto;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            border-radius: 10px;
+            background: #fff;
+            object-fit: contain;
+        }
+
+        #template-list {
+            overflow: visible !important;
+        }
+
+        #template-list {
+            display: grid !important;
+            grid-template-columns: repeat(3, 1fr) !important;
+            gap: 1.5rem !important;
+            overflow: visible !important;
+        }
+
+        .selected-template {
+            box-shadow: inset 0 0 0 3px #205f72;
+            border-radius: 8px;
+        }
+
+        .template-desc {
+            word-break: break-word;
+            white-space: normal;
+            line-height: 1.4;
+        }
+
+        .file-link,
+        #transcriptList a,
+        #summaryList a,
+        #formalList a {
+            text-decoration: none;
+        }
+
+        .file-link:hover,
+        #transcriptList a:hover,
+        #summaryList a:hover,
+        #formalList a:hover {
+            text-decoration: underline;
+        }
+
+        /* 限制 section-box 固定大小 */
+        .section-box {
+            width: 340px;
+            height: 500px;
+            flex-shrink: 0;
+            /* 不要因 flex 收縮 */
+        }
+
+        /* 每一行檔案，強制不讓它把外框撐大 */
+        .file-li {
+            display: flex;
+            align-items: center;
+            background: #e4e5e5;
+            border-radius: 6px;
+            padding: 8px 12px;
+            margin-bottom: 8px;
+            font-size: 15px;
+            color: #205f72;
+            gap: 8px;
+            max-width: 100%;
+            /* 不超出外框 */
+            overflow: hidden;
+            white-space: nowrap;
+            /* 單行顯示 */
+            text-overflow: ellipsis;
+            /* 超出顯示 ... */
+        }
+
+        /* 讓連結文字也不超框 */
+        .file-li a {
+            flex: 1;
+            /* 撐滿剩餘空間 */
+            min-width: 0;
+            /* 修復 flex 預設最小寬度 */
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+
+
+        /* 統一所有檔案清單的連結樣式 + 長檔名可滑動 */
+        .file-li a {
+            color: #205f72;
+            /* 和左邊一致的深藍色 */
+            font-weight: 500;
+            /* 粗一點 */
+            text-decoration: none;
+            /* 去掉底線 */
+            flex: 1;
+            /* 撐滿 li */
+            min-width: 0;
+            /* 防止超框 */
+            overflow-x: auto;
+            /* 橫向可滑動 */
+            white-space: nowrap;
+            /* 不換行 */
+            text-overflow: clip;
+            /* 不要省略號 */
+            -webkit-overflow-scrolling: touch;
+            /* 手機順滑 */
+        }
+
+        /* hover 效果 */
+        .file-li a:hover {
+            text-decoration: underline;
+            /* 滑過再顯示底線 */
+            color: #175c71;
+            /* hover 時稍微深一點 */
+        }
+
+        /* 隱藏 scrollbar（可選，純美觀） */
+        .file-li a::-webkit-scrollbar {
+            display: none;
+            /* Chrome/Safari */
+        }
+
+        .file-li a {
+            -ms-overflow-style: none;
+            /* IE/Edge */
+            scrollbar-width: none;
+            /* Firefox */
+        }
+    </style>
+</head>
+
+<body data-meeting-id="{{ meeting_id }}">
+    <div class="layout">
+        <aside class="sidebar" id="sidebar">
+            <button class="navbar-toggle" onclick="toggleSidebar()" id="toggleBtn">
+                <i data-lucide="align-justify" class="w-6 h-6 stroke-[#205f72]"></i>
+            </button>
+            <nav class="menu">
+                <div class="sidebar-item cursor-default hover:bg-transparent select-none">
+                    <i data-lucide="building" class="sidebar-icon stroke-[#205f72]"></i>
+                    <div class="flex flex-col leading-snug">
+                        <span class="text-xs text-gray-500">目前會議</span>
+                        <span id="meeting-date"
+                            class="text-[#205f72] text-sm font-semibold truncate max-w-[180px]"></span>
+                        <span id="meeting-name"
+                            class="text-[#205f72] text-sm font-semibold truncate max-w-[180px]"></span>
+                    </div>
+                </div>
+                <a href="{{ url_for('file.meeting_after_file_upload_page', meeting_id=meeting_id) }}"
+                    class="sidebar-item">
+                    <i data-lucide="file-plus" class="sidebar-icon"></i>
+                    <span>檔案上傳</span>
+                </a>
+                <a href="{{ url_for('transcript_file_page', meeting_id=meeting_id) }}" class="sidebar-item">
+                    <i data-lucide="mic" class="sidebar-icon"></i>
+                    <span>語音轉文字</span>
+                </a>
+                <a href="{{ url_for('permission.meeting_review_page', meeting_id=meeting_id) }}" class="sidebar-item">
+                    <i data-lucide="folder-search-2" class="sidebar-icon"></i>
+                    <span>會議回顧</span>
+                </a>
+                <a href="{{ url_for('qa.meeting_qa_history', meeting_id=meeting_id) }}" class="sidebar-item">
+                    <i data-lucide="search" class="sidebar-icon"></i>
+                    <span>查詢紀錄</span>
+                </a>
+                <a href="{{ url_for('meeting_formal_doc_page', meeting_id=meeting_id) }}" class="sidebar-item">
+                    <i data-lucide="file-text" class="sidebar-icon"></i>
+                    <span>正式文件</span>
+                </a>
+                <a href="{{ url_for('task.task_page', meeting_id=meeting_id, org_id=org_id, topic_id=topic_id) }}"
+                    class="sidebar-item flex items-center gap-2">
+                    <i data-lucide="list-todo" class="sidebar-icon"></i>
+                    <span>任務追蹤</span>
+                </a>
+                <a href="#" class="sidebar-item flex items-center gap-2" onclick="openHelpModal()">
+                    <i data-lucide="circle-question-mark" class="sidebar-icon"></i>
+                    <span>使用說明</span>
+                </a>
+                {% set CTX = (MEETING_CTX if (MEETING_CTX is defined and MEETING_CTX) else (g.meeting_ctx if g and
+                g.meeting_ctx else none)) %}
+                {% set st = (
+                (CTX.status|string|lower|trim) if CTX and CTX.status
+                else (
+                (status|string|lower|trim) if (status is defined and status)
+                else ((meeting.status|string|lower|trim) if (meeting and meeting.status) else '')
+                )
+                ) %}
+                {% set mid = (
+                (CTX.id) if CTX and CTX.id
+                else (
+                meeting_id if meeting_id is defined and meeting_id
+                else (meeting.id if meeting and meeting.id else '')
+                )
+                ) %}
+                <!-- debug: st={{ st }} | mid={{ mid }} | path={{ request.path }} -->
+                {% if st in ['before','during'] and mid %}
+                <a id="endMeetingBtn" data-meeting-id="{{ mid }}" href="#"
+                    class="sidebar-item flex items-center space-x-2 text-red-600 rounded-lg px-4 py-2 hover:bg-red-200 transition"
+                    onclick="endMeeting(event)">
+                    <i data-lucide="power" class="sidebar-icon text-red-600"></i>
+                    <span class="font-bold text-red-600">結束會議</span>
+                </a>
+                {% endif %}
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header class="header">
+                <div class="header-left">
+                    <a href="{{ url_for('organization.build_organization_page') }}">
+                        <img src="{{ url_for('static', filename='image/logo.png') }}" alt="Logo" class="logo-img" />
+                    </a>
+                </div>
+
+                <div class="progress-bar">
+                    <div class="step-group">
+                        <div class="circle gray-completed"></div>
+                        <div class="label label-gray">前</div>
+                    </div>
+                    <div class="line solid-gray"></div>
+                    <div class="step-group">
+                        <div class="circle gray-completed"></div>
+                        <div class="label label-gray">中</div>
+                    </div>
+                    <div class="line solid-gray"></div>
+                    <div class="step-group">
+                        <div class="circle green-completed"></div>
+                        <div class="label label-green">後</div>
+                    </div>
+                </div>
+
+                <div class="header-right">
+                    <a href="{{ url_for('permission.meeting_member3_page', meeting_id=meeting_id) }}">
+                        <img src="{{ url_for('static', filename='image/head.png') }}" alt="Head" class="avatar-img" />
+                    </a>
+                </div>
+            </header>
+
+            <div class="flex justify-center max-w-5xl mx-auto py-10">
+                <div class="section-box">
+                    <div class="section-title relative text-center">
+                        <span>1️⃣ 逐字稿區</span>
+                        <!-- 全選切換 -->
+                        <label
+                            class="absolute right-0 top-1/2 -translate-y-1/2 text-xs text-[#205f72] flex items-center gap-2 cursor-pointer">
+                            <input id="chkAll" type="checkbox" class="accent-[#205f72]">
+                            全選
+                        </label>
+                    </div>
+                    <ul id="transcriptList"></ul>
+                    <div class="btn-area"><button id="genSummaryBtn" class="btn-generate">生成會議記錄整理</button></div>
+                </div>
+
+                <div class="section-box">
+                    <div class="section-title">2️⃣ 會議記錄整理區</div>
+                    <ul id="summaryList"></ul>
+                    <div class="btn-area"><button id="genFormalBtn" class="btn-generate">生成會議正式文件</button>
+                    </div>
+                </div>
+
+                <div class="section-box">
+                    <div class="section-title">3️⃣ 正式文件區</div>
+                    <ul id="formalList"></ul>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- 💾 下載格式 Modal -->
+    <div id="downloadModal" class="fixed inset-0 hidden items-center justify-center bg-black bg-opacity-50 z-[9997]">
+        <div class="bg-white rounded-xl w-[90%] max-w-md p-6 shadow-xl text-center">
+            <div class="font-bold text-lg text-[#205f72] mb-4">選擇下載格式</div>
+
+            <div class="flex flex-col gap-3">
+                <button id="downloadPdfBtn"
+                    class="bg-[#205f72] text-white px-6 py-2 rounded-lg hover:bg-[#1a4e61] transition">
+                    下載 PDF
+                </button>
+                <button id="downloadWordBtn"
+                    class="bg-[#205f72] text-white px-6 py-2 rounded-lg hover:bg-[#1a4e61] transition">
+                    下載 Word
+                </button>
+            </div>
+
+            <button onclick="closeModal()" class="mt-5 text-gray-600 hover:text-gray-800 underline">
+                關閉
+            </button>
+        </div>
+    </div>
+
+
+    <!-- 🧠 選擇模板 Modal -->
+    <div id="templateModal" class="fixed inset-0 hidden items-center justify-center bg-black bg-opacity-50 z-[9998]">
+        <div class="bg-white rounded-xl w-[90%] max-w-3xl p-6 shadow-xl">
+            <h2 class="text-xl font-bold text-[#205f72] mb-4 text-center w-full">
+                選擇會議正式文件模板
+            </h2>
+            <div class="grid grid-cols-2 gap-4" id="template-list"></div>
+
+            <div class="flex justify-end mt-6">
+                <button onclick="closeTemplateModal()" class="mr-8 text-gray-500 hover:text-gray-700">
+                    取消
+                </button>
+
+                <!-- ✅ 下一步：預覽文件 -->
+                <button onclick="generateSelectedDoc()"
+                    class="bg-[#205f72] text-white font-semibold px-6 py-2 rounded-lg hover:bg-[#1a4e61] transition">
+                    下一步：預覽文件
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+
+    <div id="floatingPreview" class="fixed z-[9999] hidden top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2
+            bg-white rounded shadow-2xl border border-gray-300 p-4">
+        <img id="floatingPreviewImg" class="max-w-[600px] max-h-[700px] object-contain rounded" src="" alt="預覽圖" />
+    </div>
+
+    <div class="btn-area">
+        <button onclick="downloadMinutes()" class="btn-generate">下載會議紀錄檔案</button>
+    </div>
+
+    <!-- 會議資訊填寫 Modal -->
+    <div id="minutesModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg shadow-lg w-full max-w-2xl p-6 relative">
+            <h2 class="text-xl font-bold text-[#205f72] mb-4">填寫會議資訊</h2>
+
+            <!-- 基本資訊 -->
+            <div class="mb-3">
+                <label class="block text-sm font-medium text-gray-700">會議名稱</label>
+                <input id="meetingTitle" type="text" class="border rounded px-3 py-2 w-full" placeholder="輸入會議名稱">
+            </div>
+
+            <div class="mb-3">
+                <label class="block text-sm font-medium text-gray-700">主持人</label>
+                <input id="meetingHost" type="text" class="border rounded px-3 py-2 w-full" placeholder="輸入主持人姓名">
+            </div>
+
+            <div class="mb-3">
+                <label class="block text-sm font-medium text-gray-700">時間</label>
+                <input id="meetingTime" type="datetime-local" class="border rounded px-3 py-2 w-full">
+            </div>
+
+            <div class="mb-3">
+                <label class="block text-sm font-medium text-gray-700">地點</label>
+                <input id="meetingLocation" type="text" class="border rounded px-3 py-2 w-full" placeholder="輸入會議地點">
+            </div>
+
+            <!-- 新增發言者 -->
+            <div class="mb-3 flex items-center gap-2">
+                <input id="newSpeaker" type="text" class="border rounded px-3 py-2 flex-1" placeholder="新增發言者名稱">
+                <button onclick="addSpeaker()" class="bg-[#205f72] text-white px-4 py-2 rounded">新增發言者</button>
+            </div>
+
+            <!-- 逐字稿區塊 -->
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700">逐字稿段落與發言人</label>
+                <div id="transcriptPreview" class="border rounded p-3 h-60 overflow-y-auto bg-gray-50 text-sm">
+                    <!-- 這裡會由 JS 塞逐字稿段落 -->
+                </div>
+            </div>
+
+            <!-- 按鈕 -->
+            <div class="flex justify-end gap-3 mt-4">
+                <button onclick="closeMinutesModal()" class="px-4 py-2 bg-gray-300 rounded">取消</button>
+                <button onclick="submitMinutes()" class="px-4 py-2 bg-[#205f72] text-white rounded">生成會議紀錄</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function downloadMinutes() {
+            const meetingId = localStorage.getItem("currentMeetingId");
+            window.location.href = `/api/download_minutes/${meetingId}`;
+        }
+
+        function toggleSidebar() {
+            document.getElementById("sidebar").classList.toggle("collapsed");
+        }
+
+        const meetingId =
+            localStorage.getItem("currentMeetingId") ||
+            document.body?.dataset?.meetingId ||
+            "";
+        if (!meetingId) {
+            console.error("[meetingId] 取不到 meetingId");
+            alert("⚠️ 取不到會議 ID，請重新進入此頁面");
+        }
+
+        const FILETYPE_ALIASES = {
+            "逐字稿": ["逐字稿"],
+            "會議記錄整理": ["會議記錄整理", "會議紀錄整理"],
+            "會議正式文件": ["會議正式文件", "正式文件", "formal_doc"]
+        };
+
+        async function fetchFilesByType(meetingId, fileType) {
+            const aliasList = FILETYPE_ALIASES[fileType] || [fileType];
+            const safeId = encodeURIComponent(meetingId);
+
+            const results = await Promise.all(
+                aliasList.map(async (t) => {
+                    const safeType = encodeURIComponent(t);
+                    try {
+                        const res = await fetch(`/api/meeting_files_by_type/${safeId}/${safeType}`);
+                        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                        const data = await res.json();
+                        return (data && data.success && Array.isArray(data.files)) ? data.files : [];
+                    } catch (err) {
+                        console.error(`[fetchFilesByType] 讀取失敗 (${t}):`, err);
+                        return [];
+                    }
+                })
+            );
+
+            const merged = [];
+            const seen = new Set();
+            for (const arr of results) {
+                for (const f of arr) {
+                    const key = f.id ?? f.file_path ?? `${f.file_name}|${f.file_path}`;
+                    if (seen.has(key)) continue;
+                    seen.add(key);
+                    merged.push(f);
+                }
+            }
+            return merged;
+        }
+
+        function renderSummaryFiles(files) {
+            const wrap = document.getElementById("summaryList");
+            if (!wrap) return;
+            if (!files || files.length === 0) {
+                wrap.innerHTML = "<li class='text-gray-400'>無</li>";
+                return;
+            }
+
+            wrap.innerHTML = files.map(f => `
+            <li class="file-li">
+                <input type="checkbox"
+                name="summaryFile"
+                class="summary-checkbox accent-[#205f72]"
+                value="${f.file_path}">
+                <a class="file-link text-[#175c71] font-medium"
+                href="/uploads/${f.file_path}"
+                download
+                title="下載 ${f.file_name}">
+                ${f.file_name}
+                </a>
+            </li>
+            `).join("");
+
+            bindSummaryCheckbox();
+        }
+
+        function bindSummaryCheckbox() {
+            document.querySelectorAll('input[name="summaryFile"]').forEach(cb => {
+                cb.addEventListener("change", function () {
+                    if (this.checked) {
+                        document.querySelectorAll('input[name="summaryFile"]').forEach(other => {
+                            if (other !== this) other.checked = false;
+                        });
+                    }
+                });
+            });
+        }
+
+        async function renderSections() {
+            const [transcript, summaryFiles, formal] = await Promise.all([
+                fetchFilesByType(meetingId, "逐字稿"),
+                fetchFilesByType(meetingId, "會議記錄整理"),
+                fetchFilesByType(meetingId, "會議正式文件"),
+            ]);
+
+            document.getElementById("transcriptList").innerHTML =
+                transcript.length ?
+                    transcript.map(f => `
+                <li class="file-li">
+                    <input type="checkbox" class="transcript-checkbox accent-[#205f72]" value="${f.file_path}">
+                    <a href="/uploads/${f.file_path}" target="_blank" title="預覽/下載">${f.file_name}</a>
+                </li>`).join("") :
+                    "<li class='text-gray-400'>無</li>";
+
+            if (summaryFiles.length > 0) {
+                renderSummaryFiles(summaryFiles);
+            } else {
+                document.getElementById("summaryList").innerHTML = "<li class='text-gray-400'>無</li>";
+            }
+
+            document.getElementById("formalList").innerHTML =
+                formal.length ?
+                    formal.map(f => `
+                <li class="file-li">
+                    <a class="file-link text-[#175c71] font-medium"
+                    href="/uploads/${f.file_path}"
+                    download
+                    title="下載 ${f.file_name}">
+                    ${f.file_name}
+                    </a>
+                </li>`).join("") :
+                    "<li class='text-gray-400'></li>";
+
+            await lucide.createIcons();
+        }
+
+        function downloadFile(url, filename) {
+            let a = document.createElement("a");
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        // === 📌 會議資訊彈窗邏輯 ===
+        let selectedTranscriptText = "";
+
+        function openMinutesModal(transcriptText) {
+            selectedTranscriptText = transcriptText;
+            document.getElementById("minutesModal").classList.remove("hidden");
+
+            const segments = transcriptText.split(/\n\s*\n/).filter(s => s.trim() !== "");
+            const preview = document.getElementById("transcriptPreview");
+
+            const speakers = ["主持人", "與會者"];
+
+
+            preview.innerHTML = segments.map((seg, i) => `
+                <div class="mb-4">
+                    <select id="speaker-${i}" class="border px-2 py-1 rounded mr-2 mb-2">
+                        ${speakers.map(s => `<option value="${s}">${s}</option>`).join("")}
+                    </select>
+                    <textarea
+                        id="speech-${i}"
+                        class="border rounded px-3 py-2 w-full text-gray-700 focus:ring-2 focus:ring-[#205f72] resize-y"
+                        rows="8"
+                    >${seg.trim()}</textarea>
+                </div>
+                `).join("");
+
+        }
+
+        function closeMinutesModal() {
+            document.getElementById("minutesModal").classList.add("hidden");
+        }
+
+        function addSpeaker() {
+            const newName = document.getElementById("newSpeaker").value.trim();
+            if (!newName) return;
+            document.querySelectorAll("select[id^='speaker-']").forEach(sel => {
+                const opt = document.createElement("option");
+                opt.value = newName;
+                opt.textContent = newName;
+                sel.appendChild(opt);
+            });
+            document.getElementById("newSpeaker").value = "";
+        }
+
+        async function submitMinutes() {
+            const title = document.getElementById("meetingTitle").value.trim() || "未命名會議";
+            const host = document.getElementById("meetingHost").value.trim() || "未提供";
+            const time = document.getElementById("meetingTime").value.trim() || "未提供";
+            const location = document.getElementById("meetingLocation").value.trim() || "未提供";
+
+            const segments = selectedTranscriptText.split(/\n\s*\n/).filter(s => s.trim() !== "");
+            const speeches = segments.map((_, i) => [
+                document.getElementById(`speaker-${i}`).value.trim() || "與會者",
+                document.getElementById(`speech-${i}`).value.trim()
+            ]);
+
+
+
+            const payload = {
+                meeting_id: meetingId,   // 👈 新增
+                title,
+                host,
+                time,
+                location,
+                speeches
+            };
+
+            try {
+                const res = await fetch("/api/generate_minutes_doc", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+                const j = await res.json();
+                if (!j.success) throw new Error(j.message || "生成失敗");
+
+                alert("✅ 會議記錄生成成功！");
+                closeMinutesModal();
+
+                const { file_name, file_path } = j.data;
+
+                // === 自動插入到「會議記錄整理區」 ===
+                const summaryList = document.getElementById("summaryList");
+                if (summaryList.querySelector(".text-gray-400")) {
+                    summaryList.innerHTML = "";
+                }
+                const li = document.createElement("li");
+                li.className = "file-li";
+                li.innerHTML = `
+                    <input type="checkbox"
+                        name="summaryFile"
+                        class="summary-checkbox accent-[#205f72]"
+                        value="${file_path}" checked>
+                    <a class="file-link text-[#175c71] font-medium"
+                    href="/uploads/${file_path}"
+                    download
+                    title="下載 ${file_name}">
+                    ${file_name}
+                    </a>
+                `;
+                summaryList.appendChild(li);
+                bindSummaryCheckbox();
+
+            } catch (err) {
+                alert("❌ 生成失敗：" + err.message);
+            }
+        }
+
+
+        document.addEventListener("DOMContentLoaded", () => {
+            renderSections();
+
+            const name = localStorage.getItem("currentMeetingName") || "未命名會議";
+            const date = localStorage.getItem("currentMeetingDate") || "未指定日期";
+            const dateSpan = document.getElementById("meeting-date");
+            const nameSpan = document.getElementById("meeting-name");
+            if (dateSpan) dateSpan.textContent = date;
+            if (nameSpan) nameSpan.textContent = name;
+
+            const chkAll = document.getElementById("chkAll");
+            chkAll?.addEventListener("change", () => {
+                document.querySelectorAll(".transcript-checkbox").forEach(cb => cb.checked = chkAll.checked);
+            });
+
+            const genSummaryBtn = document.getElementById("genSummaryBtn");
+            if (genSummaryBtn) {
+                genSummaryBtn.addEventListener("click", async () => {
+                    const checked = [...document.querySelectorAll(".transcript-checkbox:checked")]
+                        .map(cb => cb.value);
+                    if (checked.length === 0) {
+                        alert("請至少勾選一個逐字稿檔案！");
+                        return;
+                    }
+
+                    const filePath = checked[0];
+                    const res = await fetch("/api/read_docx", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ file_path: `uploads/${filePath}` })
+                    });
+
+                    const j = await res.json();
+                    if (!j.success) {
+                        alert("❌ 讀取逐字稿失敗：" + j.message);
+                        return;
+                    }
+
+                    openMinutesModal(j.text);
+                });
+            }
+
+            const btn = document.getElementById("genFormalBtn");
+            if (btn) {
+                btn.addEventListener("click", () => {
+                    openTemplateModal();
+                });
+            }
+        });
+    </script>
+
+
+    <script>
+        let selectedTemplateId = null;
+
+        function openTemplateModal() {
+            const modal = document.getElementById("templateModal");
+            if (modal) {
+                modal.classList.remove("hidden");
+                modal.style.display = "flex";
+            }
+            fetch("/api/templates")
+                .then(res => res.json())
+                .then(templates => {
+                    const list = document.getElementById("template-list");
+                    if (!list) return;
+                    list.innerHTML = templates.map(t => `
+
+                    <div id="template-card-${t.id}"
+                        onclick="selectTemplate(${t.id})"
+                        class="template-card border p-3 rounded hover:border-[#205f72] cursor-pointer relative group">
+                        <div class="absolute top-2 right-2 z-10">
+                          <i class="fa-solid fa-magnifying-glass text-gray-500 hover:text-[#205f72] text-xl cursor-pointer"
+                             onclick="showFloatingPreview('${t.preview_url}', event)"></i>
+                        </div>
+                        <img src="${t.preview_url}"
+                            class="template-preview w-full h-32 mb-2 rounded border border-gray-200 object-contain object-top"
+                            alt="模板預覽" />
+                        <p class="template-desc text-sm font-semibold text-[#205f72] text-left leading-snug">
+                          ${t.description}
+                        </p>
+                    </div>`).join("");
+                });
+        }
+
+        function closeTemplateModal() {
+            const modal = document.getElementById("templateModal");
+            if (modal) {
+                modal.classList.add("hidden");
+                modal.style.display = 'none';
+            }
+        }
+
+        function selectTemplate(id) {
+            selectedTemplateId = id;
+
+            // 🔄 顯示載入提示
+            const overlay = document.getElementById("loadingOverlay");
+            overlay.style.display = "flex";
+
+            // 樣式切換（高亮被選的模板）
+            document.querySelectorAll(".template-card").forEach(card => {
+                card.classList.remove("selected-template");
+            });
+            const selectedCard = document.getElementById("template-card-" + id);
+            if (selectedCard) selectedCard.classList.add("selected-template");
+
+            // 模擬載入幾秒（實際可以是等待 AI 產出或其他動作）
+            setTimeout(() => {
+                overlay.style.display = "none"; // ✅ 關閉提示框
+                alert("模板已選擇完成！");
+            }, 1500);
+        }
+
+
+        async function generateSelectedDoc() {
+            const meetingId = localStorage.getItem("currentMeetingId");
+            const orgId = localStorage.getItem("current_org_id");
+
+            if (!selectedTemplateId) {
+                alert("請先選擇模板！");
+                return;
+            }
+
+            if (!orgId) {
+                alert("⚠️ 找不到 org_id，請確認 localStorage 是否有存 current_org_id");
+                return;
+            }
+
+            const overlay = document.getElementById("loadingOverlay");
+            overlay.style.display = "flex"; // 顯示載入中
+
+            try {
+                // 🧠 第一步：向後端請求 AI 生成的「草稿內容」
+                const res = await fetch("/api/generate_formal_doc_draft", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        meeting_id: meetingId,
+                        template_id: selectedTemplateId,
+                        org_id: orgId
+                    }),
+                    credentials: "include"
+                });
+
+
+                const data = await res.json();
+                console.log("📦 後端回傳：", data);
+
+                // 🧩 debug：檢查 modal 狀態（只加這 3 行）
+                const previewModal = document.getElementById("previewModal");
+                const previewBox = document.getElementById("previewBox");
+                console.log("🔍 previewModal:", previewModal);
+                console.log("🔍 previewBox:", previewBox);
+
+                if (data.status !== "ok") throw new Error(data.message || "草稿生成失敗");
+
+
+                // 🧩 改這裡：用 sections 生成每個段落編輯框
+                const draftContainer = document.getElementById("draftSections");
+                draftContainer.innerHTML = "";
+
+                if (data.status !== "ok") throw new Error(data.message || "草稿生成失敗");
+
+                // 🧩 改這裡：呼叫共用的渲染函式
+                if (data.sections && data.sections.length > 0) {
+                    renderDraftSections(data.sections);
+                } else if (data.draft_content) {
+                    renderDraftSections([{ heading: "文件內容", content: data.draft_content }]);
+                } else {
+                    const container = document.getElementById("draftSections");
+                    container.innerHTML = `<p class="text-gray-500 text-center">⚠️ 沒有內容可以顯示</p>`;
+                }
+
+                // 顯示外層黑背景
+                previewModal.classList.remove("hidden");
+                previewModal.classList.add("flex");
+                previewModal.style.display = "flex";
+
+                // 淡入動畫
+                setTimeout(() => {
+                    previewBox.classList.remove("opacity-0", "scale-95");
+                    previewBox.classList.add("opacity-100", "scale-100");
+
+                    // 延後一點再關模板彈窗，避免畫面被吃掉
+                    setTimeout(() => closeTemplateModal(), 300);
+                }, 50);
+
+
+            } catch (err) {
+                console.error("⚠️ generate_formal_doc_draft 錯誤:", err);
+                alert("❌ 生成草稿失敗：" + err.message);
+            } finally {
+                overlay.style.display = "none"; // 關閉載入提示
+            }
+        }
+
+
+
+
+        function renderDraftSections(sections) {
+            const container = document.getElementById("draftSections");
+            container.innerHTML = "";
+
+            sections.forEach(sec => {
+                const sectionDiv = document.createElement("div");
+                sectionDiv.classList.add("editable-section", "border", "border-gray-200", "rounded-xl", "p-4", "shadow-sm");
+
+                sectionDiv.innerHTML = `
+      <h3 class="section-title text-lg font-bold text-[#205f72] mb-2">${sec.heading}</h3>
+      <textarea class="section-content w-full border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-[#205f72]" rows="6">${sec.content}</textarea>
+    `;
+
+                container.appendChild(sectionDiv);
+            });
+        }
+
+
+
+
+        async function confirmGenerateWord() {
+            console.log("🟢 [confirmGenerateWord] 按鈕被點擊了");
+
+            const meetingId = localStorage.getItem("currentMeetingId");
+            const orgId = localStorage.getItem("current_org_id");
+
+            // 檢查
+            if (!meetingId) {
+                alert("⚠️ 找不到會議 ID！");
+                return;
+            }
+
+            if (!orgId) {
+                alert("⚠️ 找不到 org_id！");
+                return;
+            }
+
+            // 顯示載入畫面
+            const overlay = document.getElementById("loadingOverlay");
+            if (overlay) {
+                overlay.style.display = "flex";
+                overlay.innerHTML = `<div class="text-white text-xl font-bold animate-pulse">正在生成正式文件，請稍候...</div>`;
+            } else {
+                console.log("⚠️ 沒找到 loadingOverlay 元素");
+            }
+
+            try {
+                // 收集所有段落內容
+                const sections = [];
+                document.querySelectorAll(".editable-section").forEach(section => {
+                    const heading = section.querySelector(".section-title")?.innerText || "未命名段落";
+                    const content = section.querySelector(".section-content")?.value || "";
+                    sections.push({ heading, content });
+                });
+
+                console.log("📦 [confirmGenerateWord] 收集的 sections:", sections);
+
+                // 發送請求
+                const res = await fetch("/api/generate_formal_doc", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        meeting_id: meetingId,
+                        org_id: orgId,
+                        template_id: selectedTemplateId,
+                        sections: sections
+                    }),
+                    credentials: "include"
+                });
+
+                console.log("📡 [confirmGenerateWord] 後端回傳狀態:", res.status);
+
+                const data = await res.json();
+                console.log("📄 [confirmGenerateWord] 後端回傳資料:", data);
+
+                if (data.status !== "ok") throw new Error(data.message || "生成正式文件失敗");
+
+
+
+                // ✅ 成功生成正式文件後，讓「生成會議正式文件」按鈕變灰並禁用
+                const formalBtn = document.getElementById("genFormalBtn");
+                if (formalBtn) {
+                    formalBtn.disabled = true;              // 禁止再次點擊
+                    formalBtn.style.backgroundColor = "#edebeb";  // 改灰色背景
+                    formalBtn.style.color = "#aaa";         // 改灰色文字
+                    formalBtn.style.cursor = "not-allowed"; // 滑鼠顯示禁止符號
+                    formalBtn.title = "正式文件已生成";       // 提示說明
+                }
+
+                // 💾 用會議 ID 當 key，避免不同會議互相影響
+                localStorage.setItem(`formalGenerated_${meetingId}`, "true");
+
+
+
+
+                // 自動下載檔案
+                const a = document.createElement("a");
+                a.href = `/uploads/${data.file_path}`;
+                a.download = data.file_name;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+
+                // ✅ 關閉預覽與模板彈窗
+                closePreviewModal(true); // 改這行：帶 true 表示不顯示確認提示
+                const templateModal = document.getElementById("templateModal");
+                if (templateModal) {
+                    templateModal.classList.add("hidden");
+                    templateModal.style.display = "none";
+                }
+
+                // ✅ 嘗試即時刷新正式文件列表（不用重整頁面）
+                if (typeof loadFormalDocs === "function") {
+                    console.log("🔄 [confirmGenerateWord] 嘗試刷新正式文件列表...");
+                    await loadFormalDocs(meetingId);
+                }
+
+                alert("✅ 正式文件已生成並開始下載！");
+
+            } catch (err) {
+                console.error("❌ [confirmGenerateWord] 發生錯誤:", err);
+                alert("⚠️ 生成文件失敗：" + err.message);
+            } finally {
+                // 關閉載入提示
+                if (overlay) overlay.style.display = "none";
+            }
+        }
+
+
+        function closePreviewModal(force = false) {
+            console.log("🧠 closePreviewModal 被觸發了，force =", force);
+
+            // 🔸 如果不是強制關閉，就問使用者要不要返回
+            if (!force && !confirm("確定要返回模板選擇？未儲存的修改將會消失。")) return;
+
+            const modal = document.getElementById("previewModal");
+            const box = document.getElementById("previewBox");
+
+            // 淡出動畫
+            box.classList.add("opacity-0", "scale-95");
+
+            setTimeout(() => {
+                modal.classList.add("hidden");
+                modal.classList.remove("flex");
+                modal.style.display = "none";
+            }, 200);
+
+            // 🔹 只有「手動關閉」時才重新打開模板選擇彈窗
+            if (!force) {
+                const templateModal = document.getElementById("templateModal");
+                if (templateModal) {
+                    templateModal.classList.remove("hidden");
+                    templateModal.classList.add("flex");
+                    templateModal.style.display = "flex";
+                }
+            }
+        }
+
+
+        function showFloatingPreview(src, event) {
+            event.stopPropagation();
+            const preview = document.getElementById("floatingPreview");
+            const img = document.getElementById("floatingPreviewImg");
+            img.src = src;
+            preview.classList.remove("hidden");
+        }
+
+        function hideFloatingPreview() {
+            document.getElementById("floatingPreview").classList.add("hidden");
+        }
+
+        document.addEventListener("click", function () { hideFloatingPreview(); });
+
+        function getCurrentMeetingId() {
+            const btn = document.getElementById("endMeetingBtn");
+            return btn ? btn.dataset.meetingId : "";
+        }
+
+        async function endMeeting(e) {
+            e?.preventDefault();
+            const meetingId = getCurrentMeetingId();
+            if (!meetingId) { alert("找不到會議 ID"); return; }
+            if (!confirm("確定要結束會議嗎？")) return;
+
+            try {
+                const r = await fetch(`/api/meeting/${meetingId}/end`, { method: "POST" });
+                const data = await r.json();
+                if (!data.success) { alert("❌ " + (data.message || "結束會議失敗")); return; }
+
+                const orgId = data.org_id || localStorage.getItem("current_org_id");
+                const topicId = data.topic_id || localStorage.getItem("current_topic_id");
+                const url = topicId
+                    ? `/meeting?org_id=${encodeURIComponent(orgId)}&topic_id=${encodeURIComponent(topicId)}`
+                    : `/meeting?org_id=${encodeURIComponent(orgId)}`;
+                window.location.replace(url);
+            } catch (err) {
+                console.error("結束會議 API 錯誤", err);
+                alert("⚠️ 系統錯誤");
+            }
+        }
+
+        function openHelpModal() {
+            document.getElementById("helpModal").classList.remove("hidden");
+            document.getElementById("helpModal").classList.add("flex");
+        }
+
+        function closeHelpModal() {
+            document.getElementById("helpModal").classList.add("hidden");
+            document.getElementById("helpModal").classList.remove("flex");
+        }
+
+        function closeTemplateModal() {
+            const modal = document.getElementById("templateModal");
+            if (modal) {
+                modal.classList.add("hidden");
+                modal.style.display = "none";
+            }
+        }
+
+        // 重新載入正式文件列表（不重整整頁）
+        async function loadFormalDocs(meetingId) {
+            console.log("🔄 [loadFormalDocs] 開始刷新正式文件清單...");
+
+            try {
+                const res = await fetch(`/api/meeting_files_by_type/${meetingId}/會議正式文件`, {
+                    method: "GET",
+                    credentials: "include"
+                });
+
+                if (!res.ok) throw new Error("載入正式文件失敗：" + res.status);
+                const data = await res.json();
+                console.log("📦 [loadFormalDocs] 後端回傳：", data);
+
+                const container = document.getElementById("formalDocList");
+                if (!container) {
+                    console.warn("⚠️ [loadFormalDocs] 沒找到 formalDocList 容器");
+                    return;
+                }
+
+                if (Array.isArray(data) && data.length > 0) {
+                    container.innerHTML = data
+                        .map(
+                            f => `
+          <div class="p-3 border border-gray-200 rounded-lg flex justify-between items-center bg-white shadow-sm hover:bg-gray-50 transition">
+            <span class="truncate text-gray-800">${f.file_name}</span>
+            <a href="/uploads/${f.file_path}" download class="text-[#205f72] hover:underline">下載</a>
+          </div>`
+                        )
+                        .join("");
+                } else {
+                    container.innerHTML = `<p class="text-gray-500 text-center">目前尚未有正式文件</p>`;
+                }
+
+                console.log("✅ [loadFormalDocs] 已更新 UI");
+            } catch (err) {
+                console.error("❌ [loadFormalDocs] 發生錯誤：", err);
+            }
+        }
+
+            // 🧭 頁面載入時檢查是否已經生成正式文件（依照不同會議 ID）
+            window.addEventListener("load", () => {
+                // 取得目前的會議 ID（你前面已經存在 localStorage）
+                const meetingId = localStorage.getItem("currentMeetingId");
+
+                // 檢查該會議是否有生成正式文件
+                if (localStorage.getItem(`formalGenerated_${meetingId}`) === "true") {
+                    // 若有生成過 → 讓按鈕變灰、禁用
+                    const formalBtn = document.getElementById("genFormalBtn");
+                    if (formalBtn) {
+                        formalBtn.disabled = true;
+                        formalBtn.style.backgroundColor = "#edebeb";
+                        formalBtn.style.color = "#aaa";
+                        formalBtn.style.cursor = "not-allowed";
+                        formalBtn.title = "正式文件已生成";
+                    }
+                } else {
+                    // 若是新會議（或尚未生成）→ 恢復可用
+                    const formalBtn = document.getElementById("genFormalBtn");
+                    if (formalBtn) {
+                        formalBtn.disabled = false;
+                        formalBtn.style.backgroundColor = "";
+                        formalBtn.style.color = "";
+                        formalBtn.style.cursor = "pointer";
+                        formalBtn.title = "";
+                    }
+                }
+            });
+
+
+    </script>
+
+    <!-- 使用說明 Modal -->
+    <div id="helpModal" class="fixed inset-0 hidden items-center justify-center bg-black bg-opacity-50 z-50">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg flex flex-col overflow-hidden">
+            <div class="p-6 flex-1 overflow-y-auto max-h-[80vh]">
+                <h3 class="text-xl font-bold text-[#205f72] mb-4 text-center">📘 使用說明</h3>
+                <ol class="list-decimal pl-5 text-gray-700 leading-relaxed text-base space-y-3">
+
+                    <li>
+                        <span class="font-semibold text-[#205f72]">逐字稿區</span>
+                        <ul class="list-disc pl-6 mt-1 space-y-1">
+                            <li>會議逐字稿會顯示在左側清單，可勾選一個或多個檔案。</li>
+                            <li>點擊 <span
+                                    class="bg-[#205f72] text-white text-xs px-2 py-0.5 rounded">生成會議記錄整理</span>，系統會依勾選的逐字稿自動產生整理版本。
+                            </li>
+                            <li>可使用「全選」快速勾選所有逐字稿。</li>
+                        </ul>
+                    </li>
+
+                    <li>
+                        <span class="font-semibold text-[#205f72]">會議記錄整理區</span>
+                        <ul class="list-disc pl-6 mt-1 space-y-1">
+                            <li>顯示 AI 產生的摘要、決策事項與待辦事項。</li>
+                            <li>可下載或再次生成 <span class="font-semibold">會議正式文件</span>。</li>
+                        </ul>
+                    </li>
+
+                    <li>
+                        <span class="font-semibold text-[#205f72]">正式文件區</span>
+                        <ul class="list-disc pl-6 mt-1 space-y-1">
+                            <li>展示已產生的正式文件清單，可點擊下載。</li>
+                            <li>支援 PDF 與 Word 格式。</li>
+                        </ul>
+                    </li>
+
+                    <li>
+                        <span class="font-semibold text-[#205f72]">模板挑選</span>
+                        <ul class="list-disc pl-6 mt-1 space-y-1">
+                            <li>點擊 <span class="bg-[#205f72] text-white text-xs px-2 py-0.5 rounded">生成會議正式文件</span>
+                                進入模板選擇。</li>
+                            <li>點選卡片可預覽範例，並挑選適合的模板。</li>
+                            <li>選定後點擊「產出文件」，即可下載 Word 檔。</li>
+                        </ul>
+                    </li>
+
+                    <li>
+                        <span class="font-semibold text-[#205f72]">下載紀錄檔案</span>
+                        <ul class="list-disc pl-6 mt-1 space-y-1">
+                            <li>頁面底部提供 <span class="bg-[#205f72] text-white text-xs px-2 py-0.5 rounded">下載會議紀錄檔案</span>
+                                按鈕，可一次下載完整紀錄。</li>
+                        </ul>
+                    </li>
+
+                    <li>
+                        <span class="font-semibold text-[#d32f2f]">結束會議</span>
+                        <ul class="list-disc pl-6 mt-1 space-y-1">
+                            <li>僅主持人可點擊左側 <span class="text-red-600 font-bold">「結束會議」</span> 按鈕。</li>
+                            <li>結束會議後，系統僅保留會議後狀態。</li>
+                            <li>系統會導回會議清單頁，方便後續檢視會議紀錄。</li>
+                        </ul>
+                    </li>
+
+                </ol>
+            </div>
+            <div class="flex justify-center p-4 border-t">
+                <button onclick="closeHelpModal()" class="bg-gray-300 text-black px-6 py-2 rounded-lg">關閉</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🔄 載入提示框 -->
+    <div id="loadingOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4);
+            z-index:9999; align-items:center; justify-content:center;">
+        <div style="background:white; padding:24px 32px; border-radius:12px;
+              font-size:16px; font-weight:600; color:#205f72;
+              box-shadow:0 6px 20px rgba(0,0,0,0.2); text-align:center;">
+            <i class="fa-solid fa-spinner fa-spin mr-2"></i>請稍等，正在載入模板...
+        </div>
+    </div>
+
+
+    <!-- 📝 預覽與確認 Modal -->
+    <div id="previewModal"
+        class="fixed inset-0 hidden items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm transition-opacity duration-300"
+        style="z-index: 999999; display: none;">
+
+        <div id="previewBox"
+            class="bg-white rounded-2xl shadow-2xl w-[90%] max-w-4xl flex flex-col overflow-hidden opacity-0 scale-95 transition-all duration-300"
+            style="z-index: 100000;">
+
+
+            <!-- 內容 -->
+            <div class="p-6 flex-1 overflow-y-auto max-h-[75vh]">
+                <h3 class="text-2xl font-bold text-[#205f72] mb-4 text-center">📝 文件預覽與編輯</h3>
+                <!-- 🧩 多段可編輯內容的容器 -->
+                <div id="draftSections" class="space-y-6"></div>
+            </div>
+
+
+            <!-- 底部按鈕列 -->
+            <div class="flex justify-end gap-3 p-4 border-t bg-gray-50">
+                <button onclick="if (confirm('確定要返回模板選擇？未儲存的修改將會消失。')) closePreviewModal()" class="bg-gray-300 hover:bg-gray-400 text-black px-5 py-2 rounded-lg transition
+            shadow-sm hover:shadow-md active:scale-95">
+                    返回模板選擇
+                </button>
+
+                <button onclick="confirmGenerateWord()" class="bg-[#205f72] hover:bg-[#1a4e61] text-white px-6 py-2 rounded-lg transition
+            shadow-sm hover:shadow-md active:scale-95">
+                    確認生成 Word
+                </button>
+            </div>
+            <!-- 📄 正式文件清單（生成後會自動更新這裡） -->
+            <div id="formalDocList" class="space-y-2 mt-4 bg-gray-50 p-4 rounded-lg shadow-inner text-sm">
+                <p class="text-gray-500 text-center">目前尚未有正式文件</p>
+            </div>
+
+
+            <!-- Loading Overlay -->
+            <div id="loadingOverlay"
+                class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center text-white text-2xl font-semibold z-[999999]">
+                處理中，請稍候...
+            </div>
+
+
+
+</body>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script> lucide.createIcons(); </script>
+
+</html>
